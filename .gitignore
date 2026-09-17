@@ -1,0 +1,99 @@
+# =============================================================================
+# PRIVACY RULE: no financial information is ever committed to this repository.
+# Balances, holdings, transactions, plan parameters, and any credentials or
+# tokens for financial institutions live ONLY in a local encrypted store on the
+# user's machine. Everything below exists to make an accidental commit hard.
+# =============================================================================
+
+# --- Local user data (never commit) ------------------------------------------
+/data/
+/local/
+/imports/
+/exports/
+/backups/
+*.local.json
+*.local.toml
+*.local.yaml
+*.local.yml
+params.json
+params.toml
+params.yaml
+plan.json
+plan.toml
+
+# Encrypted stores and databases (still never commit: ciphertext is not a backup strategy)
+*.age
+*.enc
+*.gpg
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.sqlcipher
+
+# Financial-institution / personal-finance export formats
+*.qif
+*.qfx
+*.ofx
+*.qdf
+*.qel
+*.mny
+*.tax20*
+*.txf
+
+# --- Secrets -------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+secrets/
+credentials/
+**/*secret*
+**/*credential*
+!docs/**/*secret*
+!docs/**/*credential*
+
+# Local TLS material for the localhost server
+/certs/
+*.crt
+*.csr
+
+# --- Build / tooling -------------------------------------------------------------
+# Rust
+/target/
+**/*.rs.bk
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+# Node / web front end
+node_modules/
+dist/
+build/
+.next/
+.svelte-kit/
+.vite/
+coverage/
+
+# --- OS / editor -------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+*.tmp
+.idea/
+.vscode/
+!.vscode/extensions.json
+
+# --- Claude Code local state ---------------------------------------------------------
+.claude/settings.local.json
