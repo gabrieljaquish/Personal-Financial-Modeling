@@ -15,7 +15,20 @@ The focus is **planning, not tracking**. Budgeting and account-tracking tools al
 
 ## Status
 
-Early planning. No application code yet.
+Design complete; implementation not started. See the design documents below.
+
+## Design documents
+
+The build plan and specifications live in [`docs/`](docs/). Suggested reading order:
+
+1. [PLAN.md](docs/PLAN.md) — vision, principles, milestone roadmap (M0–M10), risks, definition of done
+2. [ARCHITECTURE.md](docs/ARCHITECTURE.md) — stack, components, repository layout, engine API, release pipeline
+3. [DECISIONS.md](docs/DECISIONS.md) — architecture decision records
+4. [DOMAIN-MODEL.md](docs/DOMAIN-MODEL.md) — plan-file schema, scenarios as diffs, parameter tables and vintages
+5. [ENGINE-SPEC.md](docs/ENGINE-SPEC.md) — annual ledger, federal tax function, next-dollar engine, Roth decisions
+6. [SIMULATION-SPEC.md](docs/SIMULATION-SPEC.md) — return generators, Monte Carlo, the "enough" scorecard, Social Security, portfolio
+7. [SECURITY.md](docs/SECURITY.md) — threat model, encrypted plan file, TLS on loopback, repository hygiene
+8. [TESTING.md](docs/TESTING.md) — validation corpus, oracles, invariants, CI gates
 
 ## How it is meant to work
 
@@ -52,7 +65,8 @@ results are ever committed. Everything personal is a runtime input.
 | Accounts | 401(k)/403(b), Traditional and Roth IRA, HSA, 529, taxable, cash, debts |
 | Modeling | Year-by-year projection, side-by-side scenarios, Monte Carlo |
 | Data input | Manual entry and CSV/OFX import first; direct institution connections later through a connector interface |
-| Front end | Web-based, served locally |
-| Backend | To be decided (Rust, Go, C++ or Python) |
+| Front end | Web app in the browser (Vite + React + TypeScript), served by the local process |
+| Backend | Rust — one self-contained executable that runs the local server and the modeling engine |
+| Platform | macOS first; code kept portable to other operating systems |
 
 > Nothing in this repository is financial advice.
