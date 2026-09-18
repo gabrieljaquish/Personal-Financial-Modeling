@@ -1,0 +1,137 @@
+#
+# Stage 2 — nightly (TESTING.md §11.1).
+#
+# Two kinds of check belong on a schedule rather than on a push:
+#
+#   1. Checks over the whole history. gitleaks on a pull request sees only the
+#      commits in that pull request. A secret that entered the repository before
+#      the rule that would have caught it was written — or before the rule
+#      existed — is invisible to every per-push scan and visible to this one.
+#      The container magic is the exception gitleaks cannot see in history at
+#      all (binary diffs); `cargo xtask check-magic --history` covers it.
+#   2. Checks whose result changes without the repository changing. A RustSec
+#      advisory is published against a dependency that has not moved; nothing in
+#      the repository is different this morning and the answer is. A gate that
+#      only runs on a push cannot find that, and a repository with no pushes
+#      this week is exactly where it matters.
+#
+# What is deliberately not here yet, each waiting on the milestone that creates
+# it (TESTING.md §11.1 stage 2): oracle re-recording, `cargo-mutants`,
+# `cargo-fuzz`, properties at 10,000 cases, cross-architecture determinism and
+# the gating `criterion` run.
+#
+# Same conventions as `ci.yml`: read-only token, no secrets, actions pinned to a
+# full commit SHA with the tag in a trailing comment, tools from Homebrew.
+#
+name: Nightly
+
+on:
+  schedule:
+    # 04:17 UTC. Off the hour, because every scheduled job on the hour competes
+    # for the same runners and is dropped or delayed.
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-${{ github.workflow }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  HOMEBREW_NO_AUTO_UPDATE: "1"
+  HOMEBREW_NO_INSTALL_CLEANUP: "1"
+  HOMEBREW_NO_ANALYTICS: "1"
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # -------------------------------------------------------------------------
+  # gitleaks over the full history (SECURITY.md §13.2; ADR-023)
+  # -------------------------------------------------------------------------
+  #
+  # `fetch-depth: 0` is the whole point of this job: every commit on every ref
+  # this checkout holds, scanned with the current ruleset, so that a rule added
+  # today is applied to everything that was committed before it existed.
+  #
+  # `--max-decode-depth 0` disables gitleaks' escape/encoding decoder. It is not
+  # an allowlist. `docs/SECURITY.md` §3.1 documents the plan-file container
+  # header as JSON, in which the seven-byte container magic can only be written
+  # with a `\u`-style escape for its trailing NUL; the decoder turns that
+  # example back into the byte sequence, so with decoding on this scan fails on
+  # the project's own design document for every commit that contains it. The
+  # magic rule may take no allowlist (ADR-023), so the decoder is switched off
+  # at the invocation rather than the rule being weakened in `.gitleaks.toml`.
+  # To reproduce, run the same command without the flag: the only finding is
+  # that example. The cost is real - encoded secrets are not decoded for any
+  # rule - so revisit this flag if that example is ever rewritten.
+  #
+  # What `gitleaks git` does NOT cover, here or anywhere: the container-magic
+  # rule. The magic ends in a NUL byte, so git treats any file containing it as
+  # binary and renders its diff as "Binary files differ"; gitleaks scans diffs,
+  # so the bytes never reach the rule. A `.pfplan` committed once and deleted
+  # later is invisible to the history scan above. The byte-exact control of
+  # record covers that instead: `cargo xtask check-magic --history` reads every
+  # blob in the object database through `git cat-file` and searches the raw
+  # bytes — no decoder, no allowlist, no diff. `cargo xtask check-magic` (the
+  # working tree) also runs in `ci.yml` and in the pre-commit hook.
+  secrets-full-history:
+    name: gitleaks and container magic (full history)
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out the full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Install gitleaks
+        run: brew install --quiet gitleaks
+
+      - name: Scan every commit
+        run: gitleaks git --no-banner --redact --max-decode-depth 0 .
+
+      - name: Scan the working tree
+        run: gitleaks dir --no-banner --redact --max-decode-depth 0 .
+
+      - name: Install the pinned toolchain
+        run: rustup show
+
+      - name: Container magic, every blob in the history (no allowlist, ever)
+        run: cargo xtask check-magic --history
+
+      - name: Container magic, working tree
+        run: cargo xtask check-magic
+
+  # -------------------------------------------------------------------------
+  # cargo-audit over the current lockfile (SECURITY.md §11)
+  # -------------------------------------------------------------------------
+  #
+  # The advisory database is fetched fresh on every run, which is what makes
+  # this useful on a day with no commits: the dependency set is unchanged and
+  # what is known about it is not. `cargo deny check advisories` is run beside
+  # it for the same reason the per-push pipeline runs both — two tools reading
+  # one database, and a disagreement between them is information.
+  advisories:
+    name: advisories (cargo-audit, cargo-deny)
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install the pinned toolchain
+        run: rustup show
+
+      - name: Install cargo-audit and cargo-deny
+        run: brew install --quiet cargo-audit cargo-deny
+
+      - name: cargo-audit
+        run: cargo audit --deny warnings
+
+      - name: cargo-deny advisories
+        run: cargo deny --locked check advisories

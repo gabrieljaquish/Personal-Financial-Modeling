@@ -1,0 +1,100 @@
+#
+# gitleaks configuration — repository hygiene (SECURITY.md §13.2, ADR-023).
+#
+# Run pre-commit via lefthook, per push in CI, and nightly over the full history
+# (TESTING.md §11.1). The five custom rule ids below are the ones SECURITY.md
+# §13.2 names: `pfp-plan-magic`, `pfp-simplefin-url`, `pfp-fred-key`,
+# `pfp-apple-signing`, `pfp-release-key`.
+#
+# THIS FILE CONTAINS NO ALLOWLIST. In particular `pfp-plan-magic` has no
+# allowlist and no `keywords` prefilter: a keyword gate would be an allowlist by
+# another name. A single exempted path would permanently blind the one control
+# that catches a real household's plan file committed by accident (threat T5),
+# which is why ADR-023 and SECURITY.md §13.2 say "no allowlist, ever".
+#
+# gitleaks is the second layer, not the first. `cargo xtask check-magic` is the
+# control of record for the container magic: it is independent of gitleaks
+# (ARCHITECTURE.md §379, SECURITY.md §13.2), it scans every tracked file and
+# every release archive byte-for-byte, and it inherits no upstream defaults.
+#
+# Every pattern here is written so that this file never contains the byte
+# sequence, header or credential it matches — the container magic is spelled
+# with hex escapes and the PEM markers have an escaped letter, exactly as the
+# design documents do when they describe these rules in prose.
+#
+
+title = "Personal Financial Modeling — repository hygiene"
+
+# The upstream ruleset is kept (it carries, among much else, `private-key` and
+# `pkcs12-file`, which cover the binary `.p12` blobs a regex cannot reach) and
+# extended with the project's own rules. Upstream ships its own global
+# allowlist; the project adds none, and the no-allowlist guarantee of ADR-023 is
+# discharged by `cargo xtask check-magic` rather than by this file.
+[extend]
+useDefault = true
+
+# --- The plan-file container magic (SECURITY.md §13.2, §13.4; ADR-023) --------
+#
+# A `.pfplan` container begins with a seven-byte magic. An encrypted plan is
+# still user data, so the sequence must not exist anywhere in the repository —
+# not at the start of a file, not embedded in one, not in a fixture, not in a
+# test. The demo plan therefore ships as plaintext synthetic JSON
+# (`fixtures/plans/demo.plan.json`) and the reference decryptor's containers are
+# generated at test time outside the tree.
+#
+# The pattern is escaped so that this file does not contain the bytes it
+# matches: `\x46` is the second letter and `\x00` the trailing NUL. Deliberately
+# no `keywords` and no `[rules.allowlist]`.
+[[rules]]
+id = "pfp-plan-magic"
+description = "A .pfplan container magic byte sequence — an encrypted plan file is still user data (ADR-023; no allowlist, ever)"
+regex = '''P\x46PLAN\x00'''
+
+# --- SimpleFIN access URL (SECURITY.md §13.2) ---------------------------------
+#
+# A SimpleFIN access URL carries the credential in the basic-auth userinfo, so
+# the URL *is* the secret. Nothing in v1 makes an outbound connection (ADR-020);
+# this rule exists so that the credential for a future opt-in connector can
+# never be pasted into the repository while it is being developed.
+[[rules]]
+id = "pfp-simplefin-url"
+description = "SimpleFIN access URL — the basic-auth userinfo is the credential itself"
+regex = '''https://[\w.%-]+:[\w.%-]+@[\w.-]+/simplefin'''
+keywords = ["simplefin"]
+
+# --- FRED-style API key (SECURITY.md §13.2) -----------------------------------
+#
+# A 32-character lowercase-hex key beside a `fred` or `api_key` label. The bare
+# `\b[0-9a-f]{32}\b` shape on its own matches git object ids, MD5 digests and
+# the action pins in `.github/workflows/`, so the rule uses the proximity form
+# the design describes and captures the key as the secret.
+[[rules]]
+id = "pfp-fred-key"
+description = "FRED-style API key (32 lowercase hex) beside a fred/api_key label — a key is per-application and never belongs in the repository"
+regex = '''(?i)\b(?:fred[_.-]?(?:api[_.-]?)?key|api[_.-]?key)\b[^\S\r\n]{0,10}[:=][^\S\r\n]{0,10}["']?([0-9a-f]{32})\b'''
+secretGroup = 1
+keywords = ["fred", "api_key", "apikey", "api-key", "api.key"]
+
+# --- Apple signing material (SECURITY.md §13.2) -------------------------------
+#
+# Release-key custody. Two shapes are reachable by regex: the PEM private-key
+# header a `.p8` App Store Connect key is wrapped in (written with an escaped
+# `I` so this file does not contain the marker), and the `AuthKey_<10>` key
+# identifier that names one. Binary `.p12` (PKCS#12) blobs are DER and have no
+# stable printable marker; they are covered by the upstream `pkcs12-file` rule
+# and by the `*.p8`/`*.p12` entries in `.gitignore`.
+[[rules]]
+id = "pfp-apple-signing"
+description = "Apple signing material — a .p8 private key or an AuthKey identifier (release-key custody)"
+regex = '''(?:AuthKey_[A-Z0-9]{10}|-----BEG\x49N(?: [A-Z0-9]+)* PRIVATE KEY-----)'''
+keywords = ["authkey_", "private key"]
+
+# --- Ed25519 release key (SECURITY.md §13.2) ----------------------------------
+#
+# The key that signs `SHA256SUMS` (ARCHITECTURE.md §9 item 7). Its OpenSSH
+# private-key PEM header, with the same escaped letter.
+[[rules]]
+id = "pfp-release-key"
+description = "OpenSSH private key — the project's Ed25519 release key signs SHA256SUMS and never enters the repository"
+regex = '''-----BEG\x49N OPENSSH PRIVATE KEY-----'''
+keywords = ["openssh private key"]

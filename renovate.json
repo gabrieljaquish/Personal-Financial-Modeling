@@ -1,0 +1,16 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Update cadence (SECURITY.md section 11): every update waits seven days after release; pinned GitHub Action SHAs and the pinned Node version are moved by reviewed pull requests, never by a floating label.",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "minimumReleaseAge": "7 days",
+  "internalChecksFilter": "strict",
+  "packageRules": [
+    {
+      "description": "Vite is held at its current major. The next major hard-depends on an MPL-2.0 package, outside the permitted licence set, so taking it fails `npm run licenses`. Remove this rule only together with the ADR named in docs/contributing.md section 8, item 2.",
+      "matchDatasources": ["npm"],
+      "matchPackageNames": ["vite"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+[package]
+name = "pfp-app"
+description = "The `pfp` launcher: one self-contained local web application for macOS"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "pfp"
+path = "src/main.rs"
+
+[dependencies]
+
+[lints]
+workspace = true

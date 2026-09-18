@@ -1,0 +1,3 @@
+[alias]
+# `cargo xtask <subcommand>` runs the repository task runner (ARCHITECTURE.md §3).
+xtask = "run --quiet --package xtask --"

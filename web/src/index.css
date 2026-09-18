@@ -1,0 +1,101 @@
+/*
+ * Document-level tokens and reset.
+ *
+ * Plain CSS, loaded as a stylesheet the build emits as its own hashed file
+ * (ADR-002). No runtime CSS-in-JS, no @import from a remote origin, no web
+ * font: the Content-Security-Policy is `default-src 'none'` with `style-src
+ * 'self'` and `font-src 'self'`, and every byte the page loads is served from
+ * the loopback origin (SECURITY.md §7.1).
+ *
+ * Component styles belong in a CSS module beside their component; only things
+ * that are genuinely document-wide belong here.
+ */
+
+:root {
+  /*
+   * Colour tokens. Every foreground/background pair below meets WCAG 2.1 AA
+   * (4.5:1 for body text) against the surface it is used on, because PLAN.md
+   * §4.13 gate item 10 runs `axe` at serious and critical on every screen.
+   * Colour is never the only carrier of meaning (PLAN.md §4.1).
+   */
+  --pfp-surface: #ffffff;
+  --pfp-surface-sunken: #f2f4f6;
+  --pfp-border: #ccd2d9;
+  --pfp-ink: #16191d;
+  --pfp-ink-muted: #474e56;
+  --pfp-accent: #0a4f9c;
+  --pfp-accent-ink: #ffffff;
+
+  --pfp-space-1: 0.25rem;
+  --pfp-space-2: 0.5rem;
+  --pfp-space-3: 1rem;
+  --pfp-space-4: 1.5rem;
+  --pfp-space-5: 2.5rem;
+
+  --pfp-radius: 6px;
+  --pfp-measure: 68ch;
+
+  /*
+   * System font stacks only. A downloaded web font would be a second embedded
+   * artifact and, if fetched, an outbound request; both are refused.
+   */
+  --pfp-font-ui:
+    system-ui, -apple-system, 'Helvetica Neue', 'Segoe UI', roboto, arial,
+    sans-serif;
+  --pfp-font-numeric:
+    ui-monospace, 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Never suppress the browser's own text scaling. */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--pfp-surface-sunken);
+  color: var(--pfp-ink);
+  font-family: var(--pfp-font-ui);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+/*
+ * A single visible focus indicator for the whole application. Focus is never
+ * removed; `:focus-visible` only decides when the browser shows it.
+ */
+:focus-visible {
+  outline: 3px solid var(--pfp-accent);
+  outline-offset: 2px;
+  border-radius: var(--pfp-radius);
+}
+
+/*
+ * Respect a reduced-motion preference globally, so no component has to remember.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
