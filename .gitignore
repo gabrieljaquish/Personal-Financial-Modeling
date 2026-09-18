@@ -9,17 +9,30 @@
 /data/
 /local/
 /imports/
-/exports/
+exports/
 /backups/
 *.local.json
 *.local.toml
 *.local.yaml
 *.local.yml
-params.json
-params.toml
-params.yaml
-plan.json
-plan.toml
+*.export.csv
+*.export.json
+# Root-anchored on purpose: a loose plan or parameter file dropped at the top
+# level is ignored, while `params/**` and `fixtures/**` (public tables and
+# synthetic fixtures the build needs) are not silently hidden at depth.
+/params.json
+/params.toml
+/params.yaml
+/plan.json
+/plan.toml
+
+# Encrypted plan containers, their backups and in-flight saves (SECURITY.md §13.1).
+# `cargo xtask check-magic` deliberately does NOT honour these entries: it walks
+# the working tree itself, so a container sitting here is still reported.
+*.pfplan
+*.pfplan.bak*
+*.pfplan.tmp*
+*.pfplan.prev*
 
 # Encrypted stores and databases (still never commit: ciphertext is not a backup strategy)
 *.age
@@ -39,7 +52,7 @@ plan.toml
 *.qdf
 *.qel
 *.mny
-*.tax20*
+/*.tax20*
 *.txf
 
 # --- Secrets -------------------------------------------------------------------
@@ -48,15 +61,37 @@ plan.toml
 !.env.example
 *.pem
 *.key
+# Apple signing material (SECURITY.md §13.1)
+*.p8
 *.p12
+*.cer
+*.mobileprovision
 *.pfx
 *.keystore
 secrets/
 credentials/
 **/*secret*
 **/*credential*
+# ...but never source or documentation: an ignored module vanishes from the
+# build and from every hygiene gate at once, with no error.
 !docs/**/*secret*
 !docs/**/*credential*
+!crates/**/*secret*
+!crates/**/*credential*
+!xtask/**/*secret*
+!xtask/**/*credential*
+!web/src/**/*secret*
+!web/src/**/*credential*
+# ...nor a workflow, a synthetic fixture or a public parameter table. Each of
+# these patterns must also match a DIRECTORY named *secret* / *credential* (as
+# `**/*secret*` does), or git prunes the directory before it ever sees the file
+# negation. Re-run the check-ignore AND `git add -A` test before narrowing them.
+!.github/**/*secret*
+!.github/**/*credential*
+!/fixtures/**/*secret*
+!/fixtures/**/*credential*
+!/params/**/*secret*
+!/params/**/*credential*
 
 # Local TLS material for the localhost server
 /certs/
@@ -67,7 +102,10 @@ credentials/
 # Rust
 /target/
 **/*.rs.bk
-# Python
+# Python / test-time oracles (SECURITY.md §13.1, §11.1: never committed)
+oracles/**/.venv/
+.uv-cache/
+.policyengine-cache/
 __pycache__/
 *.py[cod]
 .venv/
@@ -78,8 +116,13 @@ venv/
 *.egg-info/
 # Node / web front end
 node_modules/
-dist/
-build/
+# Anchored: an unanchored `dist/` or `build/` would silently hide a source
+# directory of that name at any depth (a crate's build-script module directory,
+# a `dist` asset folder under web/src).
+/dist/
+/build/
+/web/dist/
+/web/build/
 .next/
 .svelte-kit/
 .vite/
@@ -94,6 +137,19 @@ Thumbs.db
 .idea/
 .vscode/
 !.vscode/extensions.json
+
+# --- Synthetic fixtures -------------------------------------------------------------
+# The importer fixtures under fixtures/ (ARCHITECTURE.md §3, TESTING.md §3) are
+# synthetic .qif/.ofx/.qdf/.csv files; the institution-export ignores above must not
+# hide them. `data-hygiene` requires each to carry the synthetic marker or a
+# citation. Secrets, keys and plan containers stay ignored here too.
+!/fixtures/**/*.qif
+!/fixtures/**/*.qfx
+!/fixtures/**/*.ofx
+!/fixtures/**/*.txf
+!/fixtures/**/*.qdf
+!/fixtures/**/*.mny
+!/fixtures/**/*.export.csv
 
 # --- Claude Code local state ---------------------------------------------------------
 .claude/settings.local.json

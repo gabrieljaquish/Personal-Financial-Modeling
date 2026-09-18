@@ -1,0 +1,164 @@
+/*
+ * Shell layout. Class names are camelCase so that they read as plain property
+ * access on the imported CSS-module object.
+ */
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--pfp-space-4);
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: var(--pfp-space-4) var(--pfp-space-3) var(--pfp-space-5);
+}
+
+/* --- Banner ------------------------------------------------------------- */
+
+.banner {
+  /* Anchor for the off-screen skip link. */
+  position: relative;
+  padding-bottom: var(--pfp-space-3);
+  border-bottom: 1px solid var(--pfp-border);
+}
+
+/*
+ * Moved out of view by offset, not by `display: none` or `visibility: hidden`,
+ * either of which would remove it from the focus order and defeat the point.
+ */
+.skipLink {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  padding: var(--pfp-space-2) var(--pfp-space-3);
+  background-color: var(--pfp-accent);
+  color: var(--pfp-accent-ink);
+  border-radius: var(--pfp-radius);
+  text-decoration: underline;
+
+  /*
+   * Displaced by its own height plus the shell's top padding, rather than by a
+   * fixed offset: a fixed offset is a guess about the rendered height, and at a
+   * larger text size or a narrow viewport the guess leaves a sliver of the link
+   * showing above the fold.
+   */
+  transform: translateY(calc(-100% - var(--pfp-space-4)));
+}
+
+.skipLink:focus {
+  transform: none;
+}
+
+.wordmark {
+  font-size: 1.5rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.tagline {
+  margin-top: var(--pfp-space-1);
+  color: var(--pfp-ink-muted);
+}
+
+/* --- Main --------------------------------------------------------------- */
+
+.main {
+  display: grid;
+  gap: var(--pfp-space-3);
+}
+
+/*
+ * `tabIndex={-1}` on <main> makes the skip link actually move focus; removing
+ * the resulting outline would hide where focus went, so it is kept.
+ */
+.main:focus-visible {
+  outline-offset: 4px;
+}
+
+/*
+ * The shared polite live region. It is empty at rest and must stay in the
+ * accessibility tree for announcements to work, so it is not `display: none`.
+ */
+.liveRegion {
+  min-height: 1.55rem;
+  color: var(--pfp-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.liveRegion:empty {
+  min-height: 0;
+}
+
+.section,
+.aside {
+  padding: var(--pfp-space-3);
+  background-color: var(--pfp-surface);
+  border: 1px solid var(--pfp-border);
+  border-radius: var(--pfp-radius);
+}
+
+.sectionHeading {
+  font-size: 1.125rem;
+  font-weight: 650;
+}
+
+.placeholder {
+  max-width: var(--pfp-measure);
+  margin-top: var(--pfp-space-2);
+  color: var(--pfp-ink-muted);
+}
+
+/* --- Footer ------------------------------------------------------------- */
+
+.contentinfo {
+  padding-top: var(--pfp-space-3);
+  border-top: 1px solid var(--pfp-border);
+}
+
+.footerText {
+  max-width: var(--pfp-measure);
+  color: var(--pfp-ink-muted);
+  font-size: 0.875rem;
+}
+
+/* --- Wide viewports ------------------------------------------------------ */
+
+@media (min-width: 60rem) {
+  .shell {
+    grid-template-columns: minmax(0, 3fr) minmax(16rem, 1fr);
+    grid-template-areas:
+      'banner banner'
+      'main   aside'
+      'footer footer';
+  }
+
+  .banner {
+    grid-area: banner;
+  }
+
+  .main {
+    grid-area: main;
+  }
+
+  .aside {
+    grid-area: aside;
+    align-self: start;
+  }
+
+  .contentinfo {
+    grid-area: footer;
+  }
+}
+
+/* --- Print -------------------------------------------------------------- */
+
+@media print {
+  .skipLink {
+    display: none;
+  }
+
+  .section,
+  .aside {
+    border: 1px solid var(--pfp-ink);
+  }
+}

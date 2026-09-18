@@ -1,0 +1,64 @@
+# Determinism and purity rules for the engine crates (ARCHITECTURE.md §4.3 D1, D6, D8).
+# The lints that read this file are enabled at `deny` for the whole workspace in
+# Cargo.toml; the non-engine crates (pfp-server, pfp-app, xtask) allow them at
+# their crate root because they legitimately touch the clock, the file system
+# and hash maps.
+
+# D8: engine output never depends on hash-map iteration order.
+disallowed-types = [
+  { path = "std::collections::HashMap", reason = "D8: use BTreeMap or IndexMap in engine crates" },
+  { path = "std::collections::HashSet", reason = "D8: use BTreeSet in engine crates" },
+  { path = "std::time::Instant", reason = "D1: engine crates read no clock" },
+  { path = "std::time::SystemTime", reason = "D1: engine crates read no clock" },
+]
+
+# D1: no clock, environment, entropy or I/O in engine crates. D6: no fused multiply-add,
+# and no transcendental or power function from the platform libm.
+disallowed-methods = [
+  { path = "std::time::SystemTime::now", reason = "D1: engine crates read no clock" },
+  { path = "std::time::Instant::now", reason = "D1: engine crates read no clock" },
+  { path = "std::env::var", reason = "D1: engine crates read no environment" },
+  { path = "std::env::var_os", reason = "D1: engine crates read no environment" },
+  { path = "std::env::args", reason = "D1: engine crates read no environment" },
+  { path = "std::fs::read", reason = "D1: engine crates perform no I/O (only pfp-vault, pfp-app, xtask)" },
+  { path = "std::fs::read_to_string", reason = "D1: engine crates perform no I/O" },
+  { path = "std::fs::write", reason = "D1: engine crates perform no I/O" },
+  { path = "std::fs::File::open", reason = "D1: engine crates perform no I/O" },
+  { path = "std::fs::File::create", reason = "D1: engine crates perform no I/O" },
+  { path = "std::net::TcpListener::bind", reason = "D1: only pfp-server opens sockets" },
+  { path = "std::net::TcpStream::connect", reason = "D1: only pfp-net may open outbound connections" },
+  { path = "f64::mul_add", reason = "D6: no fused multiply-add; results must be bit-identical across architectures" },
+  { path = "f32::mul_add", reason = "D6: no fused multiply-add" },
+  # D6: exp/ln/pow come from the pure-Rust `libm` crate, never the platform libm, whose
+  # last-place results differ between aarch64 and x86_64 (D2).
+  { path = "f64::exp", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f64::exp2", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f64::exp_m1", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f64::ln", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f64::ln_1p", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f64::log", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f64::log2", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f64::log10", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f64::powf", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f64::powi", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f64::sqrt", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f64::cbrt", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f32::exp", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f32::exp2", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f32::exp_m1", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f32::ln", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f32::ln_1p", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f32::log", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f32::log2", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f32::log10", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f32::powf", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f32::powi", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f32::sqrt", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+  { path = "f32::cbrt", reason = "D6: use the pure-Rust `libm` crate, never the platform libm (bit-identical output, D2)" },
+]
+
+disallowed-macros = [
+  { path = "std::println", reason = "D1: engine crates produce values, not output" },
+  { path = "std::eprintln", reason = "D1: engine crates produce values, not output" },
+  { path = "std::dbg", reason = "D1: engine crates produce values, not output" },
+]

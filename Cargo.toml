@@ -1,0 +1,49 @@
+[workspace]
+resolver = "3"
+members = ["crates/*", "xtask"]
+# `oracles/` and `tools/` are never workspace members (ARCHITECTURE.md §3, §10.3):
+# the copyleft boundary is a subprocess and a file format, never an import.
+
+[workspace.package]
+version = "0.0.1"
+edition = "2021"
+rust-version = "1.84"
+license = "Apache-2.0"
+publish = false
+
+[workspace.dependencies]
+# Crates created in this workspace. External dependencies are added by the
+# milestone that first needs them (ARCHITECTURE.md §3), never speculatively.
+pfp-domain = { path = "crates/pfp-domain" }
+pfp-money = { path = "crates/pfp-money" }
+pfp-params = { path = "crates/pfp-params" }
+pfp-explain = { path = "crates/pfp-explain" }
+pfp-tax = { path = "crates/pfp-tax" }
+pfp-server = { path = "crates/pfp-server" }
+sha2 = "0.10"
+
+# Workspace-wide lint policy. Every crate opts in with `[lints] workspace = true`.
+# Engine crates additionally `#![forbid(unsafe_code)]` at the crate root.
+[workspace.lints.rust]
+missing_docs = "deny"
+unsafe_code = "deny"
+rust_2018_idioms = { level = "warn", priority = -1 }
+unreachable_pub = "warn"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+# Determinism rules D1/D6/D8 (ARCHITECTURE.md §4.3): the disallowed lists live in
+# `clippy.toml`. They are enforced in the engine crates; the non-engine crates
+# (`pfp-server`, `pfp-app`, `xtask`) allow them at their crate root.
+disallowed_types = "deny"
+disallowed_methods = "deny"
+disallowed_macros = "deny"
+
+[profile.release]
+# Reproducible-build settings (ARCHITECTURE.md §9 item 3). `--remap-path-prefix`
+# and `SOURCE_DATE_EPOCH` are supplied by the release workflow (M0 signing block).
+codegen-units = 1
+lto = "fat"
+strip = "none"
+panic = "abort"

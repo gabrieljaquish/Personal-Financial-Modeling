@@ -1,0 +1,15 @@
+Personal Financial Modeling
+Copyright 2026 The Personal Financial Modeling Authors
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not
+use this project except in compliance with the License. You may obtain a copy
+of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+This product will include software ported from permissively licensed works.
+Each ported work is listed here with its copyright notice and licence when the
+port lands (see docs/DECISIONS.md, ADR-004). No copyleft-licensed code is
+linked, vendored or shipped; such projects are used only as out-of-process
+test-time oracles.
+
+Third-party names identify published methodologies and imply no affiliation,
+sponsorship or endorsement; all trademarks belong to their owners.
