@@ -1,0 +1,91 @@
+/*
+ * Status markers. Every one carries its meaning in words; each also has a
+ * non-colour property (a border style) so that the difference survives a
+ * monochrome rendering, a colour-vision deficiency and paper.
+ */
+
+/*
+ * The one polite live region. Empty at rest, and it must stay in the
+ * accessibility tree for announcements to work, so it is never `display: none`.
+ */
+.liveRegion {
+  min-height: 1.55rem;
+  color: var(--pfp-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.liveRegion:empty {
+  min-height: 0;
+}
+
+.badgeAttention,
+.badgeConfirmed {
+  display: inline-block;
+  padding: 0 var(--pfp-space-2);
+  border-width: 1px;
+  border-radius: var(--pfp-radius);
+}
+
+.badgeAttention {
+  border-style: dashed;
+  border-color: var(--pfp-attention-ink);
+  background-color: var(--pfp-attention-surface);
+  color: var(--pfp-attention-ink);
+}
+
+.badgeConfirmed {
+  border-style: solid;
+  border-color: var(--pfp-confirmed-ink);
+  background-color: var(--pfp-confirmed-surface);
+  color: var(--pfp-confirmed-ink);
+}
+
+.vintageBanner,
+.unverifiedNotice {
+  padding: var(--pfp-space-2) var(--pfp-space-3);
+  border-width: 2px;
+  border-style: dashed;
+  border-color: var(--pfp-attention-ink);
+  border-radius: var(--pfp-radius);
+  background-color: var(--pfp-attention-surface);
+  color: var(--pfp-ink);
+  /* The notice names the vintage by its contentId - a 64-hex hash with no break
+     opportunity. Without this it overflows a 320px viewport (WCAG 1.4.10). */
+  overflow-wrap: anywhere;
+}
+
+.vintageBanner {
+  margin-top: var(--pfp-space-3);
+}
+
+.unverifiedNotice {
+  max-width: var(--pfp-measure);
+}
+
+.failure {
+  display: grid;
+  gap: var(--pfp-space-2);
+  justify-items: start;
+  padding: var(--pfp-space-2) var(--pfp-space-3);
+  border-width: 2px;
+  border-style: double;
+  border-color: var(--pfp-attention-ink);
+  border-radius: var(--pfp-radius);
+  background-color: var(--pfp-surface);
+}
+
+/* The banner and the notice MUST print: a figure on paper is as unverified as one on screen. */
+@media print {
+  .vintageBanner,
+  .unverifiedNotice,
+  .badgeAttention,
+  .badgeConfirmed {
+    border-color: #000000;
+    background-color: #ffffff;
+    color: #000000;
+  }
+
+  .failure button {
+    display: none;
+  }
+}

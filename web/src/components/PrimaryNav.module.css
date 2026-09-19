@@ -1,0 +1,36 @@
+/*
+ * Target size (WCAG 2.2 SC 2.5.8): met by MINIMUM SIZE, 24 by 24 CSS pixels or
+ * more, not by the spacing exception.
+ */
+
+.nav {
+  margin-top: var(--pfp-space-3);
+}
+
+.navList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pfp-space-2) var(--pfp-space-4);
+  list-style: none;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.25rem;
+  min-inline-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* The current screen is said by `aria-current`; on screen it is a border, not a colour. */
+.navLink[aria-current='page'] {
+  border-bottom: 3px solid var(--pfp-ink);
+  color: var(--pfp-ink);
+  text-decoration: none;
+}
+
+@media print {
+  .nav {
+    display: none;
+  }
+}

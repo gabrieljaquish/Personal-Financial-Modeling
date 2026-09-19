@@ -1,0 +1,63 @@
+/*
+ * The rate-schedule screen. On paper it is the result: the inputs as read, the
+ * tax, the unverified notice and the worksheet. The form and the actions are
+ * screen furniture and do not print.
+ */
+
+.form {
+  display: grid;
+  gap: var(--pfp-space-3);
+}
+
+.result {
+  display: grid;
+  gap: var(--pfp-space-3);
+  min-inline-size: 0;
+}
+
+.resultHeading {
+  font-size: 1.125rem;
+  font-weight: 650;
+}
+
+.subheading {
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.headline {
+  font-family: var(--pfp-font-numeric);
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+}
+
+.inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--pfp-space-2) var(--pfp-space-4);
+}
+
+.inputs dt {
+  color: var(--pfp-ink-muted);
+  font-size: 0.875rem;
+}
+
+.inputs dd {
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: grid;
+}
+
+@media print {
+  .form,
+  .actions {
+    display: none;
+  }
+
+  .inputs dt {
+    color: #000000;
+  }
+}

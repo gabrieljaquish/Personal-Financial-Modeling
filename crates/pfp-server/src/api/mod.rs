@@ -12,6 +12,7 @@
 //! | `/session/status` | cookie + proof | 200 health and versions |
 //! | `/session/relaunch` | proof only | 202; the token is never in the response |
 //! | `/tax/rate-schedule` | cookie + proof | 200 the worksheet |
+//! | `/tax/rate-schedule/export` | cookie + proof | 200 the worksheet as a CSV or JSON attachment |
 //! | `/assumptions/list` | cookie + proof | 200 the Assumptions Registry |
 //!
 //! Admission and the session gate run before this router (`service.rs`); handlers
@@ -19,6 +20,7 @@
 
 pub mod assumptions;
 pub mod dto;
+pub mod export;
 pub mod openapi;
 pub mod session;
 pub mod tax;
@@ -43,15 +45,18 @@ pub const STATUS_PATH: &str = "/api/v1/session/status";
 pub const RELAUNCH_PATH: &str = "/api/v1/session/relaunch";
 /// `POST /api/v1/tax/rate-schedule`.
 pub const RATE_SCHEDULE_PATH: &str = "/api/v1/tax/rate-schedule";
+/// `POST /api/v1/tax/rate-schedule/export`.
+pub const RATE_SCHEDULE_EXPORT_PATH: &str = "/api/v1/tax/rate-schedule/export";
 /// `POST /api/v1/assumptions/list`.
 pub const ASSUMPTIONS_PATH: &str = "/api/v1/assumptions/list";
 
 /// Every API path, for route-template logging and the `OpenAPI` assertions.
-pub const PATHS: [&str; 5] = [
+pub const PATHS: [&str; 6] = [
     BOOTSTRAP_PATH,
     STATUS_PATH,
     RELAUNCH_PATH,
     RATE_SCHEDULE_PATH,
+    RATE_SCHEDULE_EXPORT_PATH,
     ASSUMPTIONS_PATH,
 ];
 
@@ -90,6 +95,10 @@ pub(crate) fn router(state: Arc<AppState>) -> Router {
         .route(
             RATE_SCHEDULE_PATH,
             post(tax::rate_schedule).fallback(method_not_allowed),
+        )
+        .route(
+            RATE_SCHEDULE_EXPORT_PATH,
+            post(tax::rate_schedule_export).fallback(method_not_allowed),
         )
         .route(
             ASSUMPTIONS_PATH,

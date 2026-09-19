@@ -1,0 +1,301 @@
+---
+source: crates/pfp-server/tests/ui_golden.rs
+expression: pretty(&schedule)
+---
+{
+  "filingStatus": "mfj",
+  "lines": [
+    {
+      "id": "sched.ti",
+      "label": "Taxable income",
+      "value": 10000000
+    },
+    {
+      "id": "sched.b0.amount",
+      "inputs": [
+        "sched.ti"
+      ],
+      "label": "Taxable income taxed at 10%",
+      "params": [
+        {
+          "breakdownKey": "mfj",
+          "element": "top_of_10",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        }
+      ],
+      "value": 2480000
+    },
+    {
+      "id": "sched.b0",
+      "inputs": [
+        "sched.b0.amount"
+      ],
+      "label": "Tax at 10%",
+      "params": [
+        {
+          "element": "rates.0",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        }
+      ],
+      "rounding": "money.cent_half_even",
+      "value": 248000
+    },
+    {
+      "id": "sched.b1.amount",
+      "inputs": [
+        "sched.ti"
+      ],
+      "label": "Taxable income taxed at 12%",
+      "params": [
+        {
+          "breakdownKey": "mfj",
+          "element": "top_of_10",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        },
+        {
+          "breakdownKey": "mfj",
+          "element": "top_of_12",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        }
+      ],
+      "value": 7520000
+    },
+    {
+      "id": "sched.b1",
+      "inputs": [
+        "sched.b1.amount"
+      ],
+      "label": "Tax at 12%",
+      "params": [
+        {
+          "element": "rates.1",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        }
+      ],
+      "rounding": "money.cent_half_even",
+      "value": 902400
+    },
+    {
+      "id": "sched.b2.amount",
+      "inputs": [
+        "sched.ti"
+      ],
+      "label": "Taxable income taxed at 22%",
+      "params": [
+        {
+          "breakdownKey": "mfj",
+          "element": "top_of_12",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        },
+        {
+          "breakdownKey": "mfj",
+          "element": "top_of_22",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        }
+      ],
+      "value": 0
+    },
+    {
+      "id": "sched.b2",
+      "inputs": [
+        "sched.b2.amount"
+      ],
+      "label": "Tax at 22%",
+      "params": [
+        {
+          "element": "rates.2",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        }
+      ],
+      "rounding": "money.cent_half_even",
+      "value": 0
+    },
+    {
+      "id": "sched.b3.amount",
+      "inputs": [
+        "sched.ti"
+      ],
+      "label": "Taxable income taxed at 24%",
+      "params": [
+        {
+          "breakdownKey": "mfj",
+          "element": "top_of_22",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        },
+        {
+          "breakdownKey": "mfj",
+          "element": "top_of_24",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        }
+      ],
+      "value": 0
+    },
+    {
+      "id": "sched.b3",
+      "inputs": [
+        "sched.b3.amount"
+      ],
+      "label": "Tax at 24%",
+      "params": [
+        {
+          "element": "rates.3",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        }
+      ],
+      "rounding": "money.cent_half_even",
+      "value": 0
+    },
+    {
+      "id": "sched.b4.amount",
+      "inputs": [
+        "sched.ti"
+      ],
+      "label": "Taxable income taxed at 32%",
+      "params": [
+        {
+          "breakdownKey": "mfj",
+          "element": "top_of_24",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        },
+        {
+          "breakdownKey": "mfj",
+          "element": "top_of_32",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        }
+      ],
+      "value": 0
+    },
+    {
+      "id": "sched.b4",
+      "inputs": [
+        "sched.b4.amount"
+      ],
+      "label": "Tax at 32%",
+      "params": [
+        {
+          "element": "rates.4",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        }
+      ],
+      "rounding": "money.cent_half_even",
+      "value": 0
+    },
+    {
+      "id": "sched.b5.amount",
+      "inputs": [
+        "sched.ti"
+      ],
+      "label": "Taxable income taxed at 35%",
+      "params": [
+        {
+          "breakdownKey": "mfj",
+          "element": "top_of_32",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        },
+        {
+          "breakdownKey": "mfj",
+          "element": "top_of_35",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        }
+      ],
+      "value": 0
+    },
+    {
+      "id": "sched.b5",
+      "inputs": [
+        "sched.b5.amount"
+      ],
+      "label": "Tax at 35%",
+      "params": [
+        {
+          "element": "rates.5",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        }
+      ],
+      "rounding": "money.cent_half_even",
+      "value": 0
+    },
+    {
+      "id": "sched.b6.amount",
+      "inputs": [
+        "sched.ti"
+      ],
+      "label": "Taxable income taxed at 37%",
+      "params": [
+        {
+          "breakdownKey": "mfj",
+          "element": "top_of_35",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        }
+      ],
+      "value": 0
+    },
+    {
+      "id": "sched.b6",
+      "inputs": [
+        "sched.b6.amount"
+      ],
+      "label": "Tax at 37%",
+      "params": [
+        {
+          "element": "rates.6",
+          "paramId": "irs.ordinary_brackets",
+          "year": 2026
+        }
+      ],
+      "rounding": "money.cent_half_even",
+      "value": 0
+    },
+    {
+      "id": "sched.sum",
+      "inputs": [
+        "sched.b0",
+        "sched.b1",
+        "sched.b2",
+        "sched.b3",
+        "sched.b4",
+        "sched.b5",
+        "sched.b6"
+      ],
+      "label": "Tax before rounding to the whole dollar",
+      "value": 1150400
+    },
+    {
+      "id": "sched.tax",
+      "inputs": [
+        "sched.sum"
+      ],
+      "label": "Tax",
+      "rounding": "irs.whole_dollar",
+      "value": 1150400
+    }
+  ],
+  "rootLineId": "sched.tax",
+  "tax": 1150400,
+  "taxableIncome": 10000000,
+  "verified": false,
+  "vintage": {
+    "contentId": "federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281",
+    "name": "federal-2026",
+    "verified": false
+  },
+  "year": 2026
+}

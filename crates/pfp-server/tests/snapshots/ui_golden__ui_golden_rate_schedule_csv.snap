@@ -1,0 +1,22 @@
+---
+source: crates/pfp-server/tests/ui_golden.rs
+expression: "csv.replace('\\r', \"␍\")"
+---
+"tax_year","filing_status","line_no","line_id","label","amount_usd","computed_from","parameters","rounding","is_result","vintage_id","vintage_locked","vintage_verified"␍
+2026,"mfj",1,"sched.ti","Taxable income",100000.00,"","","","no","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍
+2026,"mfj",2,"sched.b0.amount","Taxable income taxed at 10%",24800.00,"sched.ti","irs.ordinary_brackets 2026 mfj top_of_10","","no","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍
+2026,"mfj",3,"sched.b0","Tax at 10%",2480.00,"sched.b0.amount","irs.ordinary_brackets 2026 rates.0","money.cent_half_even","no","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍
+2026,"mfj",4,"sched.b1.amount","Taxable income taxed at 12%",75200.00,"sched.ti","irs.ordinary_brackets 2026 mfj top_of_10; irs.ordinary_brackets 2026 mfj top_of_12","","no","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍
+2026,"mfj",5,"sched.b1","Tax at 12%",9024.00,"sched.b1.amount","irs.ordinary_brackets 2026 rates.1","money.cent_half_even","no","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍
+2026,"mfj",6,"sched.b2.amount","Taxable income taxed at 22%",0.00,"sched.ti","irs.ordinary_brackets 2026 mfj top_of_12; irs.ordinary_brackets 2026 mfj top_of_22","","no","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍
+2026,"mfj",7,"sched.b2","Tax at 22%",0.00,"sched.b2.amount","irs.ordinary_brackets 2026 rates.2","money.cent_half_even","no","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍
+2026,"mfj",8,"sched.b3.amount","Taxable income taxed at 24%",0.00,"sched.ti","irs.ordinary_brackets 2026 mfj top_of_22; irs.ordinary_brackets 2026 mfj top_of_24","","no","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍
+2026,"mfj",9,"sched.b3","Tax at 24%",0.00,"sched.b3.amount","irs.ordinary_brackets 2026 rates.3","money.cent_half_even","no","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍
+2026,"mfj",10,"sched.b4.amount","Taxable income taxed at 32%",0.00,"sched.ti","irs.ordinary_brackets 2026 mfj top_of_24; irs.ordinary_brackets 2026 mfj top_of_32","","no","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍
+2026,"mfj",11,"sched.b4","Tax at 32%",0.00,"sched.b4.amount","irs.ordinary_brackets 2026 rates.4","money.cent_half_even","no","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍
+2026,"mfj",12,"sched.b5.amount","Taxable income taxed at 35%",0.00,"sched.ti","irs.ordinary_brackets 2026 mfj top_of_32; irs.ordinary_brackets 2026 mfj top_of_35","","no","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍
+2026,"mfj",13,"sched.b5","Tax at 35%",0.00,"sched.b5.amount","irs.ordinary_brackets 2026 rates.5","money.cent_half_even","no","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍
+2026,"mfj",14,"sched.b6.amount","Taxable income taxed at 37%",0.00,"sched.ti","irs.ordinary_brackets 2026 mfj top_of_35","","no","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍
+2026,"mfj",15,"sched.b6","Tax at 37%",0.00,"sched.b6.amount","irs.ordinary_brackets 2026 rates.6","money.cent_half_even","no","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍
+2026,"mfj",16,"sched.sum","Tax before rounding to the whole dollar",11504.00,"sched.b0; sched.b1; sched.b2; sched.b3; sched.b4; sched.b5; sched.b6","","","no","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍
+2026,"mfj",17,"sched.tax","Tax",11504.00,"sched.sum","","irs.whole_dollar","yes","federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281","no","no"␍

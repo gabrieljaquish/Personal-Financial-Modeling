@@ -253,7 +253,13 @@ async fn assumptions_registry_lists_every_table_with_provenance() {
 async fn every_api_route_is_post_only_and_session_gated() {
     let server = HttpServer::start();
     let session = server.establish().await;
-    for path in [STATUS, SCHEDULE, ASSUMPTIONS, "/api/v1/session/relaunch"] {
+    for path in [
+        STATUS,
+        SCHEDULE,
+        "/api/v1/tax/rate-schedule/export",
+        ASSUMPTIONS,
+        "/api/v1/session/relaunch",
+    ] {
         let anonymous = server.send(server.api(path)).await;
         assert_eq!(anonymous.status, 401, "{path}");
         for method in ["GET", "PUT", "DELETE", "PATCH"] {

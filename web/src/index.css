@@ -25,6 +25,24 @@
   --pfp-ink-muted: #474e56;
   --pfp-accent: #0a4f9c;
   --pfp-accent-ink: #ffffff;
+  /* "Needs a person's attention": pending verification, problems, refusals. */
+  --pfp-attention-ink: #6b3a00;
+  --pfp-attention-surface: #fff4e0;
+  /* "A person has confirmed this." */
+  --pfp-confirmed-ink: #0b4a2b;
+  --pfp-confirmed-surface: #e9f6ee;
+
+  /*
+   * The AA pairs, asserted by tests/css.test.mjs with a relative-luminance
+   * function (foreground on background, at least 4.5:1):
+   *
+   *   ink            on surface, surface-sunken, attention-surface, confirmed-surface
+   *   ink-muted      on surface, surface-sunken
+   *   accent         on surface, surface-sunken
+   *   accent-ink     on accent
+   *   attention-ink  on attention-surface, surface
+   *   confirmed-ink  on confirmed-surface, surface
+   */
 
   --pfp-space-1: 0.25rem;
   --pfp-space-2: 0.5rem;
@@ -72,8 +90,71 @@ h1,
 h2,
 h3,
 h4,
-p {
+h5,
+p,
+dl,
+dd,
+ul {
   margin: 0;
+}
+
+ul {
+  padding: 0;
+  list-style-position: inside;
+}
+
+a {
+  color: var(--pfp-accent);
+}
+
+/*
+ * Every control meets WCAG 2.2 SC 2.5.8 (target size, AA) by MINIMUM SIZE - 24 by
+ * 24 CSS pixels - not by the spacing exception. It is set on the base rule so a
+ * control added later inherits it.
+ */
+button {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.25rem;
+  min-inline-size: 1.5rem;
+  padding: var(--pfp-space-1) var(--pfp-space-3);
+  border: 1px solid var(--pfp-accent);
+  border-radius: var(--pfp-radius);
+  background-color: var(--pfp-surface);
+  color: var(--pfp-accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Unavailable but still focusable: said with a border style, not colour alone. */
+button[aria-disabled='true'] {
+  border-style: dashed;
+  text-decoration: line-through;
+  cursor: progress;
+}
+
+input,
+select {
+  min-block-size: 2.25rem;
+  max-inline-size: 100%;
+  padding: var(--pfp-space-1) var(--pfp-space-2);
+  border: 1px solid var(--pfp-ink-muted);
+  border-radius: var(--pfp-radius);
+  background-color: var(--pfp-surface);
+  color: var(--pfp-ink);
+  font: inherit;
+}
+
+/* Invalid is said in text beside the field; the thicker border is decoration. */
+[aria-invalid='true'] {
+  border-width: 2px;
+  border-style: double;
+  border-color: var(--pfp-attention-ink);
+}
+
+code {
+  font-family: var(--pfp-font-numeric);
+  font-size: 0.875rem;
 }
 
 /*
@@ -84,6 +165,24 @@ p {
   outline: 3px solid var(--pfp-accent);
   outline-offset: 2px;
   border-radius: var(--pfp-radius);
+}
+
+/* Paper: black on white, no backgrounds. Component modules say what is hidden. */
+@media print {
+  @page {
+    margin: 15mm;
+  }
+
+  body {
+    background-color: #ffffff;
+    color: #000000;
+  }
+
+  /* Link text only: there are no external links, so no address is expanded. */
+  a {
+    color: #000000;
+    text-decoration: none;
+  }
 }
 
 /*
