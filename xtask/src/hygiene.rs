@@ -35,10 +35,13 @@
 //! 7. No JSON document carrying an `"asOf"` stamp (the shape of a fact file)
 //!    outside `fixtures/`.
 //!
+//! 9. The passphrase-flag / `env::var` row of §13.4 and the `std::fs` / `std::net`
+//!    capability bans of §11: both are [`crate::lint_server`], run from here so
+//!    that every gate that runs `data-hygiene` (CI, the pre-commit hook) runs them.
+//!
 //! The remaining §13.4 rows live elsewhere or are not built yet: the container
 //! magic is `check-magic`; the unlabelled-fixture row is rule 2 above; the
-//! real-looking-address row arrives with `fixtures/`, and the passphrase-flag
-//! lint with the `pfp-app` command line (`docs/contributing.md` §8).
+//! real-looking-address row arrives with `fixtures/` (`docs/contributing.md` §8).
 //!
 //! Rules 1–7 are presence checks on text: they stop a stray data file, an
 //! unlabelled fixture or a silently edited vintage from landing at all. Rule 8 is
@@ -103,6 +106,7 @@ pub(crate) fn run() -> Result<bool, String> {
         let lock = String::from_utf8_lossy(&repo::read(&lock_file)?).into_owned();
         violations.extend(check_lock(&root, &lock, &rels)?);
     }
+    violations.extend(crate::lint_server::violations(&root)?);
     for v in &violations {
         eprintln!("data-hygiene: {v}");
     }

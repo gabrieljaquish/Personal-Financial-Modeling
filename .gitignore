@@ -102,6 +102,10 @@ credentials/
 # Rust
 /target/
 **/*.rs.bk
+# insta: a failed or new snapshot is written beside the committed `.snap` for
+# review. It is a local artifact, never a commit.
+*.snap.new
+*.pending-snap
 # Python / test-time oracles (SECURITY.md §13.1, §11.1: never committed)
 oracles/**/.venv/
 .uv-cache/

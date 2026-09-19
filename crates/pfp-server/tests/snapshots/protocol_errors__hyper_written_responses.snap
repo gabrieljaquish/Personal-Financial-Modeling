@@ -1,0 +1,33 @@
+---
+source: crates/pfp-server/tests/protocol_errors.rs
+expression: snapshot
+---
+## malformed request line
+status: 400
+connection: close
+content-length: 0
+date: <date>
+
+## bad header bytes
+status: 400
+connection: close
+content-length: 0
+date: <date>
+
+## http/0.9-style request
+status: 400
+connection: close
+content-length: 0
+date: <date>
+
+## conflicting content-length
+status: 400
+connection: close
+content-length: 0
+date: <date>
+
+## too many headers
+status: 431
+connection: close
+content-length: 0
+date: <date>

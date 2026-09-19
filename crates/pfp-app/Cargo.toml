@@ -3,15 +3,42 @@ name = "pfp-app"
 description = "The `pfp` launcher: one self-contained local web application for macOS"
 version.workspace = true
 edition.workspace = true
-rust-version.workspace = true
+# As `pfp-server`: `time` 0.3.47, the first release without RUSTSEC-2026-0009,
+# needs Rust 1.88. The engine crates keep the workspace floor.
+rust-version = "1.88"
 license.workspace = true
 publish.workspace = true
+
+[lib]
+name = "pfp_app"
+path = "src/lib.rs"
 
 [[bin]]
 name = "pfp"
 path = "src/main.rs"
 
+# S-20: re-executes ITSELF (never `pfp`, never a server) to observe the panic hook.
+[[test]]
+name = "panic_hook"
+path = "tests/panic_hook.rs"
+harness = false
+
 [dependencies]
+pfp-server = { workspace = true }
+# Only for `rustls::pki_types` (the DER wrapper types `TlsMaterial` is made of);
+# no TLS code runs in this crate. Same version and features as `pfp-server`.
+rustls = { workspace = true }
+# Safe `setrlimit`, `flock` and `getuid`: the launcher has no `unsafe`.
+rustix = { workspace = true }
+# Wall clock for certificate issuance and validation only.
+time = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "signal", "sync"] }
+
+[dev-dependencies]
+# The raw TLS test client (no HTTP client crate exists in this workspace, ADR-020).
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["macros", "net", "io-util", "time"] }
+tokio-rustls = { workspace = true }
 
 [lints]
 workspace = true

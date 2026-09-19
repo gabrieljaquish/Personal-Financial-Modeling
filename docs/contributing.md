@@ -114,13 +114,16 @@ Live now — these fail at pre-commit and in CI:
 - A fixture with neither the synthetic marker nor a source citation — `cargo xtask
   data-hygiene` (§1.3).
 - An `asOf`-stamped JSON fact file outside `fixtures/` — `cargo xtask data-hygiene`.
+- A credential-shaped CLI flag (`--passphrase`, `--token`, `--key`, …), an environment read
+  that is not on the two-entry allowlist, or a credential-shaped variable handed to a child
+  process, anywhere under `crates/pfp-app/` in **any** build profile, tests included — `cargo
+  xtask lint-server`, which `cargo xtask data-hygiene` also runs. The same command keeps
+  `std::fs` to `pfp-vault` and `pfp-app` and `std::net` to `pfp-server` across every crate.
 
 Not implemented yet — specified, and tracked in §8 item 4:
 
 - Real-looking email addresses or street addresses in fixtures. Lands with the M0 step that
   creates `fixtures/`; until then there is no fixture for it to read.
-- A passphrase-shaped CLI flag, or an `env::var` passphrase lookup, anywhere in `pfp-app`, in
-  **any** build profile. Lands with the pull request that gives `pfp-app` a command line.
 - The nightly full-history sweep of the three `data-hygiene` rows above. `data-hygiene` reads
   the working tree (every tracked or committable file, on every commit and pull request), not
   old blobs; only the container magic and gitleaks rules are swept over history today.
@@ -386,13 +389,12 @@ configuration cannot honestly settle. Each is recorded here — and pointed at f
 affects — so that it is closed by an ADR in [`DECISIONS.md`](DECISIONS.md) *before* the pull
 request that depends on it, not inside it. Remove an item when its ADR lands.
 
-1. **`ring` and the OpenSSL licence (blocks the `rustls` pull request).** `SECURITY.md` §11
-   asks for the `ring` licence clarification to be pre-declared at M0. An honest clarification
-   records `MIT AND ISC AND OpenSSL`, and `OpenSSL` is not one of the eight permitted
-   licences; the same section forbids a clarification that records what the project wishes a
-   licence were, and says the permitted set is extended only by ADR. `deny.toml` therefore
-   declares no clarification. Needed: an ADR that either admits `OpenSSL` for `ring`
-   specifically, or selects a TLS crypto provider whose licence is already permitted.
+1. *Closed by fact, no ADR needed: `ring` and the OpenSSL licence.* The `ring` release pinned
+   by `Cargo.lock` declares `Apache-2.0 AND ISC`, both already permitted, so `cargo deny` is
+   green with no clarification and no exception. The verified facts, and the instruction to
+   re-verify on every `ring` bump, are the note dated 2026-09-19 in `deny.toml`. The sentence in
+   `SECURITY.md` §11 that pre-declares a clarification is an erratum for that document's
+   maintainer. The number is kept so that references to items 2-4 stay valid.
 2. **Build-time-only front-end dependencies (ADR-002, ADR-004).** `@vitejs/plugin-react` is not
    installed (its Babel path pulls `caniuse-lite`, CC-BY-4.0) and Vite is held at 7.x (Vite 8
    hard-depends on `lightningcss`, MPL-2.0). Both packages are build-time only and never reach
@@ -402,15 +404,14 @@ request that depends on it, not inside it. Remove an item when its ADR lands.
 3. **Pre-commit clippy (`TESTING.md` §11.1 stage 0).** See §7.2: clippy is implemented at
    pre-push. Needed: either the stage-0 list is amended, or a changed-crates clippy invocation
    fast enough for a commit hook is specified.
-4. **The rest of the §13.4 pattern check (`SECURITY.md` §14 places it at M0).** Three parts of
-   the check are not built: the real-looking email and street-address rule for fixtures, the
-   passphrase-flag and `env::var` lint over `pfp-app`, and a nightly full-history sweep of the
-   SSN, plan-shaped-JSON and `asOf` rules (§1.5). None can fire on the scaffold — there is no
-   `fixtures/` directory and `pfp-app` has no command line — so nothing is unprotected today;
-   this is a schedule item rather than a design gap. Needed: the first two land in the pull
-   requests that create `fixtures/` and the `pfp-app` CLI respectively, and must not be
-   deferred past them; the history sweep needs a `data-hygiene --history` mode alongside
-   `check-magic --history` in `nightly.yml`. No ADR is required unless "real-looking" needs a
+4. **The rest of the §13.4 pattern check (`SECURITY.md` §14 places it at M0).** Two parts of
+   the check are not built: the real-looking email and street-address rule for fixtures, and a
+   nightly full-history sweep of the SSN, plan-shaped-JSON and `asOf` rules (§1.5). (The third
+   part, the passphrase-flag and `env::var` lint over `pfp-app`, landed with the `pfp-app`
+   command line as `cargo xtask lint-server`; see §1.5.) This is a schedule item rather than a
+   design gap. Needed: the address rule must not be deferred past the fixtures it reads; the
+   history sweep needs a `data-hygiene --history` mode alongside `check-magic --history` in
+   `nightly.yml`. No ADR is required unless "real-looking" needs a
    definition that `SECURITY.md` does not give.
 
 ---

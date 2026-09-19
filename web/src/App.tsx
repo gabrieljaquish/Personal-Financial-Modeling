@@ -1,10 +1,12 @@
+import { describeSession } from './session/handshake.ts';
+import type { SessionState } from './session/handshake.ts';
 import styles from './App.module.css';
 
 /**
  * The application shell: landmarks, a skip link, labelled regions and one live
  * region, and nothing else. There is no routing (hash routing arrives with the
- * first second screen) and no API call (the session bootstrap and the
- * rate-schedule screen are separate work).
+ * first second screen) and no API call of its own: the session handshake has
+ * already run (`session/handshake.ts`) and its outcome is announced here.
  *
  * The accessibility patterns are established here on purpose: PLAN.md §4.1 puts
  * labelled controls, deliberate focus order, live regions and non-colour
@@ -17,7 +19,7 @@ import styles from './App.module.css';
  * inline style attributes as well as inline <style> elements, and M0 acceptance
  * is a CSP violation count of zero.
  */
-export function App() {
+export function App({ session }: { session: SessionState }) {
   return (
     <div className={styles.shell}>
       <header className={styles.banner}>
@@ -40,10 +42,12 @@ export function App() {
         {/*
           The single shared live region. Long-running work streams progress over
           NDJSON in a later milestone; announcing it through one polite region
-          established now is what keeps that streaming accessible later. It is
-          empty at rest, so nothing is announced on load.
+          established now is what keeps that streaming accessible later. At M0
+          it carries one message: whether this tab is connected to the server.
         */}
-        <p className={styles.liveRegion} role="status" aria-live="polite" />
+        <p className={styles.liveRegion} role="status" aria-live="polite">
+          {describeSession(session)}
+        </p>
 
         <section className={styles.section} aria-labelledby="plan-heading">
           <h2 className={styles.sectionHeading} id="plan-heading">
