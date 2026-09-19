@@ -1,0 +1,1072 @@
+---
+source: crates/pfp-server/tests/openapi.rs
+expression: openapi_json()
+---
+{
+  "components": {
+    "schemas": {
+      "Accepted": {
+        "description": "An accepted request with nothing to report.",
+        "type": "object"
+      },
+      "AssumptionDto": {
+        "description": "One parameter table: an entry of the Assumptions Registry.",
+        "properties": {
+          "asOf": {
+            "description": "The law as in effect on this date (`YYYY-MM-DD`).",
+            "type": "string"
+          },
+          "components": {
+            "description": "The named components of each value, low to high; empty for a single amount.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "description": "The table id.",
+            "type": "string"
+          },
+          "openItems": {
+            "description": "Questions a human still owes this table.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "period": {
+            "description": "The period the amounts apply to (for example `year`).",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "projection": {
+            "$ref": "#/components/schemas/ProjectionDto",
+            "description": "See [`ProjectionDto`]."
+          },
+          "rates": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/RatioDto"
+              },
+              "type": "array"
+            },
+            "description": "The rate ladder in force in each published year; empty when the table has\nno rates.",
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "rounding": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RoundingDto",
+                "description": "See [`RoundingDto`]."
+              }
+            ]
+          },
+          "servedUnit": {
+            "description": "The unit `values` and the projection's base values are **served** in.\nAlways `cents`: the engine holds every amount in integer cents.\n\nThis is not the table's declared `unit` (`ARCHITECTURE.md` §6, seam S1).\nThe declared `unit` and `breakdown` are not published yet: `ParamTable`\nparses and validates both but exposes neither. At M0 the loader accepts\nonly `USD` amounts, `ratio` rates and a `filingStatus` breakdown, so the\nkeys of `values` are `FilingStatus` wire forms. Both declarations must be\nserved from the table itself before the M2 override layer validates an\noverride against the declared unit (`ENGINE-SPEC.md` §15 check 10).",
+            "type": "string"
+          },
+          "sources": {
+            "description": "Primary sources.",
+            "items": {
+              "$ref": "#/components/schemas/SourceDto"
+            },
+            "type": "array"
+          },
+          "values": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "items": {
+                  "$ref": "#/components/schemas/Cents"
+                },
+                "type": "array"
+              },
+              "propertyNames": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "description": "Published amounts: breakdown key → year → one amount per component.",
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "verification": {
+            "$ref": "#/components/schemas/VerificationDto",
+            "description": "See [`VerificationDto`]."
+          },
+          "vintageId": {
+            "description": "The id of the vintage this table belongs to, `<name>@sha256:<content\nhash>`: the enclosing [`VintageDto::content_id`], repeated so one entry\ntaken alone still carries the pin a result records.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "servedUnit",
+          "components",
+          "asOf",
+          "verification",
+          "vintageId",
+          "projection",
+          "sources",
+          "values",
+          "rates",
+          "openItems"
+        ],
+        "type": "object"
+      },
+      "AssumptionsResponse": {
+        "description": "The Assumptions Registry.",
+        "properties": {
+          "vintages": {
+            "description": "Every vintage compiled into this build.",
+            "items": {
+              "$ref": "#/components/schemas/VintageDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "vintages"
+        ],
+        "type": "object"
+      },
+      "BootstrapRequest": {
+        "additionalProperties": false,
+        "description": "The launch token from the URL fragment.",
+        "properties": {
+          "token": {
+            "description": "64 lower-case hex characters. Single use, 60 s.",
+            "maxLength": 64,
+            "minLength": 64,
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "type": "object"
+      },
+      "BootstrapResponse": {
+        "description": "The port-scoped half of the session; the other half is the `__Host-` cookie.",
+        "properties": {
+          "proof": {
+            "description": "Goes into `sessionStorage[\"pfp.proof\"]` and then into `X-PFP-Proof`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "proof"
+        ],
+        "type": "object"
+      },
+      "Cents": {
+        "description": "An amount of money in integer cents.",
+        "format": "int64",
+        "type": "integer",
+        "x-money": true
+      },
+      "DerivationDto": {
+        "description": "A key defined as an exact multiple of another key's rounded result.",
+        "properties": {
+          "from": {
+            "description": "The key it derives from.",
+            "type": "string"
+          },
+          "multiplier": {
+            "$ref": "#/components/schemas/RatioDto",
+            "description": "The multiplier."
+          }
+        },
+        "required": [
+          "from",
+          "multiplier"
+        ],
+        "type": "object"
+      },
+      "ErrorBody": {
+        "description": "`{\"code\", \"message\"}`: the body of every refusal and failure.",
+        "properties": {
+          "code": {
+            "description": "Stable, machine-readable code.",
+            "type": "string"
+          },
+          "message": {
+            "description": "Fixed human-readable text. Never echoes a request value.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object"
+      },
+      "FilingStatusDto": {
+        "description": "Filing status, in the domain's wire form.",
+        "enum": [
+          "single",
+          "mfj",
+          "mfs",
+          "hoh",
+          "qss"
+        ],
+        "type": "string"
+      },
+      "IndexSeriesDto": {
+        "description": "Provenance of an archived index series a table projects with.",
+        "properties": {
+          "asOf": {
+            "description": "Data as published on this date (`YYYY-MM-DD`).",
+            "type": "string"
+          },
+          "id": {
+            "description": "The series document's id.",
+            "type": "string"
+          },
+          "indexSeries": {
+            "description": "The name tables refer to it by.",
+            "type": "string"
+          },
+          "openItems": {
+            "description": "Questions a human still owes this series.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "seriesId": {
+            "description": "The publisher's own series identifier.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sources": {
+            "description": "Primary sources.",
+            "items": {
+              "$ref": "#/components/schemas/SourceDto"
+            },
+            "type": "array"
+          },
+          "verification": {
+            "$ref": "#/components/schemas/VerificationDto",
+            "description": "See [`VerificationDto`]."
+          },
+          "years": {
+            "description": "The calendar years the series covers.",
+            "items": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "indexSeries",
+          "asOf",
+          "verification",
+          "years",
+          "sources",
+          "openItems"
+        ],
+        "type": "object"
+      },
+      "LineDto": {
+        "description": "One computed value and everything needed to audit it. The worksheet is the\nordered list of these; the tree is followed through `inputs`.",
+        "properties": {
+          "id": {
+            "description": "Stable id; the prefix names the worksheet.",
+            "type": "string"
+          },
+          "inputs": {
+            "description": "Ids of the lines this value was computed from, in formula order.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "label": {
+            "description": "Human-readable name.",
+            "type": "string"
+          },
+          "params": {
+            "description": "The parameter cells this value read, in formula order.",
+            "items": {
+              "$ref": "#/components/schemas/ParamRefDto"
+            },
+            "type": "array"
+          },
+          "rounding": {
+            "description": "The named rounding rule that produced the value, if one did.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "value": {
+            "$ref": "#/components/schemas/Cents",
+            "description": "The value."
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "value"
+        ],
+        "type": "object"
+      },
+      "ParamRefDto": {
+        "description": "A reference to one parameter cell.",
+        "properties": {
+          "breakdownKey": {
+            "description": "The breakdown key read (for example a filing status).",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "element": {
+            "description": "The component read (for example a bracket edge).",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "paramId": {
+            "description": "The table id.",
+            "type": "string"
+          },
+          "year": {
+            "description": "The year read.",
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "paramId"
+        ],
+        "type": "object"
+      },
+      "ProjectionDto": {
+        "description": "How a year the table does not publish is projected.",
+        "properties": {
+          "baseValues": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/Cents"
+              },
+              "type": "array"
+            },
+            "description": "The statutory base amounts per breakdown key, one per component.",
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "baseYear": {
+            "description": "The statutory base year, when it is one year for the whole table.",
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "baseYearByComponent": {
+            "additionalProperties": {
+              "items": {
+                "format": "int32",
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "description": "The statutory base year per component, by the first tax year it applies to.",
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "derived": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DerivationDto"
+            },
+            "description": "Keys defined as multiples of another key.",
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "firstAdjustedYear": {
+            "description": "The first tax year whose amounts are adjusted.",
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "index": {
+            "description": "The index the law names.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "indexSeries": {
+            "description": "The archived series that index resolves to.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lagYears": {
+            "description": "Which calendar year of the series a tax year reads, as an offset.",
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "rule": {
+            "description": "`index`, `wage`, `flat`, `zero` or `schedule`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule",
+          "baseValues",
+          "derived"
+        ],
+        "type": "object"
+      },
+      "RateScheduleRequest": {
+        "additionalProperties": false,
+        "description": "Inputs of the rate schedule.",
+        "properties": {
+          "filingStatus": {
+            "$ref": "#/components/schemas/FilingStatusDto",
+            "description": "`single`, `mfj`, `mfs`, `hoh` or `qss`."
+          },
+          "taxableIncome": {
+            "$ref": "#/components/schemas/Cents",
+            "description": "Taxable income in cents; not negative, at most 2^53 − 1."
+          },
+          "year": {
+            "description": "Tax year.",
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "filingStatus",
+          "taxableIncome"
+        ],
+        "type": "object"
+      },
+      "RateScheduleResponse": {
+        "description": "The rate-schedule worksheet.",
+        "properties": {
+          "filingStatus": {
+            "$ref": "#/components/schemas/FilingStatusDto",
+            "description": "Echo of the request's filing status."
+          },
+          "lines": {
+            "description": "Every line, in computation order.",
+            "items": {
+              "$ref": "#/components/schemas/LineDto"
+            },
+            "type": "array"
+          },
+          "rootLineId": {
+            "description": "Id of the line that is the result.",
+            "type": "string"
+          },
+          "tax": {
+            "$ref": "#/components/schemas/Cents",
+            "description": "The tax: the value of the root line."
+          },
+          "taxableIncome": {
+            "$ref": "#/components/schemas/Cents",
+            "description": "Echo of the request's taxable income."
+          },
+          "verified": {
+            "description": "Whether that vintage is hand-verified. `false` means: not for decisions.",
+            "type": "boolean"
+          },
+          "vintage": {
+            "$ref": "#/components/schemas/VintageSummaryDto",
+            "description": "The vintage the parameters came from."
+          },
+          "year": {
+            "description": "Echo of the request's year.",
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "filingStatus",
+          "taxableIncome",
+          "tax",
+          "rootLineId",
+          "lines",
+          "vintage",
+          "verified"
+        ],
+        "type": "object"
+      },
+      "RatioDto": {
+        "description": "A rate as an exact fraction, as the source printed it (`10/100`, not `1/10`).",
+        "properties": {
+          "den": {
+            "description": "Denominator; positive.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "num": {
+            "description": "Numerator.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "num",
+          "den"
+        ],
+        "type": "object"
+      },
+      "RoundingDto": {
+        "description": "How amounts are rounded when a year is projected.",
+        "properties": {
+          "basis": {
+            "description": "`Amount` or `IncreaseOverBase`.",
+            "type": "string"
+          },
+          "direction": {
+            "description": "`down`, `up`, `halfUp`, `halfEven` or `nearest`.",
+            "type": "string"
+          },
+          "increment": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Cents",
+                "description": "The multiple rounded to, when it is one amount for every key."
+              }
+            ]
+          },
+          "incrementByKey": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Cents"
+            },
+            "description": "The multiple rounded to, per breakdown key, when it differs by key.",
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "direction",
+          "basis"
+        ],
+        "type": "object"
+      },
+      "SessionStatus": {
+        "description": "Health and session status.",
+        "properties": {
+          "apiVersion": {
+            "description": "The API version: the `v1` of `/api/v1`.",
+            "type": "string"
+          },
+          "appVersion": {
+            "description": "The application version.",
+            "type": "string"
+          },
+          "trustMode": {
+            "$ref": "#/components/schemas/TrustModeDto",
+            "description": "See [`TrustModeDto`]."
+          },
+          "vintages": {
+            "description": "The parameter vintages compiled into this build.",
+            "items": {
+              "$ref": "#/components/schemas/VintageSummaryDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "appVersion",
+          "apiVersion",
+          "trustMode",
+          "vintages"
+        ],
+        "type": "object"
+      },
+      "SourceDto": {
+        "description": "One primary source of a table or series.",
+        "properties": {
+          "archive": {
+            "description": "Repository-relative path of the archived copy.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "asOf": {
+            "description": "The source's own as-of date, when it differs from the table's.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "locator": {
+            "description": "Where in the document the values are.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "publisher": {
+            "description": "Who published it.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "retrieved": {
+            "description": "When it was retrieved (`YYYY-MM-DD`).",
+            "type": "string"
+          },
+          "sha256": {
+            "description": "SHA-256 of the archived copy.",
+            "type": "string"
+          },
+          "title": {
+            "description": "Title of the document.",
+            "type": "string"
+          },
+          "url": {
+            "description": "Where it was retrieved from. Displayed, never fetched by the application.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "url",
+          "retrieved",
+          "sha256"
+        ],
+        "type": "object"
+      },
+      "TrustModeDto": {
+        "description": "Whether the local certificate authority is trusted by this user's browsers.",
+        "enum": [
+          "installed",
+          "declined"
+        ],
+        "type": "string"
+      },
+      "VerificationDto": {
+        "description": "The verification status of a table or series.\n\nThe wire forms are exactly `pfp_params::VerificationStatus::wire()` — the\nkebab-case strings a parameter file carries — so the registry and the files\nit lists spell one enum one way. `Unstated` has no file form (it is the\nabsence of the field); the API spells it `unstated`.",
+        "enum": [
+          "pending-hand-verification",
+          "primary-source-confirmed",
+          "hand-worked-reviewed",
+          "unstated"
+        ],
+        "type": "string"
+      },
+      "VintageDto": {
+        "description": "A vintage with every table in it.",
+        "properties": {
+          "contentId": {
+            "description": "`name@sha256:…` computed from the content.",
+            "type": "string"
+          },
+          "indexSeries": {
+            "description": "The index series those tables project with.",
+            "items": {
+              "$ref": "#/components/schemas/IndexSeriesDto"
+            },
+            "type": "array"
+          },
+          "lockedId": {
+            "description": "The locked id, when the lock file records this content.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "description": "The vintage's name.",
+            "type": "string"
+          },
+          "tables": {
+            "description": "Every parameter table.",
+            "items": {
+              "$ref": "#/components/schemas/AssumptionDto"
+            },
+            "type": "array"
+          },
+          "verified": {
+            "description": "Whether every table and series has been verified by a human.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "contentId",
+          "verified",
+          "tables",
+          "indexSeries"
+        ],
+        "type": "object"
+      },
+      "VintageSummaryDto": {
+        "description": "A parameter vintage's identity, without its tables.",
+        "properties": {
+          "contentId": {
+            "description": "`name@sha256:…` computed from the content; claims nothing by itself.",
+            "type": "string"
+          },
+          "lockedId": {
+            "description": "The locked id, present only when `params/VINTAGES.lock` records this content.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "description": "The vintage's name.",
+            "type": "string"
+          },
+          "verified": {
+            "description": "Whether every table and series has been verified by a human.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "contentId",
+          "verified"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "sessionCookie": {
+        "description": "Set by the bootstrap; HttpOnly. Useless without the proof.",
+        "in": "cookie",
+        "name": "__Host-pfp",
+        "type": "apiKey"
+      },
+      "sessionProof": {
+        "description": "Returned by the bootstrap; kept in sessionStorage. Useless without the cookie.",
+        "in": "header",
+        "name": "X-PFP-Proof",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "description": "Served only on https://127.0.0.1:<port> to the application's own front end. Every operation is POST and requires exact Host, Origin and Sec-Fetch-Site headers. All money is integer cents.",
+    "license": {
+      "identifier": "Apache-2.0",
+      "name": "Apache-2.0"
+    },
+    "title": "Personal Financial Modeling local API",
+    "version": "v1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/assumptions/list": {
+      "post": {
+        "operationId": "list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssumptionsResponse"
+                }
+              }
+            },
+            "description": "The registry."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`session_required`."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`session_cookie_displaced`."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": [],
+            "sessionProof": []
+          }
+        ],
+        "summary": "Lists every vintage compiled into this build, with every table in it.",
+        "tags": [
+          "assumptions"
+        ]
+      }
+    },
+    "/api/v1/session/bootstrap": {
+      "post": {
+        "operationId": "bootstrap",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BootstrapRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BootstrapResponse"
+                }
+              }
+            },
+            "description": "Session established. Sets the `__Host-pfp` cookie (`Secure; HttpOnly; SameSite=Strict; Path=/`)."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`launch_token_invalid`: wrong, expired or already used."
+          }
+        },
+        "summary": "Exchanges the launch token for the session pair.",
+        "tags": [
+          "session"
+        ]
+      }
+    },
+    "/api/v1/session/relaunch": {
+      "post": {
+        "operationId": "relaunch",
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Accepted"
+                }
+              }
+            },
+            "description": "A fresh launch URL was handed to the opener."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`session_required`."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`relaunch_throttled`: inside the minimum interval, try again later. `relaunch_exhausted`: the per-session cap is used up and waiting does not help."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`open_unavailable`: this build has no opener."
+          }
+        },
+        "security": [
+          {
+            "sessionProof": []
+          }
+        ],
+        "summary": "Asks the running application to re-open itself in the browser: the recovery\nfrom a displaced cookie. Needs the proof only. The fresh launch token goes to\nthe opener inside the process and is never in this response.",
+        "tags": [
+          "session"
+        ]
+      }
+    },
+    "/api/v1/session/status": {
+      "post": {
+        "operationId": "status",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionStatus"
+                }
+              }
+            },
+            "description": "The session is live."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`session_required`."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`session_cookie_displaced`."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": [],
+            "sessionProof": []
+          }
+        ],
+        "summary": "Health, versions and trust mode.",
+        "tags": [
+          "session"
+        ]
+      }
+    },
+    "/api/v1/tax/rate-schedule": {
+      "post": {
+        "operationId": "rate_schedule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RateScheduleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateScheduleResponse"
+                }
+              }
+            },
+            "description": "The worksheet."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`invalid_json`."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`session_required`."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`session_cookie_displaced`."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`request_invalid` or `schedule_input_invalid`."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": [],
+            "sessionProof": []
+          }
+        ],
+        "summary": "Computes the ordinary-income rate schedule and returns the whole worksheet.",
+        "tags": [
+          "tax"
+        ]
+      }
+    }
+  }
+}

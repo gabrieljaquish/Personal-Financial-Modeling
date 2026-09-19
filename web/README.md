@@ -5,8 +5,29 @@ assets to `web/dist`, which `rust-embed` compiles into the `pfp` executable; the
 Rust server serves them from the canonical loopback origin. Node is a build-time
 tool and never ships (`ARCHITECTURE.md` §9, ADR-002).
 
-At M0 this is the shell only: landmarks, a skip link, labelled regions and one
-live region. There is no routing, no API call and no state.
+At M0 this is the shell and the session handshake, and nothing else: landmarks, a
+skip link, labelled regions and one live region that says whether this tab is
+connected. There is no routing and no state beyond the session.
+
+## Session handshake
+
+`src/session/handshake.ts` runs once, before the first render (`SECURITY.md` §7.1):
+
+1. read the launch token from the URL **fragment** (`#t=<64 hex>`) — never from
+   the query string;
+2. clear the fragment with `history.replaceState`, before any request is sent;
+3. `POST /api/v1/session/bootstrap { token }`; the server sets the `HttpOnly`
+   `__Host-pfp` cookie and returns `{ proof }`;
+4. store **only** the proof, in `sessionStorage["pfp.proof"]`. Every later call
+   goes through `src/session/api.ts`, which sends it as `X-PFP-Proof`.
+
+A reload of a tab that already holds a proof asks `session/status` instead. The
+live region then reads "Connected…" or one of four "Not connected…" messages (no
+launch token, token refused, session displaced by another local site — the 409
+recovery state — or server unreachable).
+
+The module takes `fetch`, `location`, `history` and `sessionStorage` as
+arguments, so `npm test` exercises it under plain Node with recording fakes.
 
 ## Commands
 
@@ -14,8 +35,10 @@ live region. There is no routing, no API call and no state.
 |---|---|
 | `npm ci --ignore-scripts` | Install exactly what `package-lock.json` pins, running no lifecycle scripts |
 | `npm run dev` | Vite dev server on loopback, for front-end work alone |
-| `npm run build` | `tsc --noEmit && vite build` — a type error fails the build |
+| `npm run build` | `tsc --noEmit`, `npm test`, `vite build`, then `node scripts/write-stamp.mjs` — a type error or a failing test fails the build, and the last step records the front-end input hash in `dist/.dist-stamp`, which a **release** build of `pfp-server` requires (`vite build` empties `dist`, so the stamp has to be written after it) |
 | `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | `node --test`: the handshake tests, the source lint (no storage API but the one `sessionStorage` key, no inline style, no absolute URL) and the build-stamp known-answer test. No test dependency: Node strips the TypeScript types itself |
+| `cargo xtask build-web` (repository root) | `npm ci --ignore-scripts` + `npm run build`, checks the emitted tree, and recomputes the input hash in Rust, failing if `npm run build` recorded a different one |
 | `npm run licenses` | Per-package licence gate over the whole installed tree |
 
 `npm install` is for changing dependencies. Everything else — local builds and
@@ -33,8 +56,8 @@ else a violation rather than a slow request (`SECURITY.md` §7.1).
 
 **No browser storage and no service worker.** No `localStorage`, no
 `IndexedDB`, no Cache Storage, no `navigator.serviceWorker`. M0 acceptance
-asserts these are empty; `sessionStorage` will hold exactly one value, the
-session proof token, and that arrives with the session bootstrap.
+asserts these are empty; `sessionStorage` holds exactly one value, the session
+proof token. `tests/no-storage.test.mjs` is the source-level first line of that.
 
 **No inline script and no inline style.** The CSP is `script-src 'self';
 style-src 'self'` with no `'unsafe-inline'`, which blocks `style="…"`
@@ -99,11 +122,16 @@ tsconfig.json               strict; also type-checks vite.config.ts
 .nvmrc                      the pinned Node version
 scripts/check-licences.mjs  the per-package licence gate
 src/
-  main.tsx                  React root
+  main.tsx                  runs the handshake, then mounts the React root
   App.tsx                   the shell: landmarks, skip link, labelled regions
+  session/handshake.ts      launch token -> cookie + proof; clears the fragment
+  session/api.ts            same-origin POST carrying X-PFP-Proof; 409 -> displaced
   App.module.css            shell layout
   index.css                 document tokens and reset
   vite-env.d.ts             Vite client types
+tests/
+  handshake.test.mjs        the handshake against recording fakes
+  no-storage.test.mjs       source lint over src/ and index.html
 ```
 
 `node_modules/` and `dist/` are ignored by the repository-root `.gitignore`;

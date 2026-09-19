@@ -1,0 +1,15 @@
+---
+source: crates/pfp-server/tests/headers.rs
+expression: response.header_snapshot()
+---
+status: 408
+content-type: application/json
+content-length: 65
+connection: close
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+date: <date>
