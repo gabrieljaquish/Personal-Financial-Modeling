@@ -210,6 +210,14 @@ expression: openapi_json()
         ],
         "type": "object"
       },
+      "ExportFormatDto": {
+        "description": "The file format of an export.",
+        "enum": [
+          "csv",
+          "json"
+        ],
+        "type": "string"
+      },
       "FilingStatusDto": {
         "description": "Filing status, in the domain's wire form.",
         "enum": [
@@ -450,6 +458,36 @@ expression: openapi_json()
           "rule",
           "baseValues",
           "derived"
+        ],
+        "type": "object"
+      },
+      "RateScheduleExportRequest": {
+        "additionalProperties": false,
+        "description": "Inputs of the rate schedule, and the format to export its worksheet in.",
+        "properties": {
+          "filingStatus": {
+            "$ref": "#/components/schemas/FilingStatusDto",
+            "description": "`single`, `mfj`, `mfs`, `hoh` or `qss`."
+          },
+          "format": {
+            "$ref": "#/components/schemas/ExportFormatDto",
+            "description": "`csv` or `json`."
+          },
+          "taxableIncome": {
+            "$ref": "#/components/schemas/Cents",
+            "description": "Taxable income in cents; not negative, at most 2^53 − 1."
+          },
+          "year": {
+            "description": "Tax year.",
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "filingStatus",
+          "taxableIncome",
+          "format"
         ],
         "type": "object"
       },
@@ -1063,6 +1101,89 @@ expression: openapi_json()
           }
         ],
         "summary": "Computes the ordinary-income rate schedule and returns the whole worksheet.",
+        "tags": [
+          "tax"
+        ]
+      }
+    },
+    "/api/v1/tax/rate-schedule/export": {
+      "post": {
+        "description": "The worksheet is recomputed from the inputs; the client never posts lines\nback. CSV text cells carry spreadsheet formula-injection escaping and amounts\nare bare numbers; the JSON is the worksheet's values verbatim.",
+        "operationId": "rate_schedule_export",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RateScheduleExportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "The worksheet as an attachment, in the requested format."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`invalid_json`."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`session_required`."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`session_cookie_displaced`."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`request_invalid` or `schedule_input_invalid`."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": [],
+            "sessionProof": []
+          }
+        ],
+        "summary": "Exports the rate-schedule worksheet as a CSV or JSON attachment.",
         "tags": [
           "tax"
         ]

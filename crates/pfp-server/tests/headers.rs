@@ -75,6 +75,18 @@ async fn header_set_per_response_class() {
         "api 200",
         server.send(server.authed(STATUS, &session)).await,
     ));
+    // SYNTHETIC input. An export is the one API answer that is not JSON and the
+    // one that carries `Content-Disposition`.
+    classes.push((
+        "api export 200",
+        server
+            .send(
+                server
+                    .authed("/api/v1/tax/rate-schedule/export", &session)
+                    .json(r#"{"year":2026,"filingStatus":"mfj","taxableIncome":10000000,"format":"csv"}"#),
+            )
+            .await,
+    ));
     classes.push(("api 401", server.send(server.api(STATUS)).await));
     classes.push((
         "api 409",

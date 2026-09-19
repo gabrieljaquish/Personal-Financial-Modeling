@@ -23,6 +23,8 @@ export type SessionState =
   | { kind: 'no-token' }
   /** The launch token was refused: wrong, expired or already used. */
   | { kind: 'rejected' }
+  /** This tab had a session and the server no longer honours it (401 mid-use). */
+  | { kind: 'session-ended' }
   /** Another local site displaced this browser's session cookie (409). */
   | { kind: 'displaced' }
   /** The server did not answer. */
@@ -93,7 +95,7 @@ export async function bootstrapSession(env: HandshakeEnv): Promise<SessionState>
   }
 }
 
-/** What the shell's live region announces for each state. */
+/** One sentence per state: the polite region says it when connected, the session notice otherwise. */
 export function describeSession(state: SessionState): string {
   switch (state.kind) {
     case 'connected':
@@ -102,6 +104,8 @@ export function describeSession(state: SessionState): string {
       return 'Not connected. Open this page from the application, not from a typed address or a bookmark.';
     case 'rejected':
       return 'Not connected. The launch link was already used or has expired; open the page again from the application.';
+    case 'session-ended':
+      return 'Not connected. This tab’s session has ended; open the page again from the application.';
     case 'displaced':
       return 'Not connected. This browser’s session was displaced by another local site; re-open from the application.';
     case 'unreachable':

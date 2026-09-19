@@ -171,6 +171,8 @@ impl Drop for Launched {
     }
 }
 
+const EXPORT: &str = "/api/v1/tax/rate-schedule/export";
+
 fn grid_points() -> Vec<(i64, i64)> {
     // Expected values come from the synthetic fixture, not from the engine.
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -193,6 +195,57 @@ fn grid_points() -> Vec<(i64, i64)> {
         .collect();
     assert_eq!(points.len(), 3);
     points
+}
+
+/// The export of the rate-schedule result, through the launch sequence: a file, not
+/// a page. The expected amounts come from the same synthetic fixture, as dollars.
+fn assert_exports(client: &support::Client, session: &support::Session) {
+    for (income, expected_tax) in grid_points() {
+        let request = |format: &str| {
+            format!(
+                r#"{{"year":2026,"filingStatus":"mfj","taxableIncome":{income},"format":"{format}"}}"#
+            )
+        };
+        let csv = client.authed(session, EXPORT, Some(&request("csv")));
+        assert_eq!(csv.status, 200);
+        assert_eq!(csv.header("content-type"), Some("text/csv; charset=utf-8"));
+        assert_eq!(
+            csv.header("content-disposition"),
+            Some("attachment; filename=\"rate-schedule.csv\"")
+        );
+        assert_eq!(csv.header("cache-control"), Some(support::NO_STORE));
+        let text = String::from_utf8(csv.body.clone()).expect("UTF-8 CSV");
+        assert!(!text.starts_with('\u{FEFF}') && text.ends_with("\r\n"));
+        let result_row = text
+            .split("\r\n")
+            .find(|row| row.contains(",\"yes\",\"federal-2026@"))
+            .expect("the result row");
+        let dollars = format!(",{}.{:02},", expected_tax / 100, expected_tax % 100);
+        assert!(
+            result_row.contains(&dollars),
+            "a bare, unquoted amount {dollars} in {result_row}"
+        );
+        assert!(
+            text.contains("\"no\",\"no\"\r\n"),
+            "unlocked and unverified"
+        );
+
+        let json = client.authed(session, EXPORT, Some(&request("json")));
+        assert_eq!(json.status, 200);
+        assert_eq!(json.header("content-type"), Some("application/json"));
+        assert_eq!(
+            json.header("content-disposition"),
+            Some("attachment; filename=\"rate-schedule.json\"")
+        );
+        let body = format!(r#"{{"year":2026,"filingStatus":"mfj","taxableIncome":{income}}}"#);
+        let api = client.authed(session, "/api/v1/tax/rate-schedule", Some(&body));
+        assert_eq!(
+            json.json(),
+            api.json(),
+            "the JSON export is the API's values"
+        );
+        assert_eq!(json.json()["tax"], expected_tax);
+    }
 }
 
 #[test]
@@ -256,6 +309,8 @@ fn handshake_rate_schedule_registry_headers_shutdown() {
             }
         }
     }
+
+    assert_exports(&client, &session);
 
     // The Assumptions Registry: every parameter with source, as-of, vintage,
     // projection and rounding.

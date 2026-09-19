@@ -1,0 +1,112 @@
+/*
+ * The Assumptions Registry.
+ *
+ * Narrow viewports (WCAG 1.4.10): a nine-column table cannot reflow at 320 CSS
+ * pixels, and a scroll container alone is exempt on paper but unusable in
+ * practice. Below 48rem the secondary columns are hidden, a sentence says so, and
+ * nothing is lost: every field of an entry is in its detail.
+ */
+
+.vintage {
+  display: grid;
+  gap: var(--pfp-space-3);
+  min-inline-size: 0;
+}
+
+.vintageHeading {
+  font-size: 1.25rem;
+  font-weight: 650;
+}
+
+.statusLine {
+  max-width: var(--pfp-measure);
+  padding-left: var(--pfp-space-2);
+  border-left: 4px dashed var(--pfp-attention-ink);
+}
+
+.narrowNote {
+  display: none;
+  color: var(--pfp-ink-muted);
+}
+
+.detail {
+  display: grid;
+  gap: var(--pfp-space-2);
+  min-inline-size: 0;
+  padding-top: var(--pfp-space-3);
+  border-top: 2px solid var(--pfp-border);
+}
+
+/* The entry the address names: a border STYLE and words in the heading, never colour alone. */
+.detailRouted {
+  border-top: 4px double var(--pfp-ink);
+}
+
+.linkedMark {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.detailHeading {
+  font-size: 1.125rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.subheading {
+  margin-top: var(--pfp-space-2);
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.entries {
+  display: grid;
+  gap: var(--pfp-space-1);
+}
+
+.entries dt {
+  color: var(--pfp-ink-muted);
+  font-size: 0.875rem;
+}
+
+.entries dd {
+  overflow-wrap: anywhere;
+}
+
+.sources {
+  display: grid;
+  gap: var(--pfp-space-3);
+  list-style: none;
+}
+
+.source {
+  padding-left: var(--pfp-space-3);
+  border-left: 2px solid var(--pfp-border);
+}
+
+.sourceTitle {
+  font-weight: 600;
+}
+
+.code {
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+.openItems {
+  display: grid;
+  gap: var(--pfp-space-2);
+  max-width: var(--pfp-measure);
+  list-style-position: outside;
+  padding-left: var(--pfp-space-4);
+}
+
+@media (max-width: 48rem) {
+  .secondaryCol {
+    display: none;
+  }
+
+  .narrowNote {
+    display: block;
+  }
+}

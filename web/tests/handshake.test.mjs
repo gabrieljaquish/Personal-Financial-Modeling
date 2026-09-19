@@ -12,6 +12,7 @@ import { test } from 'node:test';
 
 import { bootstrapSession, describeSession, launchTokenFromFragment } from '../src/session/handshake.ts';
 import { apiPost, PROOF_HEADER, PROOF_KEY } from '../src/session/api.ts';
+import { fakeResponse } from './support/fakes.mjs';
 
 const TOKEN = 'ab'.repeat(32);
 const PROOF = 'cd'.repeat(32);
@@ -42,8 +43,9 @@ function fakeEnv({ hash = '', search = '', stored = {}, respond }) {
       if (respond === undefined) {
         throw new TypeError('network');
       }
+      // One fake for every test: it behaves like a real `Response` (tests/support/fakes.mjs).
       const { status, body } = respond(input, init);
-      return { status, json: async () => body };
+      return fakeResponse(status, JSON.stringify(body));
     },
   };
   return { env, calls, store };

@@ -414,6 +414,64 @@ request that depends on it, not inside it. Remove an item when its ADR lands.
    `nightly.yml`. No ADR is required unless "real-looking" needs a
    definition that `SECURITY.md` does not give.
 
+The M0 front-end pull request met four more. The rules they produced are in force in `web/`
+today; what is missing is the ADR that either ratifies them or replaces them.
+
+5. **Front-end tooling named by the design but not installed (ADR-017, `TESTING.md` §9).** API
+   types come from an in-repository generator (`web/scripts/gen-api-types.mjs`) over the OpenAPI
+   snapshot, with a drift test, instead of `openapi-typescript`; tests run on `node:test` with
+   `react-dom/server` instead of vitest and Testing Library; there is no jsdom and no axe-core
+   (MPL-2.0, outside the licence set). ADR-017's property — a DTO change breaks the front-end
+   build, not a user session — is kept; its tool is not. Also for that ADR: `TESTING.md` §9 says a
+   `number & {brand}` cents type makes arithmetic a type error. It does not. The opaque object
+   type used here does for `+ - * /`; **no** TypeScript type rejects `<`, `>`, `<=`, `>=` between
+   two values of one type, so comparison is closed by a source lint
+   (`web/tests/no-storage.test.mjs`: no relational operator and no `.sort(` in `viewmodel/`,
+   `screens/` and `components/`, and the `Cents` identifier confined to four places). A front-end
+   rule to keep until the ADR says otherwise: **a view never receives an amount as anything but
+   formatted text.** One more omission belongs to the same ADR: ADR-002's Decision sentence (and
+   the front-end row of `ARCHITECTURE.md` §1) names **TanStack Query**, and no `@tanstack`
+   package is installed. M0 has two read-only loads and one calculation; the hand-written hook
+   `web/src/useLoadable.ts` (load once, retry, drop a superseded answer) and the screen reducers
+   stand in its place, under this pull request's rule of as few dependencies as possible. The ADR
+   either ratifies that or names the milestone at which TanStack Query arrives.
+6. **Export escaping (`SECURITY.md` §9).** The exporter lives in the server
+   (`crates/pfp-server/src/api/export.rs`), where a cell's type is known, and its rule is
+   stronger than §9 as written: the trigger test looks past leading Unicode whitespace and
+   U+FEFF, and a text that begins with an apostrophe is itself escaped so that the inverse is
+   exact. Needed: §9 adopts that wording, so that later exporters inherit it from the document.
+   Two questions stay open for the same amendment: the textual form of a `Ratio` cell (a bare
+   `10/100` is read as a date by spreadsheets, so no ratio is exported yet), and whether
+   full-width look-alikes of the trigger characters (U+FF1D, U+FF0B, U+FF0D, U+FF20), which
+   some spreadsheet locales are reported to normalise to their ASCII forms, join the trigger set before the
+   first export that carries user-supplied text (M1).
+7. **The chart library and the licence set (ADR-002, `SECURITY.md` §7.3).** No chart dependency
+   is installed; neither M0 screen has a chart. A desk audit — from knowledge of the libraries,
+   **not** from their source, which was not fetched — expects Observable Plot to run under
+   `style-src 'self'` given three rules of use (our own class and stylesheet instead of the
+   `<style>` element Plot appends, no Plot legends, captions outside Plot), and expects both
+   candidates to fail the npm licence gate before the CSP question is reached: Plot installs the
+   `d3` umbrella, which reaches `robust-predicates` (Unlicense), and ECharts depends on `tslib`
+   (0BSD). Needed, in this order: confirm the two licence strings from the published packages;
+   an ADR that either widens the permitted set or replaces Plot and its fallback with hand-built
+   SVG; only then the browser spike ADR-002 asks for.
+
+8. **Who owns the words of a validation message (`ARCHITECTURE.md` §5, "Rules of the flow").**
+   That section says "Validation messages come from the backend validator." The M0 front end
+   does otherwise, in two places, on purpose. (a) **The front end owns every user-visible
+   sentence, keyed by the server's stable `code`.** `web/src/api/errors.ts` never renders
+   `ErrorBody.message`; `failureText()` holds the wording for each code, `schedule_input_invalid`
+   included, and a drift test (`web/tests/errors-drift.test.mjs`) keeps the code list equal to
+   the OpenAPI snapshot. The reasons: `ErrorBody.message` is one fixed text with no field
+   attached, so it cannot drive a per-field `aria-describedby` error; and with UI-owned wording
+   no server string can place text on a screen. (b) **Client-side validation exists, confined
+   to "can a request be formed at all"** (`web/src/screens/rate-schedule/state.ts`): a
+   well-formed whole-dollar string, a four-digit year, one of the published filing statuses.
+   What the values *mean* — ranges, a year with no parameters — stays the server's judgement and
+   comes back as a 422. Needed: an amendment to that sentence of `ARCHITECTURE.md` §5, or an ADR,
+   that either ratifies this split or gives the error body per-field messages the front end can
+   render instead.
+
 ---
 
 ## 9. Nothing in this repository is financial advice
