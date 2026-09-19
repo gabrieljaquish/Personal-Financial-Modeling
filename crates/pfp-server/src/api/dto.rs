@@ -160,6 +160,30 @@ pub struct RateScheduleRequest {
     pub taxable_income: CentsDto,
 }
 
+/// The file format of an export.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub enum ExportFormatDto {
+    /// Comma-separated values with type-aware formula-injection escaping.
+    Csv,
+    /// The worksheet's JSON body, verbatim.
+    Json,
+}
+
+/// Inputs of the rate schedule, and the format to export its worksheet in.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct RateScheduleExportRequest {
+    /// Tax year.
+    pub year: i32,
+    /// `single`, `mfj`, `mfs`, `hoh` or `qss`.
+    pub filing_status: FilingStatusDto,
+    /// Taxable income in cents; not negative, at most 2^53 − 1.
+    pub taxable_income: CentsDto,
+    /// `csv` or `json`.
+    pub format: ExportFormatDto,
+}
+
 /// Filing status, in the domain's wire form.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]

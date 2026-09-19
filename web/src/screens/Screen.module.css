@@ -1,0 +1,41 @@
+/*
+ * What every screen shares. Target size (WCAG 2.2 SC 2.5.8): inline links meet it
+ * by MINIMUM SIZE, 24 by 24 CSS pixels or more, not by the spacing exception.
+ */
+
+.screen {
+  display: grid;
+  gap: var(--pfp-space-3);
+  min-inline-size: 0;
+  padding: var(--pfp-space-3);
+  border: 1px solid var(--pfp-border);
+  border-radius: var(--pfp-radius);
+  background-color: var(--pfp-surface);
+}
+
+.heading {
+  font-size: 1.375rem;
+  font-weight: 650;
+}
+
+.lede {
+  max-width: var(--pfp-measure);
+}
+
+.muted {
+  color: var(--pfp-ink-muted);
+}
+
+.inlineLink {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
+  min-inline-size: 1.5rem;
+}
+
+@media print {
+  .screen {
+    padding: 0;
+    border: 0;
+  }
+}

@@ -1,0 +1,510 @@
+---
+source: crates/pfp-server/tests/ui_golden.rs
+expression: pretty(&assumptions)
+---
+{
+  "vintages": [
+    {
+      "contentId": "federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281",
+      "indexSeries": [
+        {
+          "asOf": "2026-09-18",
+          "id": "bls.cpi.chained.suur0000sa0",
+          "indexSeries": "cpi.chained.aug12m",
+          "openItems": [
+            "M0 GATE: the identity of the series behind index = 'cpi.chained'. 26 USC 1(f)(6)(A) names the index by title only; the mapping to SUUR0000SA0 rests on su.series and the BLS chained-CPI FAQ, not on statute. Cannot be discharged by reading 26 USC 1 or 63.",
+            "The 26 USC 1(f)(6)(A) revision-vintage freeze: decide whether the project computes against today's final values and records any residual, or recovers the values as published on 2025-09-11 from the August 2025 release's own tables.",
+            "BLS states both 'three subsequent quarterly revisions' (Technical Note) and 'four revisions' (Table 5 footnote 1) in the same release. Unreconciled; it does not affect which months are final at this snapshot, but a reader will trip over it."
+          ],
+          "seriesId": "SUUR0000SA0",
+          "sources": [
+            {
+              "archive": "params/provenance/bls/time-series/su.data.1.AllItems",
+              "publisher": "Bureau of Labor Statistics, U.S. Department of Labor",
+              "retrieved": "2026-09-18",
+              "sha256": "c40304234a1e838cffe4ba88567a997b91595c223613f2584aa0cab3191f3f75",
+              "title": "C-CPI-U all-items series SUUR0000SA0 (BLS time-series flat file)",
+              "url": "https://download.bls.gov/pub/time.series/su/su.data.1.AllItems"
+            },
+            {
+              "archive": "params/provenance/bls/time-series/su.series",
+              "publisher": "Bureau of Labor Statistics, U.S. Department of Labor",
+              "retrieved": "2026-09-18",
+              "sha256": "7da3ac42aef524b2cc21fe2cb8f6ab71124ae808db699f2b4d5919b306bafbcc",
+              "title": "su series catalogue (evidences the SUUR0000SA0 title and base period)",
+              "url": "https://download.bls.gov/pub/time.series/su/su.series"
+            },
+            {
+              "archive": "params/provenance/bls/time-series/su.footnote",
+              "publisher": "Bureau of Labor Statistics, U.S. Department of Labor",
+              "retrieved": "2026-09-18",
+              "sha256": "732d760a9e80af7637f7bcded8f4828dd0422b46faa98e03099e8fd3d792170f",
+              "title": "su footnote-code table (defines I = Initial and U = Interim, and nothing else)",
+              "url": "https://download.bls.gov/pub/time.series/su/su.footnote"
+            },
+            {
+              "archive": "params/provenance/bls/cpi_09112025.htm",
+              "locator": "Technical Note; Table 5 footnote 1",
+              "publisher": "Bureau of Labor Statistics, U.S. Department of Labor",
+              "retrieved": "2026-09-18",
+              "sha256": "f376b178ee4e16a7cc2ae6810e2164cad96aa8da156900623b2ff780a78f26bf",
+              "title": "Consumer Price Index - August 2025 (USDL-25-1356): C-CPI-U revision schedule and the 26 USC 1(f)(6)(A) freeze event",
+              "url": "https://www.bls.gov/news.release/archives/cpi_09112025.htm"
+            },
+            {
+              "archive": "params/provenance/bls/chained-cpi-questions-and-answers.htm",
+              "publisher": "Bureau of Labor Statistics, U.S. Department of Labor",
+              "retrieved": "2026-09-18",
+              "sha256": "7dddb81e1b25b28d9eb638a13d35117ba15a658bdfd980ee1702e43d124bde2e",
+              "title": "FAQs about the Chained Consumer Price Index for All Urban Consumers (published-series list, table 1)",
+              "url": "https://www.bls.gov/cpi/additional-resources/chained-cpi-questions-and-answers.htm"
+            },
+            {
+              "archive": "params/provenance/usc/usc26-s1.html",
+              "locator": "release point 20260911_119-108",
+              "publisher": "Office of the Law Revision Counsel, U.S. House of Representatives",
+              "retrieved": "2026-09-18",
+              "sha256": "9a23b4e2577dbab0b19b5498407338e0a0dc0f1f78b3d2f7e4b877f180686313",
+              "title": "26 U.S.C. §1(f)(6) (the index and its averaging window)",
+              "url": "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title26-section1&num=0&edition=prelim"
+            }
+          ],
+          "verification": "pending-hand-verification",
+          "years": [
+            2016,
+            2017,
+            2024,
+            2025
+          ]
+        }
+      ],
+      "name": "federal-2026",
+      "tables": [
+        {
+          "asOf": "2025-10-09",
+          "components": [
+            "top_of_10",
+            "top_of_12",
+            "top_of_22",
+            "top_of_24",
+            "top_of_32",
+            "top_of_35"
+          ],
+          "id": "irs.ordinary_brackets",
+          "openItems": [
+            "base_year_by_edge: the mapping of 1(j)(3)(B)(i)'s two descriptions onto the four named edges, and the 2016 fallback for the tops of the 10% and 12% brackets, is a reading of the statutory words rather than a quotation.",
+            "index_series: 26 USC 1(f)(6)(A) names the index by title only. No statutory text maps 'Chained Consumer Price Index for All Urban Consumers' to a BLS series id; the mapping to SUUR0000SA0 rests on BLS's own catalogue (see params/index-series/cpi-chained-suur0000sa0.toml).",
+            "lag_years: that 'the C-CPI-U for the preceding calendar year' (26 USC 1(f)(3)(A)(i)) means calendar year Y - 1 for the tables prescribed for taxable years beginning in calendar year Y (1(f)(1), 1(f)(2)(A)) is to be read back against the statute; it was a constant in code until it was moved here.",
+            "26 USC 1(f)(3)(C) substitution mechanics: after a provision substitutes a later year for '2016' in (A)(ii), the phrase (C) directs replacing is no longer present. The denominator is taken to be the C-CPI-U for the substituted base year. This table stores base years and base amounts only and encodes no denominator, but the projection that reads it depends on that reading.",
+            "26 USC 1(f)(6)(A) fixes WHICH published values of a revisable series count: those latest as of the publication of the initial August C-CPI-U for the preceding calendar year. The archived series is a 2026-09-18 snapshot and may differ from the values the IRS read."
+          ],
+          "period": "year",
+          "projection": {
+            "baseValues": {
+              "hoh": [
+                1360000,
+                5180000,
+                8250000,
+                15750000,
+                20000000,
+                50000000
+              ],
+              "mfj": [
+                1905000,
+                7740000,
+                16500000,
+                31500000,
+                40000000,
+                60000000
+              ],
+              "mfs": [
+                952500,
+                3870000,
+                8250000,
+                15750000,
+                20000000,
+                30000000
+              ],
+              "qss": [
+                1905000,
+                7740000,
+                16500000,
+                31500000,
+                40000000,
+                60000000
+              ],
+              "single": [
+                952500,
+                3870000,
+                8250000,
+                15750000,
+                20000000,
+                50000000
+              ]
+            },
+            "baseYearByComponent": {
+              "2025": [
+                2017,
+                2017,
+                2017,
+                2017,
+                2017,
+                2017
+              ],
+              "2026": [
+                2016,
+                2016,
+                2017,
+                2017,
+                2017,
+                2017
+              ]
+            },
+            "derived": {},
+            "index": "cpi.chained",
+            "indexSeries": "cpi.chained.aug12m",
+            "lagYears": 1,
+            "rule": "index"
+          },
+          "rates": {
+            "2025": [
+              {
+                "den": 100,
+                "num": 10
+              },
+              {
+                "den": 100,
+                "num": 12
+              },
+              {
+                "den": 100,
+                "num": 22
+              },
+              {
+                "den": 100,
+                "num": 24
+              },
+              {
+                "den": 100,
+                "num": 32
+              },
+              {
+                "den": 100,
+                "num": 35
+              },
+              {
+                "den": 100,
+                "num": 37
+              }
+            ],
+            "2026": [
+              {
+                "den": 100,
+                "num": 10
+              },
+              {
+                "den": 100,
+                "num": 12
+              },
+              {
+                "den": 100,
+                "num": 22
+              },
+              {
+                "den": 100,
+                "num": 24
+              },
+              {
+                "den": 100,
+                "num": 32
+              },
+              {
+                "den": 100,
+                "num": 35
+              },
+              {
+                "den": 100,
+                "num": 37
+              }
+            ]
+          },
+          "rounding": {
+            "basis": "IncreaseOverBase",
+            "direction": "down",
+            "incrementByKey": {
+              "hoh": 5000,
+              "mfj": 5000,
+              "mfs": 2500,
+              "qss": 5000,
+              "single": 2500
+            }
+          },
+          "servedUnit": "cents",
+          "sources": [
+            {
+              "archive": "params/provenance/irs/rp-24-40.pdf",
+              "asOf": "2024-10-22",
+              "publisher": "Internal Revenue Service",
+              "retrieved": "2026-09-18",
+              "sha256": "4de9db6b6662b5c305a59100a027051628823b42fd5817ea4e383ad4c302af1f",
+              "title": "Rev. Proc. 2024-40 §2.01, printed pages 5-7 (2025 rate tables)",
+              "url": "https://www.irs.gov/pub/irs-drop/rp-24-40.pdf"
+            },
+            {
+              "archive": "params/provenance/irs/rp-25-32.pdf",
+              "asOf": "2025-10-09",
+              "publisher": "Internal Revenue Service",
+              "retrieved": "2026-09-18",
+              "sha256": "e9ada115fb43a4af5ea326ca91edd40ab0bf29b9be01d2c13d7b8fa96214635b",
+              "title": "Rev. Proc. 2025-32 §4.01, printed pages 10-12 (2026 rate tables)",
+              "url": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf"
+            },
+            {
+              "archive": "params/provenance/usc/usc26-s1.html",
+              "locator": "release point 20260911_119-108 (post-OBBBA); §1(j)(2)(A)-(D), §1(j)(3), §1(f)(3)-(f)(7)",
+              "publisher": "Office of the Law Revision Counsel, U.S. House of Representatives",
+              "retrieved": "2026-09-18",
+              "sha256": "9a23b4e2577dbab0b19b5498407338e0a0dc0f1f78b3d2f7e4b877f180686313",
+              "title": "26 U.S.C. §1(f), §1(j) (base amounts, base years, rounding)",
+              "url": "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title26-section1&num=0&edition=prelim"
+            },
+            {
+              "archive": "params/provenance/congress/PLAW-119publ21.pdf",
+              "locator": "PDF page 88 = 139 Stat. 158",
+              "publisher": "U.S. Government Publishing Office",
+              "retrieved": "2026-09-18",
+              "sha256": "42f86c3d408bccb1a663c11a51a90d207b3dbc25e689240da51726154be51c8b",
+              "title": "Public Law 119-21 §70101 (amends 26 USC 1(j)), 139 Stat. 158",
+              "url": "https://www.govinfo.gov/content/pkg/PLAW-119publ21/pdf/PLAW-119publ21.pdf"
+            }
+          ],
+          "values": {
+            "hoh": {
+              "2025": [
+                1700000,
+                6485000,
+                10335000,
+                19730000,
+                25050000,
+                62635000
+              ],
+              "2026": [
+                1770000,
+                6745000,
+                10570000,
+                20175000,
+                25620000,
+                64060000
+              ]
+            },
+            "mfj": {
+              "2025": [
+                2385000,
+                9695000,
+                20670000,
+                39460000,
+                50105000,
+                75160000
+              ],
+              "2026": [
+                2480000,
+                10080000,
+                21140000,
+                40355000,
+                51245000,
+                76870000
+              ]
+            },
+            "mfs": {
+              "2025": [
+                1192500,
+                4847500,
+                10335000,
+                19730000,
+                25052500,
+                37580000
+              ],
+              "2026": [
+                1240000,
+                5040000,
+                10570000,
+                20177500,
+                25622500,
+                38435000
+              ]
+            },
+            "qss": {
+              "2025": [
+                2385000,
+                9695000,
+                20670000,
+                39460000,
+                50105000,
+                75160000
+              ],
+              "2026": [
+                2480000,
+                10080000,
+                21140000,
+                40355000,
+                51245000,
+                76870000
+              ]
+            },
+            "single": {
+              "2025": [
+                1192500,
+                4847500,
+                10335000,
+                19730000,
+                25052500,
+                62635000
+              ],
+              "2026": [
+                1240000,
+                5040000,
+                10570000,
+                20177500,
+                25622500,
+                64060000
+              ]
+            }
+          },
+          "verification": "pending-hand-verification",
+          "vintageId": "federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281"
+        },
+        {
+          "asOf": "2025-10-09",
+          "components": [],
+          "id": "irs.std_deduction",
+          "openItems": [
+            "BLOCKING: the rule encoded here (26 USC 63(c)(7)(B)(ii), floor the increase to $50) does not produce the published 2026 hoh amount $24,150; residual $25. A human must decide whether the project implements the statute as written and records that it does not reproduce the IRS figure, or follows IRS practice (floor the total) and records the departure from the literal text. The second choice needs a new RoundingRule.basis value before seam S1 freezes at M0. Nothing in this file may be adjusted to make either choice come out.",
+            "mfj/qss ordering: that 63(c)(2)(A) requires round-the-single-then-double rather than double-then-index follows from 'the dollar amount in effect under subparagraph (C) for the taxable year'. No published source stating the ordering explicitly was found.",
+            "index_series: 26 USC 1(f)(6)(A) names the index by title only and no statutory text maps it to a BLS series id (see params/index-series/cpi-chained-suur0000sa0.toml).",
+            "lag_years: 'the C-CPI-U for the preceding calendar year' (26 USC 1(f)(3)(A)(i)), reached through 63(c)(7)(B)(ii)(II), as for the bracket table.",
+            "26 USC 1(f)(3)(C) substitution mechanics for a post-2016 base year, as for the bracket table.",
+            "26 USC 1(f)(6)(A) revision-vintage freeze: the archived series is a 2026-09-18 snapshot and may differ from the values the IRS read."
+          ],
+          "period": "year",
+          "projection": {
+            "baseValues": {
+              "hoh": [
+                2362500
+              ],
+              "mfj": [
+                3150000
+              ],
+              "mfs": [
+                1575000
+              ],
+              "qss": [
+                3150000
+              ],
+              "single": [
+                1575000
+              ]
+            },
+            "baseYear": 2024,
+            "derived": {},
+            "firstAdjustedYear": 2026,
+            "index": "cpi.chained",
+            "indexSeries": "cpi.chained.aug12m",
+            "lagYears": 1,
+            "rule": "index"
+          },
+          "rates": {},
+          "rounding": {
+            "basis": "IncreaseOverBase",
+            "direction": "down",
+            "increment": 5000
+          },
+          "servedUnit": "cents",
+          "sources": [
+            {
+              "archive": "params/provenance/irs/rp-25-32.pdf",
+              "asOf": "2025-10-09",
+              "locator": "printed pages 9 and 18",
+              "publisher": "Internal Revenue Service",
+              "retrieved": "2026-09-18",
+              "sha256": "e9ada115fb43a4af5ea326ca91edd40ab0bf29b9be01d2c13d7b8fa96214635b",
+              "title": "Rev. Proc. 2025-32 §3.01 (2025, as amended by the OBBBA) and §4.14(1) (2026)",
+              "url": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf"
+            },
+            {
+              "archive": "params/provenance/usc/usc26-s63.html",
+              "locator": "release point 20260911_119-108 (post-OBBBA)",
+              "publisher": "Office of the Law Revision Counsel, U.S. House of Representatives",
+              "retrieved": "2026-09-18",
+              "sha256": "83efb2d828ddd0d80a1eb28caa7c863581f95b18da501aef09119922f88e0d57",
+              "title": "26 U.S.C. §63(c)(2), §63(c)(4), §63(c)(7) (base amounts, base year, rounding)",
+              "url": "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title26-section63&num=0&edition=prelim"
+            },
+            {
+              "archive": "params/provenance/usc/usc26-s1.html",
+              "locator": "release point 20260911_119-108",
+              "publisher": "Office of the Law Revision Counsel, U.S. House of Representatives",
+              "retrieved": "2026-09-18",
+              "sha256": "9a23b4e2577dbab0b19b5498407338e0a0dc0f1f78b3d2f7e4b877f180686313",
+              "title": "26 U.S.C. §1(f)(3), §1(f)(6) (the cost-of-living adjustment 63(c)(7)(B)(ii)(II) routes to)",
+              "url": "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title26-section1&num=0&edition=prelim"
+            },
+            {
+              "archive": "params/provenance/congress/PLAW-119publ21.pdf",
+              "locator": "PDF pages 88-89",
+              "publisher": "U.S. Government Publishing Office",
+              "retrieved": "2026-09-18",
+              "sha256": "42f86c3d408bccb1a663c11a51a90d207b3dbc25e689240da51726154be51c8b",
+              "title": "Public Law 119-21 §70102 (amends 26 USC 63(c)(7)), 139 Stat. 158-159",
+              "url": "https://www.govinfo.gov/content/pkg/PLAW-119publ21/pdf/PLAW-119publ21.pdf"
+            }
+          ],
+          "values": {
+            "hoh": {
+              "2025": [
+                2362500
+              ],
+              "2026": [
+                2415000
+              ]
+            },
+            "mfj": {
+              "2025": [
+                3150000
+              ],
+              "2026": [
+                3220000
+              ]
+            },
+            "mfs": {
+              "2025": [
+                1575000
+              ],
+              "2026": [
+                1610000
+              ]
+            },
+            "qss": {
+              "2025": [
+                3150000
+              ],
+              "2026": [
+                3220000
+              ]
+            },
+            "single": {
+              "2025": [
+                1575000
+              ],
+              "2026": [
+                1610000
+              ]
+            }
+          },
+          "verification": "pending-hand-verification",
+          "vintageId": "federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281"
+        }
+      ],
+      "verified": false
+    }
+  ]
+}

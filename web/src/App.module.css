@@ -65,6 +65,8 @@
 .main {
   display: grid;
   gap: var(--pfp-space-3);
+  /* A grid item may shrink below its content, so a wide table scrolls in its own region. */
+  min-inline-size: 0;
 }
 
 /*
@@ -75,38 +77,6 @@
   outline-offset: 4px;
 }
 
-/*
- * The shared polite live region. It is empty at rest and must stay in the
- * accessibility tree for announcements to work, so it is not `display: none`.
- */
-.liveRegion {
-  min-height: 1.55rem;
-  color: var(--pfp-ink-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.liveRegion:empty {
-  min-height: 0;
-}
-
-.section,
-.aside {
-  padding: var(--pfp-space-3);
-  background-color: var(--pfp-surface);
-  border: 1px solid var(--pfp-border);
-  border-radius: var(--pfp-radius);
-}
-
-.sectionHeading {
-  font-size: 1.125rem;
-  font-weight: 650;
-}
-
-.placeholder {
-  max-width: var(--pfp-measure);
-  margin-top: var(--pfp-space-2);
-  color: var(--pfp-ink-muted);
-}
 
 /* --- Footer ------------------------------------------------------------- */
 
@@ -140,7 +110,7 @@
     grid-area: main;
   }
 
-  .aside {
+  .shell > aside {
     grid-area: aside;
     align-self: start;
   }
@@ -152,13 +122,20 @@
 
 /* --- Print -------------------------------------------------------------- */
 
+/*
+ * Paper keeps the wordmark, the verification banner, the screen and the footer
+ * disclaimer. The skip link and the tagline are screen furniture; the navigation
+ * and the aside hide themselves in their own modules.
+ */
 @media print {
-  .skipLink {
+  .skipLink,
+  .tagline {
     display: none;
   }
 
-  .section,
-  .aside {
-    border: 1px solid var(--pfp-ink);
+  .shell {
+    display: block;
+    max-width: none;
+    padding: 0;
   }
 }

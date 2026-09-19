@@ -661,6 +661,7 @@ dependencies = [
  "pfp-money",
  "pfp-params",
  "pfp-tax",
+ "proptest",
  "rcgen",
  "rust-embed",
  "rustls",
