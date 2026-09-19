@@ -1,0 +1,712 @@
+{
+  "id": "pending/uprating/chained-path-divergence",
+  "promotesTo": "t1/uprating/chained-path-divergence",
+  "tier": "pending",
+  "targetTier": 1,
+  "module": "pfp-params",
+  "milestone": "M0",
+  "lawYear": 2026,
+  "paramVintage": null,
+  "source": {
+    "publisher": "Office of the Law Revision Counsel, U.S. House of Representatives",
+    "title": "26 U.S.C. 1 - Tax imposed (current text, release point 20260911_119-108)",
+    "url": "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title26-section1&num=0&edition=prelim",
+    "locator": "1(j)(2)(A)-(D) base amounts; 1(j)(3)(B) base years; 1(f)(3),(6),(7)",
+    "retrieved": "2026-09-18",
+    "archive": "params/provenance/usc/usc26-s1.html",
+    "sha256": "9a23b4e2577dbab0b19b5498407338e0a0dc0f1f78b3d2f7e4b877f180686313"
+  },
+  "tolerance": {
+    "kind": "exact"
+  },
+  "verification": "pending-hand-verification",
+  "verificationNote": "PENDING HUMAN VERIFICATION. Authored by an AI-assisted session from the archived primary documents BEFORE any implementation existed (docs/contributing.md section 3, ADR-022). A human must read every expected value back against the cited document before this file is promoted to fixtures/tier1/. Not in a locked vintage; params/VINTAGES.lock carries no entry for any of this.",
+  "synthetic": false,
+  "additionalSources": [
+    {
+      "publisher": "Bureau of Labor Statistics, U.S. Department of Labor",
+      "title": "C-CPI-U all-items series SUUR0000SA0 (BLS flat-file time-series database)",
+      "url": "https://download.bls.gov/pub/time.series/su/su.data.1.AllItems",
+      "locator": "series SUUR0000SA0, monthly observations 2015-M09 .. 2025-M08",
+      "retrieved": "2026-09-18",
+      "archive": "params/provenance/bls/time-series/su.data.1.AllItems",
+      "sha256": "c40304234a1e838cffe4ba88567a997b91595c223613f2584aa0cab3191f3f75"
+    },
+    {
+      "publisher": "Internal Revenue Service, U.S. Department of the Treasury",
+      "title": "Rev. Proc. 2024-40 (inflation-adjusted items for tax year 2025)",
+      "url": "https://www.irs.gov/pub/irs-drop/rp-24-40.pdf",
+      "locator": "section 2.01, Tables 1-4, printed pages 5-6",
+      "retrieved": "2026-09-18",
+      "archive": "params/provenance/irs/rp-24-40.pdf",
+      "sha256": "4de9db6b6662b5c305a59100a027051628823b42fd5817ea4e383ad4c302af1f"
+    },
+    {
+      "publisher": "Internal Revenue Service, U.S. Department of the Treasury",
+      "title": "Rev. Proc. 2025-32 (inflation-adjusted items for tax year 2026)",
+      "url": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf",
+      "locator": "section 4.01, Tables 1-4, printed pages 10-12",
+      "retrieved": "2026-09-18",
+      "archive": "params/provenance/irs/rp-25-32.pdf",
+      "sha256": "e9ada115fb43a4af5ea326ca91edd40ab0bf29b9be01d2c13d7b8fa96214635b"
+    }
+  ],
+  "inputs": {
+    "statutoryPath": "base_value + floor_inc(base_value * (C-CPI-U(2025)/C-CPI-U(base_year) - 1)), rounded ONCE over the base year",
+    "chainedPath": "published_2025 + floor_inc(published_2025 * (C-CPI-U(2025)/C-CPI-U(2024) - 1)), i.e. one year of index applied to an ALREADY-ROUNDED value",
+    "oneYearStepExact": {
+      "num": 5028,
+      "den": 207619
+    },
+    "indexWindows": [
+      {
+        "calendarYear": 2016,
+        "statutoryWindow": "Sep(Y-1)..Aug(Y), 26 USC 1(f)(6)(B)",
+        "monthly": [
+          {
+            "month": "2015-09",
+            "value": "135837/1000"
+          },
+          {
+            "month": "2015-10",
+            "value": "27147/200"
+          },
+          {
+            "month": "2015-11",
+            "value": "135393/1000"
+          },
+          {
+            "month": "2015-12",
+            "value": "33697/250"
+          },
+          {
+            "month": "2016-01",
+            "value": "67483/500"
+          },
+          {
+            "month": "2016-02",
+            "value": "134953/1000"
+          },
+          {
+            "month": "2016-03",
+            "value": "27131/200"
+          },
+          {
+            "month": "2016-04",
+            "value": "34083/250"
+          },
+          {
+            "month": "2016-05",
+            "value": "27379/200"
+          },
+          {
+            "month": "2016-06",
+            "value": "137329/1000"
+          },
+          {
+            "month": "2016-07",
+            "value": "137007/1000"
+          },
+          {
+            "month": "2016-08",
+            "value": "68513/500"
+          }
+        ],
+        "sumOfTwelve": "407979/250",
+        "meanExact": {
+          "num": 135993,
+          "den": 1000
+        }
+      },
+      {
+        "calendarYear": 2017,
+        "statutoryWindow": "Sep(Y-1)..Aug(Y), 26 USC 1(f)(6)(B)",
+        "monthly": [
+          {
+            "month": "2016-09",
+            "value": "17166/125"
+          },
+          {
+            "month": "2016-10",
+            "value": "17192/125"
+          },
+          {
+            "month": "2016-11",
+            "value": "137253/1000"
+          },
+          {
+            "month": "2016-12",
+            "value": "137221/1000"
+          },
+          {
+            "month": "2017-01",
+            "value": "27607/200"
+          },
+          {
+            "month": "2017-02",
+            "value": "138403/1000"
+          },
+          {
+            "month": "2017-03",
+            "value": "138461/1000"
+          },
+          {
+            "month": "2017-04",
+            "value": "13881/100"
+          },
+          {
+            "month": "2017-05",
+            "value": "69461/500"
+          },
+          {
+            "month": "2017-06",
+            "value": "138989/1000"
+          },
+          {
+            "month": "2017-07",
+            "value": "27751/200"
+          },
+          {
+            "month": "2017-08",
+            "value": "17391/125"
+          }
+        ],
+        "sumOfTwelve": "1658841/1000",
+        "meanExact": {
+          "num": 552947,
+          "den": 4000
+        }
+      },
+      {
+        "calendarYear": 2024,
+        "statutoryWindow": "Sep(Y-1)..Aug(Y), 26 USC 1(f)(6)(B)",
+        "monthly": [
+          {
+            "month": "2023-09",
+            "value": "17149/100"
+          },
+          {
+            "month": "2023-10",
+            "value": "171421/1000"
+          },
+          {
+            "month": "2023-11",
+            "value": "85473/500"
+          },
+          {
+            "month": "2023-12",
+            "value": "85359/500"
+          },
+          {
+            "month": "2024-01",
+            "value": "171649/1000"
+          },
+          {
+            "month": "2024-02",
+            "value": "1727/10"
+          },
+          {
+            "month": "2024-03",
+            "value": "43449/250"
+          },
+          {
+            "month": "2024-04",
+            "value": "21803/125"
+          },
+          {
+            "month": "2024-05",
+            "value": "34937/200"
+          },
+          {
+            "month": "2024-06",
+            "value": "174721/1000"
+          },
+          {
+            "month": "2024-07",
+            "value": "21849/125"
+          },
+          {
+            "month": "2024-08",
+            "value": "21856/125"
+          }
+        ],
+        "sumOfTwelve": "207619/100",
+        "meanExact": {
+          "num": 207619,
+          "den": 1200
+        }
+      },
+      {
+        "calendarYear": 2025,
+        "statutoryWindow": "Sep(Y-1)..Aug(Y), 26 USC 1(f)(6)(B)",
+        "monthly": [
+          {
+            "month": "2024-09",
+            "value": "175099/1000"
+          },
+          {
+            "month": "2024-10",
+            "value": "87673/500"
+          },
+          {
+            "month": "2024-11",
+            "value": "8759/50"
+          },
+          {
+            "month": "2024-12",
+            "value": "175219/1000"
+          },
+          {
+            "month": "2025-01",
+            "value": "88181/500"
+          },
+          {
+            "month": "2025-02",
+            "value": "88567/500"
+          },
+          {
+            "month": "2025-03",
+            "value": "4438/25"
+          },
+          {
+            "month": "2025-04",
+            "value": "178081/1000"
+          },
+          {
+            "month": "2025-05",
+            "value": "178427/1000"
+          },
+          {
+            "month": "2025-06",
+            "value": "178991/1000"
+          },
+          {
+            "month": "2025-07",
+            "value": "22409/125"
+          },
+          {
+            "month": "2025-08",
+            "value": "179839/1000"
+          }
+        ],
+        "sumOfTwelve": "212647/100",
+        "meanExact": {
+          "num": 212647,
+          "den": 1200
+        }
+      }
+    ]
+  },
+  "expect": {
+    "assertion": "for every filing status there is at least one 2026 threshold on which the chained result differs from the statutory result AND the statutory result equals the published value",
+    "rows": [
+      {
+        "filingStatus": "mfj",
+        "edge": "top10",
+        "from2025PublishedDollars": 23850,
+        "chainedDollars": 24400,
+        "statutoryFromArchivedSeriesDollars": 24800,
+        "publishedDollars": 24800,
+        "chainedMinusStatutoryDollars": -400,
+        "chainedMinusPublishedDollars": -400,
+        "statutoryMinusPublishedDollars": 0,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": true
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top10",
+        "from2025PublishedDollars": 23850,
+        "chainedDollars": 24400,
+        "statutoryFromArchivedSeriesDollars": 24800,
+        "publishedDollars": 24800,
+        "chainedMinusStatutoryDollars": -400,
+        "chainedMinusPublishedDollars": -400,
+        "statutoryMinusPublishedDollars": 0,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": true
+      },
+      {
+        "filingStatus": "hoh",
+        "edge": "top10",
+        "from2025PublishedDollars": 17000,
+        "chainedDollars": 17400,
+        "statutoryFromArchivedSeriesDollars": 17700,
+        "publishedDollars": 17700,
+        "chainedMinusStatutoryDollars": -300,
+        "chainedMinusPublishedDollars": -300,
+        "statutoryMinusPublishedDollars": 0,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": true
+      },
+      {
+        "filingStatus": "hoh",
+        "edge": "top12",
+        "from2025PublishedDollars": 64850,
+        "chainedDollars": 66400,
+        "statutoryFromArchivedSeriesDollars": 67450,
+        "publishedDollars": 67450,
+        "chainedMinusStatutoryDollars": -1050,
+        "chainedMinusPublishedDollars": -1050,
+        "statutoryMinusPublishedDollars": 0,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": true
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top10",
+        "from2025PublishedDollars": 11925,
+        "chainedDollars": 12200,
+        "statutoryFromArchivedSeriesDollars": 12400,
+        "publishedDollars": 12400,
+        "chainedMinusStatutoryDollars": -200,
+        "chainedMinusPublishedDollars": -200,
+        "statutoryMinusPublishedDollars": 0,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": true
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top10",
+        "from2025PublishedDollars": 11925,
+        "chainedDollars": 12200,
+        "statutoryFromArchivedSeriesDollars": 12400,
+        "publishedDollars": 12400,
+        "chainedMinusStatutoryDollars": -200,
+        "chainedMinusPublishedDollars": -200,
+        "statutoryMinusPublishedDollars": 0,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": true
+      }
+    ],
+    "statusesCovered": [
+      "hoh",
+      "mfj",
+      "mfs",
+      "qss",
+      "single"
+    ],
+    "chainedDivergesEverywhere": true,
+    "divergingRowCount": 30,
+    "totalRowCount": 30,
+    "rowsWhereChainedCoincidesWithPublished": 0
+  },
+  "context": {
+    "note": "These 24 rows are carried for completeness and are NOT asserted against the published value, because the statutory leg itself carries a residual there (see uprating/2026-brackets.json).",
+    "rows": [
+      {
+        "filingStatus": "mfj",
+        "edge": "top12",
+        "from2025PublishedDollars": 96950,
+        "chainedDollars": 99250,
+        "statutoryFromArchivedSeriesDollars": 100850,
+        "publishedDollars": 100800,
+        "chainedMinusStatutoryDollars": -1600,
+        "chainedMinusPublishedDollars": -1550,
+        "statutoryMinusPublishedDollars": 50,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "mfj",
+        "edge": "top22",
+        "from2025PublishedDollars": 206700,
+        "chainedDollars": 211700,
+        "statutoryFromArchivedSeriesDollars": 211500,
+        "publishedDollars": 211400,
+        "chainedMinusStatutoryDollars": 200,
+        "chainedMinusPublishedDollars": 300,
+        "statutoryMinusPublishedDollars": 100,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "mfj",
+        "edge": "top24",
+        "from2025PublishedDollars": 394600,
+        "chainedDollars": 404150,
+        "statutoryFromArchivedSeriesDollars": 403750,
+        "publishedDollars": 403550,
+        "chainedMinusStatutoryDollars": 400,
+        "chainedMinusPublishedDollars": 600,
+        "statutoryMinusPublishedDollars": 200,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "mfj",
+        "edge": "top32",
+        "from2025PublishedDollars": 501050,
+        "chainedDollars": 513150,
+        "statutoryFromArchivedSeriesDollars": 512750,
+        "publishedDollars": 512450,
+        "chainedMinusStatutoryDollars": 400,
+        "chainedMinusPublishedDollars": 700,
+        "statutoryMinusPublishedDollars": 300,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "mfj",
+        "edge": "top35",
+        "from2025PublishedDollars": 751600,
+        "chainedDollars": 769800,
+        "statutoryFromArchivedSeriesDollars": 769100,
+        "publishedDollars": 768700,
+        "chainedMinusStatutoryDollars": 700,
+        "chainedMinusPublishedDollars": 1100,
+        "statutoryMinusPublishedDollars": 400,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top12",
+        "from2025PublishedDollars": 96950,
+        "chainedDollars": 99250,
+        "statutoryFromArchivedSeriesDollars": 100850,
+        "publishedDollars": 100800,
+        "chainedMinusStatutoryDollars": -1600,
+        "chainedMinusPublishedDollars": -1550,
+        "statutoryMinusPublishedDollars": 50,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top22",
+        "from2025PublishedDollars": 206700,
+        "chainedDollars": 211700,
+        "statutoryFromArchivedSeriesDollars": 211500,
+        "publishedDollars": 211400,
+        "chainedMinusStatutoryDollars": 200,
+        "chainedMinusPublishedDollars": 300,
+        "statutoryMinusPublishedDollars": 100,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top24",
+        "from2025PublishedDollars": 394600,
+        "chainedDollars": 404150,
+        "statutoryFromArchivedSeriesDollars": 403750,
+        "publishedDollars": 403550,
+        "chainedMinusStatutoryDollars": 400,
+        "chainedMinusPublishedDollars": 600,
+        "statutoryMinusPublishedDollars": 200,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top32",
+        "from2025PublishedDollars": 501050,
+        "chainedDollars": 513150,
+        "statutoryFromArchivedSeriesDollars": 512750,
+        "publishedDollars": 512450,
+        "chainedMinusStatutoryDollars": 400,
+        "chainedMinusPublishedDollars": 700,
+        "statutoryMinusPublishedDollars": 300,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top35",
+        "from2025PublishedDollars": 751600,
+        "chainedDollars": 769800,
+        "statutoryFromArchivedSeriesDollars": 769100,
+        "publishedDollars": 768700,
+        "chainedMinusStatutoryDollars": 700,
+        "chainedMinusPublishedDollars": 1100,
+        "statutoryMinusPublishedDollars": 400,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "hoh",
+        "edge": "top22",
+        "from2025PublishedDollars": 103350,
+        "chainedDollars": 105850,
+        "statutoryFromArchivedSeriesDollars": 105750,
+        "publishedDollars": 105700,
+        "chainedMinusStatutoryDollars": 100,
+        "chainedMinusPublishedDollars": 150,
+        "statutoryMinusPublishedDollars": 50,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "hoh",
+        "edge": "top24",
+        "from2025PublishedDollars": 197300,
+        "chainedDollars": 202050,
+        "statutoryFromArchivedSeriesDollars": 201850,
+        "publishedDollars": 201750,
+        "chainedMinusStatutoryDollars": 200,
+        "chainedMinusPublishedDollars": 300,
+        "statutoryMinusPublishedDollars": 100,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "hoh",
+        "edge": "top32",
+        "from2025PublishedDollars": 250500,
+        "chainedDollars": 256550,
+        "statutoryFromArchivedSeriesDollars": 256350,
+        "publishedDollars": 256200,
+        "chainedMinusStatutoryDollars": 200,
+        "chainedMinusPublishedDollars": 350,
+        "statutoryMinusPublishedDollars": 150,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "hoh",
+        "edge": "top35",
+        "from2025PublishedDollars": 626350,
+        "chainedDollars": 641500,
+        "statutoryFromArchivedSeriesDollars": 640950,
+        "publishedDollars": 640600,
+        "chainedMinusStatutoryDollars": 550,
+        "chainedMinusPublishedDollars": 900,
+        "statutoryMinusPublishedDollars": 350,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top12",
+        "from2025PublishedDollars": 48475,
+        "chainedDollars": 49625,
+        "statutoryFromArchivedSeriesDollars": 50425,
+        "publishedDollars": 50400,
+        "chainedMinusStatutoryDollars": -800,
+        "chainedMinusPublishedDollars": -775,
+        "statutoryMinusPublishedDollars": 25,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top22",
+        "from2025PublishedDollars": 103350,
+        "chainedDollars": 105850,
+        "statutoryFromArchivedSeriesDollars": 105750,
+        "publishedDollars": 105700,
+        "chainedMinusStatutoryDollars": 100,
+        "chainedMinusPublishedDollars": 150,
+        "statutoryMinusPublishedDollars": 50,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top24",
+        "from2025PublishedDollars": 197300,
+        "chainedDollars": 202075,
+        "statutoryFromArchivedSeriesDollars": 201875,
+        "publishedDollars": 201775,
+        "chainedMinusStatutoryDollars": 200,
+        "chainedMinusPublishedDollars": 300,
+        "statutoryMinusPublishedDollars": 100,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top32",
+        "from2025PublishedDollars": 250525,
+        "chainedDollars": 256575,
+        "statutoryFromArchivedSeriesDollars": 256375,
+        "publishedDollars": 256225,
+        "chainedMinusStatutoryDollars": 200,
+        "chainedMinusPublishedDollars": 350,
+        "statutoryMinusPublishedDollars": 150,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top35",
+        "from2025PublishedDollars": 626350,
+        "chainedDollars": 641500,
+        "statutoryFromArchivedSeriesDollars": 640950,
+        "publishedDollars": 640600,
+        "chainedMinusStatutoryDollars": 550,
+        "chainedMinusPublishedDollars": 900,
+        "statutoryMinusPublishedDollars": 350,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top12",
+        "from2025PublishedDollars": 48475,
+        "chainedDollars": 49625,
+        "statutoryFromArchivedSeriesDollars": 50425,
+        "publishedDollars": 50400,
+        "chainedMinusStatutoryDollars": -800,
+        "chainedMinusPublishedDollars": -775,
+        "statutoryMinusPublishedDollars": 25,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top22",
+        "from2025PublishedDollars": 103350,
+        "chainedDollars": 105850,
+        "statutoryFromArchivedSeriesDollars": 105750,
+        "publishedDollars": 105700,
+        "chainedMinusStatutoryDollars": 100,
+        "chainedMinusPublishedDollars": 150,
+        "statutoryMinusPublishedDollars": 50,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top24",
+        "from2025PublishedDollars": 197300,
+        "chainedDollars": 202075,
+        "statutoryFromArchivedSeriesDollars": 201875,
+        "publishedDollars": 201775,
+        "chainedMinusStatutoryDollars": 200,
+        "chainedMinusPublishedDollars": 300,
+        "statutoryMinusPublishedDollars": 100,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top32",
+        "from2025PublishedDollars": 250525,
+        "chainedDollars": 256575,
+        "statutoryFromArchivedSeriesDollars": 256375,
+        "publishedDollars": 256225,
+        "chainedMinusStatutoryDollars": 200,
+        "chainedMinusPublishedDollars": 350,
+        "statutoryMinusPublishedDollars": 150,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top35",
+        "from2025PublishedDollars": 375800,
+        "chainedDollars": 384900,
+        "statutoryFromArchivedSeriesDollars": 384550,
+        "publishedDollars": 384350,
+        "chainedMinusStatutoryDollars": 350,
+        "chainedMinusPublishedDollars": 550,
+        "statutoryMinusPublishedDollars": 200,
+        "chainedDivergesFromStatutory": true,
+        "statutoryEqualsPublished": false
+      }
+    ]
+  },
+  "notes": "TESTING.md section 3.1 states this fixture as 'The two disagree on at least one 2026 threshold; the statutory value is the published one.' The first clause holds on all 30 thresholds for all five filing statuses. The second clause holds only on the 6 thresholds where the statutory leg has a zero residual against the publication - but those 6 cover all five filing statuses, so the fixture can be stated exactly as TESTING.md writes it, and those 6 rows are what 'expect' asserts. All six are 2016-base lower thresholds; that is luck, not design, and the clean set moves if the index-vintage question of uprating/2026-brackets.json resolves differently. Checked because it would be a trap: on none of the 30 thresholds does the CHAINED value coincidentally equal the published value, so a chaining implementation cannot pass by accident anywhere. Promotion to tier 1 is blocked on the same human decision as uprating/2026-brackets.json."
+}

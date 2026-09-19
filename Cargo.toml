@@ -21,6 +21,19 @@ pfp-explain = { path = "crates/pfp-explain" }
 pfp-tax = { path = "crates/pfp-tax" }
 pfp-server = { path = "crates/pfp-server" }
 sha2 = "0.10"
+# M0 engine slice. `serde` is the only runtime dependency of `pfp-domain` and
+# `pfp-money`; `smallvec` backs the `Line` node's inline input and parameter lists
+# (ARCHITECTURE.md §4.2). All are MIT OR Apache-2.0 and build for wasm32.
+serde = { version = "1.0.228", default-features = false, features = ["std", "derive"] }
+smallvec = { version = "1.15", features = ["serde"] }
+# `pfp-params` parses the parameter TOML from `&str` (no I/O). Parser only: no
+# `display`, no `preserve_order` (the tables are walked through `BTreeMap`s, D8).
+# MIT OR Apache-2.0; pure Rust, builds for wasm32.
+toml = { version = "0.9", default-features = false, features = ["std", "parse", "serde"] }
+# Test-only: fixture loading, property tests and their arbitrary-precision reference.
+serde_json = "1.0.149"
+proptest = { version = "1.7", default-features = false, features = ["std"] }
+num-bigint = "0.4"
 
 # Workspace-wide lint policy. Every crate opts in with `[lints] workspace = true`.
 # Engine crates additionally `#![forbid(unsafe_code)]` at the crate root.

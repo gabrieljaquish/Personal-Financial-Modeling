@@ -4,9 +4,24 @@
 //! decimal strings or fractions; `Cents::mul_ratio` computes in `i128` and rounds
 //! **once** with a named `RoundingRule { increment, direction, basis }` stored as data
 //! beside the parameter. `Cents * Cents` does not compile. `f64` enters money in
-//! exactly two named places, `Cents::grow` and `Cents::from_f64_half_even`.
-//! The types land in the next M0 change together with their property tests and
-//! the tier-1 rounding table.
+//! exactly two named places, `Cents::grow` and `Cents::from_f64_half_even`; M0
+//! ships the first, and the second arrives with its first caller (the solvers and
+//! spending rules of `SIMULATION-SPEC.md` §2.6).
+//!
+//! # Overflow, and the two ties the design leaves open
+//!
+//! Nothing in this crate wraps, saturates or silently truncates. Every operation
+//! has a `checked_*` form returning [`MoneyError`]; the operator impls and the
+//! design-named infallible forms ([`Cents::mul_ratio`], [`Cents::grow`],
+//! [`RoundingRule::round`]) panic **in every build profile** on the same
+//! conditions, because a wrapped balance is a wrong answer that looks like a right
+//! one.
+//!
+//! Two tie rules are not specified anywhere in the design and are therefore an
+//! explicit error, [`MoneyError::UnspecifiedTie`], rather than a guess
+//! (`fixtures/pending/rounding/table.json`, `openQuestions`): `Nearest` at an exact
+//! tie, and `HalfUp` at an exact tie of a **negative** amount. Turning an error into
+//! a value later is compatible; changing a value is not.
 //!
 //! # Purity and determinism contract (engine crate)
 //!
@@ -23,3 +38,13 @@
 //! (ADR-022, `cargo xtask lint-dollars`): statutory constants come from `params/`.
 
 #![forbid(unsafe_code)]
+
+mod cents;
+mod error;
+mod ratio;
+mod rounding;
+
+pub use cents::Cents;
+pub use error::MoneyError;
+pub use ratio::{Ratio, RatioError};
+pub use rounding::{RoundingBasis, RoundingDirection, RoundingRule};

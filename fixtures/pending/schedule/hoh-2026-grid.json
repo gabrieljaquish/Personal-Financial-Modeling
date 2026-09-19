@@ -1,0 +1,898 @@
+{
+  "id": "pending/schedule/hoh-2026-grid",
+  "promotesTo": "t1/schedule/hoh-2026-grid",
+  "tier": "pending",
+  "targetTier": 1,
+  "module": "pfp-tax",
+  "milestone": "M0",
+  "lawYear": 2026,
+  "paramVintage": null,
+  "source": {
+    "publisher": "Internal Revenue Service, U.S. Department of the Treasury",
+    "title": "Rev. Proc. 2025-32 (inflation-adjusted items for tax year 2026)",
+    "url": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf",
+    "locator": "section 4.01, Tables 1-4, printed pages 10-12",
+    "retrieved": "2026-09-18",
+    "archive": "params/provenance/irs/rp-25-32.pdf",
+    "sha256": "e9ada115fb43a4af5ea326ca91edd40ab0bf29b9be01d2c13d7b8fa96214635b"
+  },
+  "tolerance": {
+    "kind": "exact"
+  },
+  "verification": "pending-hand-verification",
+  "verificationNote": "PENDING HUMAN VERIFICATION. Authored by an AI-assisted session from the archived primary documents BEFORE any implementation existed (docs/contributing.md section 3, ADR-022). A human must read every expected value back against the cited document before this file is promoted to fixtures/tier1/. Not in a locked vintage; params/VINTAGES.lock carries no entry for any of this.",
+  "synthetic": true,
+  "inputs": {
+    "formula": "schedule(x) = sum_b rate_b * max(0, min(x, top_b) - bottom_b), each product via mul_ratio in integer cents, summed, and rounded ONCE to the whole dollar half-up (irs.whole_dollar). ENGINE-SPEC.md section 3.2, determinism rule D9.",
+    "bracketTopsDollars": {
+      "top10": 17700,
+      "top12": 67450,
+      "top22": 105700,
+      "top24": 201750,
+      "top32": 256200,
+      "top35": 640600
+    },
+    "rates": [
+      "10%",
+      "12%",
+      "22%",
+      "24%",
+      "32%",
+      "35%",
+      "37%"
+    ]
+  },
+  "expect": {
+    "cases": [
+      {
+        "label": "zero",
+        "inputs": {
+          "filingStatus": "hoh",
+          "year": 2026,
+          "taxableIncomeDollars": 0,
+          "taxableIncomeCents": 0
+        },
+        "lines": [
+          {
+            "bracket": 0,
+            "rate": "10%",
+            "rateRatio": {
+              "num": 10,
+              "den": 100
+            },
+            "bandBottomCents": 0,
+            "bandTopCents": 1770000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b0"
+          },
+          {
+            "bracket": 1,
+            "rate": "12%",
+            "rateRatio": {
+              "num": 12,
+              "den": 100
+            },
+            "bandBottomCents": 1770000,
+            "bandTopCents": 6745000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b1"
+          },
+          {
+            "bracket": 2,
+            "rate": "22%",
+            "rateRatio": {
+              "num": 22,
+              "den": 100
+            },
+            "bandBottomCents": 6745000,
+            "bandTopCents": 10570000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b2"
+          },
+          {
+            "bracket": 3,
+            "rate": "24%",
+            "rateRatio": {
+              "num": 24,
+              "den": 100
+            },
+            "bandBottomCents": 10570000,
+            "bandTopCents": 20175000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b3"
+          },
+          {
+            "bracket": 4,
+            "rate": "32%",
+            "rateRatio": {
+              "num": 32,
+              "den": 100
+            },
+            "bandBottomCents": 20175000,
+            "bandTopCents": 25620000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b4"
+          },
+          {
+            "bracket": 5,
+            "rate": "35%",
+            "rateRatio": {
+              "num": 35,
+              "den": 100
+            },
+            "bandBottomCents": 25620000,
+            "bandTopCents": 64060000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b5"
+          },
+          {
+            "bracket": 6,
+            "rate": "37%",
+            "rateRatio": {
+              "num": 37,
+              "den": 100
+            },
+            "bandBottomCents": 64060000,
+            "bandTopCents": null,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b6"
+          }
+        ],
+        "exactSumCents": 0,
+        "exactSumDollars": "0.00",
+        "expectTaxCents": 0,
+        "expectTaxDollars": 0
+      },
+      {
+        "label": "inside-first-bracket",
+        "inputs": {
+          "filingStatus": "hoh",
+          "year": 2026,
+          "taxableIncomeDollars": 8850,
+          "taxableIncomeCents": 885000
+        },
+        "lines": [
+          {
+            "bracket": 0,
+            "rate": "10%",
+            "rateRatio": {
+              "num": 10,
+              "den": 100
+            },
+            "bandBottomCents": 0,
+            "bandTopCents": 1770000,
+            "amountTaxedCents": 885000,
+            "taxFromBracketCents": 88500,
+            "lineId": "sched.b0"
+          },
+          {
+            "bracket": 1,
+            "rate": "12%",
+            "rateRatio": {
+              "num": 12,
+              "den": 100
+            },
+            "bandBottomCents": 1770000,
+            "bandTopCents": 6745000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b1"
+          },
+          {
+            "bracket": 2,
+            "rate": "22%",
+            "rateRatio": {
+              "num": 22,
+              "den": 100
+            },
+            "bandBottomCents": 6745000,
+            "bandTopCents": 10570000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b2"
+          },
+          {
+            "bracket": 3,
+            "rate": "24%",
+            "rateRatio": {
+              "num": 24,
+              "den": 100
+            },
+            "bandBottomCents": 10570000,
+            "bandTopCents": 20175000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b3"
+          },
+          {
+            "bracket": 4,
+            "rate": "32%",
+            "rateRatio": {
+              "num": 32,
+              "den": 100
+            },
+            "bandBottomCents": 20175000,
+            "bandTopCents": 25620000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b4"
+          },
+          {
+            "bracket": 5,
+            "rate": "35%",
+            "rateRatio": {
+              "num": 35,
+              "den": 100
+            },
+            "bandBottomCents": 25620000,
+            "bandTopCents": 64060000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b5"
+          },
+          {
+            "bracket": 6,
+            "rate": "37%",
+            "rateRatio": {
+              "num": 37,
+              "den": 100
+            },
+            "bandBottomCents": 64060000,
+            "bandTopCents": null,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b6"
+          }
+        ],
+        "exactSumCents": 88500,
+        "exactSumDollars": "885.00",
+        "expectTaxCents": 88500,
+        "expectTaxDollars": 885
+      },
+      {
+        "label": "on-first-bracket-edge",
+        "inputs": {
+          "filingStatus": "hoh",
+          "year": 2026,
+          "taxableIncomeDollars": 17700,
+          "taxableIncomeCents": 1770000
+        },
+        "lines": [
+          {
+            "bracket": 0,
+            "rate": "10%",
+            "rateRatio": {
+              "num": 10,
+              "den": 100
+            },
+            "bandBottomCents": 0,
+            "bandTopCents": 1770000,
+            "amountTaxedCents": 1770000,
+            "taxFromBracketCents": 177000,
+            "lineId": "sched.b0"
+          },
+          {
+            "bracket": 1,
+            "rate": "12%",
+            "rateRatio": {
+              "num": 12,
+              "den": 100
+            },
+            "bandBottomCents": 1770000,
+            "bandTopCents": 6745000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b1"
+          },
+          {
+            "bracket": 2,
+            "rate": "22%",
+            "rateRatio": {
+              "num": 22,
+              "den": 100
+            },
+            "bandBottomCents": 6745000,
+            "bandTopCents": 10570000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b2"
+          },
+          {
+            "bracket": 3,
+            "rate": "24%",
+            "rateRatio": {
+              "num": 24,
+              "den": 100
+            },
+            "bandBottomCents": 10570000,
+            "bandTopCents": 20175000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b3"
+          },
+          {
+            "bracket": 4,
+            "rate": "32%",
+            "rateRatio": {
+              "num": 32,
+              "den": 100
+            },
+            "bandBottomCents": 20175000,
+            "bandTopCents": 25620000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b4"
+          },
+          {
+            "bracket": 5,
+            "rate": "35%",
+            "rateRatio": {
+              "num": 35,
+              "den": 100
+            },
+            "bandBottomCents": 25620000,
+            "bandTopCents": 64060000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b5"
+          },
+          {
+            "bracket": 6,
+            "rate": "37%",
+            "rateRatio": {
+              "num": 37,
+              "den": 100
+            },
+            "bandBottomCents": 64060000,
+            "bandTopCents": null,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b6"
+          }
+        ],
+        "exactSumCents": 177000,
+        "exactSumDollars": "1770.00",
+        "expectTaxCents": 177000,
+        "expectTaxDollars": 1770
+      },
+      {
+        "label": "one-dollar-above-first-edge",
+        "inputs": {
+          "filingStatus": "hoh",
+          "year": 2026,
+          "taxableIncomeDollars": 17701,
+          "taxableIncomeCents": 1770100
+        },
+        "lines": [
+          {
+            "bracket": 0,
+            "rate": "10%",
+            "rateRatio": {
+              "num": 10,
+              "den": 100
+            },
+            "bandBottomCents": 0,
+            "bandTopCents": 1770000,
+            "amountTaxedCents": 1770000,
+            "taxFromBracketCents": 177000,
+            "lineId": "sched.b0"
+          },
+          {
+            "bracket": 1,
+            "rate": "12%",
+            "rateRatio": {
+              "num": 12,
+              "den": 100
+            },
+            "bandBottomCents": 1770000,
+            "bandTopCents": 6745000,
+            "amountTaxedCents": 100,
+            "taxFromBracketCents": 12,
+            "lineId": "sched.b1"
+          },
+          {
+            "bracket": 2,
+            "rate": "22%",
+            "rateRatio": {
+              "num": 22,
+              "den": 100
+            },
+            "bandBottomCents": 6745000,
+            "bandTopCents": 10570000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b2"
+          },
+          {
+            "bracket": 3,
+            "rate": "24%",
+            "rateRatio": {
+              "num": 24,
+              "den": 100
+            },
+            "bandBottomCents": 10570000,
+            "bandTopCents": 20175000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b3"
+          },
+          {
+            "bracket": 4,
+            "rate": "32%",
+            "rateRatio": {
+              "num": 32,
+              "den": 100
+            },
+            "bandBottomCents": 20175000,
+            "bandTopCents": 25620000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b4"
+          },
+          {
+            "bracket": 5,
+            "rate": "35%",
+            "rateRatio": {
+              "num": 35,
+              "den": 100
+            },
+            "bandBottomCents": 25620000,
+            "bandTopCents": 64060000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b5"
+          },
+          {
+            "bracket": 6,
+            "rate": "37%",
+            "rateRatio": {
+              "num": 37,
+              "den": 100
+            },
+            "bandBottomCents": 64060000,
+            "bandTopCents": null,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b6"
+          }
+        ],
+        "exactSumCents": 177012,
+        "exactSumDollars": "1770.12",
+        "expectTaxCents": 177000,
+        "expectTaxDollars": 1770
+      },
+      {
+        "label": "on-mid-table-edge",
+        "inputs": {
+          "filingStatus": "hoh",
+          "year": 2026,
+          "taxableIncomeDollars": 105700,
+          "taxableIncomeCents": 10570000
+        },
+        "lines": [
+          {
+            "bracket": 0,
+            "rate": "10%",
+            "rateRatio": {
+              "num": 10,
+              "den": 100
+            },
+            "bandBottomCents": 0,
+            "bandTopCents": 1770000,
+            "amountTaxedCents": 1770000,
+            "taxFromBracketCents": 177000,
+            "lineId": "sched.b0"
+          },
+          {
+            "bracket": 1,
+            "rate": "12%",
+            "rateRatio": {
+              "num": 12,
+              "den": 100
+            },
+            "bandBottomCents": 1770000,
+            "bandTopCents": 6745000,
+            "amountTaxedCents": 4975000,
+            "taxFromBracketCents": 597000,
+            "lineId": "sched.b1"
+          },
+          {
+            "bracket": 2,
+            "rate": "22%",
+            "rateRatio": {
+              "num": 22,
+              "den": 100
+            },
+            "bandBottomCents": 6745000,
+            "bandTopCents": 10570000,
+            "amountTaxedCents": 3825000,
+            "taxFromBracketCents": 841500,
+            "lineId": "sched.b2"
+          },
+          {
+            "bracket": 3,
+            "rate": "24%",
+            "rateRatio": {
+              "num": 24,
+              "den": 100
+            },
+            "bandBottomCents": 10570000,
+            "bandTopCents": 20175000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b3"
+          },
+          {
+            "bracket": 4,
+            "rate": "32%",
+            "rateRatio": {
+              "num": 32,
+              "den": 100
+            },
+            "bandBottomCents": 20175000,
+            "bandTopCents": 25620000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b4"
+          },
+          {
+            "bracket": 5,
+            "rate": "35%",
+            "rateRatio": {
+              "num": 35,
+              "den": 100
+            },
+            "bandBottomCents": 25620000,
+            "bandTopCents": 64060000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b5"
+          },
+          {
+            "bracket": 6,
+            "rate": "37%",
+            "rateRatio": {
+              "num": 37,
+              "den": 100
+            },
+            "bandBottomCents": 64060000,
+            "bandTopCents": null,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b6"
+          }
+        ],
+        "exactSumCents": 1615500,
+        "exactSumDollars": "16155.00",
+        "expectTaxCents": 1615500,
+        "expectTaxDollars": 16155
+      },
+      {
+        "label": "one-dollar-above-mid-table-edge",
+        "inputs": {
+          "filingStatus": "hoh",
+          "year": 2026,
+          "taxableIncomeDollars": 105701,
+          "taxableIncomeCents": 10570100
+        },
+        "lines": [
+          {
+            "bracket": 0,
+            "rate": "10%",
+            "rateRatio": {
+              "num": 10,
+              "den": 100
+            },
+            "bandBottomCents": 0,
+            "bandTopCents": 1770000,
+            "amountTaxedCents": 1770000,
+            "taxFromBracketCents": 177000,
+            "lineId": "sched.b0"
+          },
+          {
+            "bracket": 1,
+            "rate": "12%",
+            "rateRatio": {
+              "num": 12,
+              "den": 100
+            },
+            "bandBottomCents": 1770000,
+            "bandTopCents": 6745000,
+            "amountTaxedCents": 4975000,
+            "taxFromBracketCents": 597000,
+            "lineId": "sched.b1"
+          },
+          {
+            "bracket": 2,
+            "rate": "22%",
+            "rateRatio": {
+              "num": 22,
+              "den": 100
+            },
+            "bandBottomCents": 6745000,
+            "bandTopCents": 10570000,
+            "amountTaxedCents": 3825000,
+            "taxFromBracketCents": 841500,
+            "lineId": "sched.b2"
+          },
+          {
+            "bracket": 3,
+            "rate": "24%",
+            "rateRatio": {
+              "num": 24,
+              "den": 100
+            },
+            "bandBottomCents": 10570000,
+            "bandTopCents": 20175000,
+            "amountTaxedCents": 100,
+            "taxFromBracketCents": 24,
+            "lineId": "sched.b3"
+          },
+          {
+            "bracket": 4,
+            "rate": "32%",
+            "rateRatio": {
+              "num": 32,
+              "den": 100
+            },
+            "bandBottomCents": 20175000,
+            "bandTopCents": 25620000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b4"
+          },
+          {
+            "bracket": 5,
+            "rate": "35%",
+            "rateRatio": {
+              "num": 35,
+              "den": 100
+            },
+            "bandBottomCents": 25620000,
+            "bandTopCents": 64060000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b5"
+          },
+          {
+            "bracket": 6,
+            "rate": "37%",
+            "rateRatio": {
+              "num": 37,
+              "den": 100
+            },
+            "bandBottomCents": 64060000,
+            "bandTopCents": null,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b6"
+          }
+        ],
+        "exactSumCents": 1615524,
+        "exactSumDollars": "16155.24",
+        "expectTaxCents": 1615500,
+        "expectTaxDollars": 16155
+      },
+      {
+        "label": "mid-table",
+        "inputs": {
+          "filingStatus": "hoh",
+          "year": 2026,
+          "taxableIncomeDollars": 228975,
+          "taxableIncomeCents": 22897500
+        },
+        "lines": [
+          {
+            "bracket": 0,
+            "rate": "10%",
+            "rateRatio": {
+              "num": 10,
+              "den": 100
+            },
+            "bandBottomCents": 0,
+            "bandTopCents": 1770000,
+            "amountTaxedCents": 1770000,
+            "taxFromBracketCents": 177000,
+            "lineId": "sched.b0"
+          },
+          {
+            "bracket": 1,
+            "rate": "12%",
+            "rateRatio": {
+              "num": 12,
+              "den": 100
+            },
+            "bandBottomCents": 1770000,
+            "bandTopCents": 6745000,
+            "amountTaxedCents": 4975000,
+            "taxFromBracketCents": 597000,
+            "lineId": "sched.b1"
+          },
+          {
+            "bracket": 2,
+            "rate": "22%",
+            "rateRatio": {
+              "num": 22,
+              "den": 100
+            },
+            "bandBottomCents": 6745000,
+            "bandTopCents": 10570000,
+            "amountTaxedCents": 3825000,
+            "taxFromBracketCents": 841500,
+            "lineId": "sched.b2"
+          },
+          {
+            "bracket": 3,
+            "rate": "24%",
+            "rateRatio": {
+              "num": 24,
+              "den": 100
+            },
+            "bandBottomCents": 10570000,
+            "bandTopCents": 20175000,
+            "amountTaxedCents": 9605000,
+            "taxFromBracketCents": 2305200,
+            "lineId": "sched.b3"
+          },
+          {
+            "bracket": 4,
+            "rate": "32%",
+            "rateRatio": {
+              "num": 32,
+              "den": 100
+            },
+            "bandBottomCents": 20175000,
+            "bandTopCents": 25620000,
+            "amountTaxedCents": 2722500,
+            "taxFromBracketCents": 871200,
+            "lineId": "sched.b4"
+          },
+          {
+            "bracket": 5,
+            "rate": "35%",
+            "rateRatio": {
+              "num": 35,
+              "den": 100
+            },
+            "bandBottomCents": 25620000,
+            "bandTopCents": 64060000,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b5"
+          },
+          {
+            "bracket": 6,
+            "rate": "37%",
+            "rateRatio": {
+              "num": 37,
+              "den": 100
+            },
+            "bandBottomCents": 64060000,
+            "bandTopCents": null,
+            "amountTaxedCents": 0,
+            "taxFromBracketCents": 0,
+            "lineId": "sched.b6"
+          }
+        ],
+        "exactSumCents": 4791900,
+        "exactSumDollars": "47919.00",
+        "expectTaxCents": 4791900,
+        "expectTaxDollars": 47919
+      },
+      {
+        "label": "top-bracket",
+        "inputs": {
+          "filingStatus": "hoh",
+          "year": 2026,
+          "taxableIncomeDollars": 740600,
+          "taxableIncomeCents": 74060000
+        },
+        "lines": [
+          {
+            "bracket": 0,
+            "rate": "10%",
+            "rateRatio": {
+              "num": 10,
+              "den": 100
+            },
+            "bandBottomCents": 0,
+            "bandTopCents": 1770000,
+            "amountTaxedCents": 1770000,
+            "taxFromBracketCents": 177000,
+            "lineId": "sched.b0"
+          },
+          {
+            "bracket": 1,
+            "rate": "12%",
+            "rateRatio": {
+              "num": 12,
+              "den": 100
+            },
+            "bandBottomCents": 1770000,
+            "bandTopCents": 6745000,
+            "amountTaxedCents": 4975000,
+            "taxFromBracketCents": 597000,
+            "lineId": "sched.b1"
+          },
+          {
+            "bracket": 2,
+            "rate": "22%",
+            "rateRatio": {
+              "num": 22,
+              "den": 100
+            },
+            "bandBottomCents": 6745000,
+            "bandTopCents": 10570000,
+            "amountTaxedCents": 3825000,
+            "taxFromBracketCents": 841500,
+            "lineId": "sched.b2"
+          },
+          {
+            "bracket": 3,
+            "rate": "24%",
+            "rateRatio": {
+              "num": 24,
+              "den": 100
+            },
+            "bandBottomCents": 10570000,
+            "bandTopCents": 20175000,
+            "amountTaxedCents": 9605000,
+            "taxFromBracketCents": 2305200,
+            "lineId": "sched.b3"
+          },
+          {
+            "bracket": 4,
+            "rate": "32%",
+            "rateRatio": {
+              "num": 32,
+              "den": 100
+            },
+            "bandBottomCents": 20175000,
+            "bandTopCents": 25620000,
+            "amountTaxedCents": 5445000,
+            "taxFromBracketCents": 1742400,
+            "lineId": "sched.b4"
+          },
+          {
+            "bracket": 5,
+            "rate": "35%",
+            "rateRatio": {
+              "num": 35,
+              "den": 100
+            },
+            "bandBottomCents": 25620000,
+            "bandTopCents": 64060000,
+            "amountTaxedCents": 38440000,
+            "taxFromBracketCents": 13454000,
+            "lineId": "sched.b5"
+          },
+          {
+            "bracket": 6,
+            "rate": "37%",
+            "rateRatio": {
+              "num": 37,
+              "den": 100
+            },
+            "bandBottomCents": 64060000,
+            "bandTopCents": null,
+            "amountTaxedCents": 10000000,
+            "taxFromBracketCents": 3700000,
+            "lineId": "sched.b6"
+          }
+        ],
+        "exactSumCents": 22817100,
+        "exactSumDollars": "228171.00",
+        "expectTaxCents": 22817100,
+        "expectTaxDollars": 228171
+      }
+    ]
+  },
+  "notes": "Taxable-income points are SYNTHETIC (docs/contributing.md section 1.3); the bracket table they are evaluated against is transcribed from the archived revenue procedure at the locator above. Eight points: zero, inside the first bracket, exactly ON the first bracket edge, one dollar above it, exactly ON the top-of-22% edge, one dollar above it, a mid-table point and a top-bracket point. Every rate is k/100 and every input is a whole dollar, so every per-bracket product is exact in integer cents and no intermediate rounding arises; the half-up step only ever bites at a .50 total, which happens at the top-bracket point of the mfj/qss and single/mfs tables. "
+}

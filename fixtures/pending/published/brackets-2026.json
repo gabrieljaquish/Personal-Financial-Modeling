@@ -1,0 +1,228 @@
+{
+  "id": "pending/published/brackets-2026",
+  "promotesTo": null,
+  "tier": "pending",
+  "targetTier": 1,
+  "module": "pfp-params",
+  "milestone": "M0",
+  "lawYear": 2026,
+  "paramVintage": null,
+  "source": {
+    "publisher": "Internal Revenue Service, U.S. Department of the Treasury",
+    "title": "Rev. Proc. 2025-32 (inflation-adjusted items for tax year 2026)",
+    "url": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf",
+    "locator": "section 4.01, Tables 1-4, printed pages 10-12",
+    "retrieved": "2026-09-18",
+    "archive": "params/provenance/irs/rp-25-32.pdf",
+    "sha256": "e9ada115fb43a4af5ea326ca91edd40ab0bf29b9be01d2c13d7b8fa96214635b"
+  },
+  "tolerance": {
+    "kind": "exact"
+  },
+  "verification": "pending-hand-verification",
+  "verificationNote": "PENDING HUMAN VERIFICATION. Authored by an AI-assisted session from the archived primary documents BEFORE any implementation existed (docs/contributing.md section 3, ADR-022). A human must read every expected value back against the cited document before this file is promoted to fixtures/tier1/. Not in a locked vintage; params/VINTAGES.lock carries no entry for any of this.",
+  "synthetic": false,
+  "kind": "transcription",
+  "expect": {
+    "filingStatuses": [
+      {
+        "filingStatus": "mfj",
+        "statutoryTable": "1(j)(2)(A)",
+        "rates": [
+          "10%",
+          "12%",
+          "22%",
+          "24%",
+          "32%",
+          "35%",
+          "37%"
+        ],
+        "bracketTopsDollars": {
+          "top10": 24800,
+          "top12": 100800,
+          "top22": 211400,
+          "top24": 403550,
+          "top32": 512450,
+          "top35": 768700
+        },
+        "bracketTopsCents": {
+          "top10": 2480000,
+          "top12": 10080000,
+          "top22": 21140000,
+          "top24": 40355000,
+          "top32": 51245000,
+          "top35": 76870000
+        },
+        "sharesTableWith": null,
+        "printedCumulativeTaxDollars": [
+          "0",
+          "2480",
+          "11600",
+          "35932",
+          "82048",
+          "116896",
+          "206583.50"
+        ]
+      },
+      {
+        "filingStatus": "qss",
+        "statutoryTable": "1(j)(2)(A)",
+        "rates": [
+          "10%",
+          "12%",
+          "22%",
+          "24%",
+          "32%",
+          "35%",
+          "37%"
+        ],
+        "bracketTopsDollars": {
+          "top10": 24800,
+          "top12": 100800,
+          "top22": 211400,
+          "top24": 403550,
+          "top32": 512450,
+          "top35": 768700
+        },
+        "bracketTopsCents": {
+          "top10": 2480000,
+          "top12": 10080000,
+          "top22": 21140000,
+          "top24": 40355000,
+          "top32": 51245000,
+          "top35": 76870000
+        },
+        "sharesTableWith": "mfj",
+        "cumulativeTaxFromSharedMfjTableDollars": [
+          "0",
+          "2480",
+          "11600",
+          "35932",
+          "82048",
+          "116896",
+          "206583.50"
+        ],
+        "printedCumulativeTaxDollars": null,
+        "transcriptionNote": "No table headed 'qualifying surviving spouse' is printed in this document or anywhere in 26 USC 1(j)(2). qss is carried by Table 1 / 1(j)(2)(A), which is headed 'Married Individuals Filing Joint Returns and Surviving Spouses'. The thresholds above are that table's; the cumulative-tax column is repeated under its own field name because it is printed for Table 1, not for qss."
+      },
+      {
+        "filingStatus": "hoh",
+        "statutoryTable": "1(j)(2)(B)",
+        "rates": [
+          "10%",
+          "12%",
+          "22%",
+          "24%",
+          "32%",
+          "35%",
+          "37%"
+        ],
+        "bracketTopsDollars": {
+          "top10": 17700,
+          "top12": 67450,
+          "top22": 105700,
+          "top24": 201750,
+          "top32": 256200,
+          "top35": 640600
+        },
+        "bracketTopsCents": {
+          "top10": 1770000,
+          "top12": 6745000,
+          "top22": 10570000,
+          "top24": 20175000,
+          "top32": 25620000,
+          "top35": 64060000
+        },
+        "sharesTableWith": null,
+        "printedCumulativeTaxDollars": [
+          "0",
+          "1770",
+          "7740",
+          "16155",
+          "39207",
+          "56631",
+          "191171"
+        ]
+      },
+      {
+        "filingStatus": "single",
+        "statutoryTable": "1(j)(2)(C)",
+        "rates": [
+          "10%",
+          "12%",
+          "22%",
+          "24%",
+          "32%",
+          "35%",
+          "37%"
+        ],
+        "bracketTopsDollars": {
+          "top10": 12400,
+          "top12": 50400,
+          "top22": 105700,
+          "top24": 201775,
+          "top32": 256225,
+          "top35": 640600
+        },
+        "bracketTopsCents": {
+          "top10": 1240000,
+          "top12": 5040000,
+          "top22": 10570000,
+          "top24": 20177500,
+          "top32": 25622500,
+          "top35": 64060000
+        },
+        "sharesTableWith": null,
+        "printedCumulativeTaxDollars": [
+          "0",
+          "1240",
+          "5800",
+          "17966",
+          "41024",
+          "58448",
+          "192979.25"
+        ]
+      },
+      {
+        "filingStatus": "mfs",
+        "statutoryTable": "1(j)(2)(D)",
+        "rates": [
+          "10%",
+          "12%",
+          "22%",
+          "24%",
+          "32%",
+          "35%",
+          "37%"
+        ],
+        "bracketTopsDollars": {
+          "top10": 12400,
+          "top12": 50400,
+          "top22": 105700,
+          "top24": 201775,
+          "top32": 256225,
+          "top35": 384350
+        },
+        "bracketTopsCents": {
+          "top10": 1240000,
+          "top12": 5040000,
+          "top22": 10570000,
+          "top24": 20177500,
+          "top32": 25622500,
+          "top35": 38435000
+        },
+        "sharesTableWith": null,
+        "printedCumulativeTaxDollars": [
+          "0",
+          "1240",
+          "5800",
+          "17966",
+          "41024",
+          "58448",
+          "103291.75"
+        ]
+      }
+    ]
+  },
+  "notes": "Every ordinary-bracket threshold and rate for every filing status, tax year 2026, transcribed from the archived revenue procedure at the locator above. This file is an INPUT to the uprating fixtures and the rate-schedule grids, not a promotable tier-1 fixture: it has no corresponding id in TESTING.md section 3.1's matrix. qss has no table of its own anywhere in 26 USC 1(j)(2) or in either revenue procedure; 1(j)(2)(A) is headed 'Married Individuals Filing Joint Returns and Surviving Spouses', so qss duplicates the mfj column. Estates and trusts (1(j)(2)(E), Table 5) are not a FilingStatus and are deliberately not transcribed. The printed cumulative-tax column is carried so a reader can re-run the internal-consistency check: for all 8 tables each row's cumulative tax equals the previous row's plus the previous rate times the bracket width, in exact decimal (8 of 8 consistent)."
+}
