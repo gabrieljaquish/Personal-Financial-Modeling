@@ -12,6 +12,9 @@ name = "xtask"
 path = "src/main.rs"
 
 [dependencies]
+# The data-hygiene gate drives the typed parameter loader over every table under
+# `params/` (TESTING.md §11.2 gate 9), so a table no crate embeds is still checked.
+pfp-params = { workspace = true }
 sha2 = { workspace = true }
 
 [lints]

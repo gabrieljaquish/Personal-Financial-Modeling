@@ -1,0 +1,43 @@
+{
+  "id": "pending/published/stdded-2026",
+  "promotesTo": null,
+  "tier": "pending",
+  "targetTier": 1,
+  "module": "pfp-params",
+  "milestone": "M0",
+  "lawYear": 2026,
+  "paramVintage": null,
+  "source": {
+    "publisher": "Internal Revenue Service, U.S. Department of the Treasury",
+    "title": "Rev. Proc. 2025-32 (inflation-adjusted items for tax year 2026)",
+    "url": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf",
+    "locator": "section 4.14(1), printed page 18",
+    "retrieved": "2026-09-18",
+    "archive": "params/provenance/irs/rp-25-32.pdf",
+    "sha256": "e9ada115fb43a4af5ea326ca91edd40ab0bf29b9be01d2c13d7b8fa96214635b"
+  },
+  "tolerance": {
+    "kind": "exact"
+  },
+  "verification": "pending-hand-verification",
+  "verificationNote": "PENDING HUMAN VERIFICATION. Authored by an AI-assisted session from the archived primary documents BEFORE any implementation existed (docs/contributing.md section 3, ADR-022). A human must read every expected value back against the cited document before this file is promoted to fixtures/tier1/. Not in a locked vintage; params/VINTAGES.lock carries no entry for any of this.",
+  "synthetic": false,
+  "kind": "transcription",
+  "expect": {
+    "basicStandardDeductionDollars": {
+      "single": 16100,
+      "mfs": 16100,
+      "mfj": 32200,
+      "qss": 32200,
+      "hoh": 24150
+    },
+    "basicStandardDeductionCents": {
+      "single": 1610000,
+      "mfs": 1610000,
+      "mfj": 3220000,
+      "qss": 3220000,
+      "hoh": 2415000
+    }
+  },
+  "notes": "Basic standard deduction only; the aged/blind add-on and the dependent limitation are out of this pull request's scope. qss shares the mfj amount (63(c)(2)(A) covers a joint return and a surviving spouse alike)."
+}

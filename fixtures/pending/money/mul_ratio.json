@@ -1,0 +1,377 @@
+{
+  "id": "pending/money/mul_ratio",
+  "promotesTo": "t1/money/mul_ratio",
+  "tier": "pending",
+  "targetTier": 1,
+  "module": "pfp-money",
+  "milestone": "M0",
+  "lawYear": 2026,
+  "paramVintage": null,
+  "source": {
+    "publisher": "Office of the Law Revision Counsel, U.S. House of Representatives",
+    "title": "26 U.S.C. 1 - Tax imposed (current text, release point 20260911_119-108)",
+    "url": "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title26-section1&num=0&edition=prelim",
+    "locator": "1(j)(2)(A)-(D) base amounts; 1(j)(3)(B) base years; 1(f)(3),(6),(7)",
+    "retrieved": "2026-09-18",
+    "archive": "params/provenance/usc/usc26-s1.html",
+    "sha256": "9a23b4e2577dbab0b19b5498407338e0a0dc0f1f78b3d2f7e4b877f180686313"
+  },
+  "tolerance": {
+    "kind": "exact"
+  },
+  "verification": "pending-hand-verification",
+  "verificationNote": "PENDING HUMAN VERIFICATION. Authored by an AI-assisted session from the archived primary documents BEFORE any implementation existed (docs/contributing.md section 3, ADR-022). A human must read every expected value back against the cited document before this file is promoted to fixtures/tier1/. Not in a locked vintage; params/VINTAGES.lock carries no entry for any of this.",
+  "synthetic": true,
+  "inputs": {
+    "contract": "Cents::mul_ratio(self, r: Ratio, rule: &RoundingRule) -> Cents computes in i128 and rounds ONCE (ADR-007, ARCHITECTURE.md determinism rule D3). Cents * Cents does not compile; no f64 appears in this path.",
+    "i64Max": "9223372036854775807"
+  },
+  "expect": {
+    "cases": [
+      {
+        "id": "i128-exceeds-i64",
+        "inputs": {
+          "cents": 1000000000000001,
+          "ratio": {
+            "num": 33333,
+            "den": 100000
+          },
+          "rule": {
+            "incrementCents": 1,
+            "direction": "halfEven",
+            "basis": "Amount"
+          }
+        },
+        "intermediateProductAbs": "33333000000000033333",
+        "exceedsI64Max": true,
+        "exactProductCents": {
+          "num": 33333000000000033333,
+          "den": 100000
+        },
+        "expectCents": 333330000000000,
+        "resultFitsI64": true,
+        "derivation": "SYNTHETIC cents = 1,000,000,000,000,001. intermediate = 1,000,000,000,000,001 x 33,333 = 33,333,000,000,000,033,333, which exceeds i64::MAX = 9,223,372,036,854,775,807; an i64 intermediate overflows. /100,000 = 333,330,000,000,000.33333; halfEven at 1 cent -> 333,330,000,000,000, which fits i64.",
+        "note": "the i128 path is the point of this case"
+      },
+      {
+        "id": "i128-exact-tie-halfeven",
+        "inputs": {
+          "cents": 2000000000000001,
+          "ratio": {
+            "num": 5000,
+            "den": 10000
+          },
+          "rule": {
+            "incrementCents": 1,
+            "direction": "halfEven",
+            "basis": "Amount"
+          }
+        },
+        "intermediateProductAbs": "10000000000000005000",
+        "exceedsI64Max": true,
+        "exactProductCents": {
+          "num": 2000000000000001,
+          "den": 2
+        },
+        "expectCents": 1000000000000000,
+        "resultFitsI64": true,
+        "derivation": "SYNTHETIC. intermediate = 2,000,000,000,000,001 x 5,000 = 10,000,000,000,000,005,000 > i64::MAX. /10,000 = 1,000,000,000,000,000.5 - an EXACT tie. halfEven ties to the even multiple -> 1,000,000,000,000,000."
+      },
+      {
+        "id": "i128-exact-tie-halfup",
+        "inputs": {
+          "cents": 2000000000000001,
+          "ratio": {
+            "num": 5000,
+            "den": 10000
+          },
+          "rule": {
+            "incrementCents": 1,
+            "direction": "halfUp",
+            "basis": "Amount"
+          }
+        },
+        "intermediateProductAbs": "10000000000000005000",
+        "exceedsI64Max": true,
+        "exactProductCents": {
+          "num": 2000000000000001,
+          "den": 2
+        },
+        "expectCents": 1000000000000001,
+        "resultFitsI64": true,
+        "derivation": "The SAME input and the SAME i128 intermediate as i128-exact-tie-halfeven, rounded halfUp -> 1,000,000,000,000,001. The pair catches an implementation that rounds once but in the wrong mode.",
+        "note": "paired with i128-exact-tie-halfeven"
+      },
+      {
+        "id": "i128-negative",
+        "inputs": {
+          "cents": -1000000000000001,
+          "ratio": {
+            "num": 33333,
+            "den": 100000
+          },
+          "rule": {
+            "incrementCents": 1,
+            "direction": "down",
+            "basis": "Amount"
+          }
+        },
+        "intermediateProductAbs": "33333000000000033333",
+        "exceedsI64Max": true,
+        "exactProductCents": {
+          "num": -33333000000000033333,
+          "den": 100000
+        },
+        "expectCents": -333330000000001,
+        "resultFitsI64": true,
+        "derivation": "SYNTHETIC negative. |intermediate| = 33,333,000,000,000,033,333 > i64::MAX. exact product = -333,330,000,000,000.33333; 'down' = next lowest multiple, toward -infinity -> -333,330,000,000,001. Truncation toward zero would give -333,330,000,000,000.",
+        "note": "the i128 path and the floor-versus-truncate distinction in one case"
+      },
+      {
+        "id": "double-rounding-guard",
+        "inputs": {
+          "cents": 100000,
+          "ratio": {
+            "num": 1,
+            "den": 3
+          },
+          "rule": {
+            "incrementCents": 1,
+            "direction": "halfEven",
+            "basis": "Amount"
+          }
+        },
+        "intermediateProductAbs": "100000",
+        "exceedsI64Max": false,
+        "exactProductCents": {
+          "num": 100000,
+          "den": 3
+        },
+        "expectCents": 33333,
+        "resultFitsI64": true,
+        "derivation": "$1,000.00 x 1/3. Exact = 33,333.3333... cents; ONE rounding gives 33,333. An implementation that first converts 1/3 to a decimal, or that rounds an intermediate, lands elsewhere. ADR-007 / determinism rule D3: i128 inside, rounds once.",
+        "note": "no i64 overflow here; this case is about rounding ONCE, not about i128"
+      },
+      {
+        "id": "statutory-rate-22pct",
+        "inputs": {
+          "cents": 10000000,
+          "ratio": {
+            "num": 22,
+            "den": 100
+          },
+          "rule": {
+            "incrementCents": 1,
+            "direction": "halfEven",
+            "basis": "Amount"
+          }
+        },
+        "intermediateProductAbs": "220000000",
+        "exceedsI64Max": false,
+        "exactProductCents": {
+          "num": 2200000,
+          "den": 1
+        },
+        "expectCents": 2200000,
+        "resultFitsI64": true,
+        "derivation": "$100,000.00 at 22%: exactly $22,000.00 = 2,200,000 cents. Every statutory ordinary rate is k/100, so applying one to a whole-dollar amount is exact in cents and the rounding step is a no-op - which is why the rate-schedule grids need no tolerance."
+      },
+      {
+        "id": "statutory-rate-niit-3.8pct",
+        "inputs": {
+          "cents": 12345678,
+          "ratio": {
+            "num": 38,
+            "den": 1000
+          },
+          "rule": {
+            "incrementCents": 1,
+            "direction": "halfEven",
+            "basis": "Amount"
+          }
+        },
+        "intermediateProductAbs": "469135764",
+        "exceedsI64Max": false,
+        "exactProductCents": {
+          "num": 117283941,
+          "den": 250
+        },
+        "expectCents": 469136,
+        "resultFitsI64": true,
+        "derivation": "SYNTHETIC $123,456.78 at 3.8% (NIIT). 12,345,678 x 38 = 469,135,764; /1,000 = 469,135.764; halfEven at 1 cent -> 469,136 cents."
+      },
+      {
+        "id": "statutory-rate-addl-medicare-0.9pct",
+        "inputs": {
+          "cents": 98765,
+          "ratio": {
+            "num": 9,
+            "den": 1000
+          },
+          "rule": {
+            "incrementCents": 1,
+            "direction": "halfEven",
+            "basis": "Amount"
+          }
+        },
+        "intermediateProductAbs": "888885",
+        "exceedsI64Max": false,
+        "exactProductCents": {
+          "num": 177777,
+          "den": 200
+        },
+        "expectCents": 889,
+        "resultFitsI64": true,
+        "derivation": "SYNTHETIC $987.65 at 0.9%. 98,765 x 9 = 888,885; /1,000 = 888.885; halfEven -> 889 cents."
+      },
+      {
+        "id": "composite-ratio-5-over-900",
+        "inputs": {
+          "cents": 100000,
+          "ratio": {
+            "num": 5,
+            "den": 900
+          },
+          "rule": {
+            "incrementCents": 1,
+            "direction": "halfEven",
+            "basis": "Amount"
+          }
+        },
+        "intermediateProductAbs": "500000",
+        "exceedsI64Max": false,
+        "exactProductCents": {
+          "num": 5000,
+          "den": 9
+        },
+        "expectCents": 556,
+        "resultFitsI64": true,
+        "derivation": "$1,000.00 x 5/900, the Social Security early-claim reduction factor's per-month term (determinism rule D4: composite statutory factors are reduced to ONE exact rational and applied once). 100,000 x 5 = 500,000; /900 = 555.5555...; halfEven -> 556 cents. A decimal approximation of 5/900 gives a different answer."
+      },
+      {
+        "id": "cent-tie-halfeven-positive",
+        "inputs": {
+          "cents": 12345,
+          "ratio": {
+            "num": 1,
+            "den": 2
+          },
+          "rule": {
+            "incrementCents": 1,
+            "direction": "halfEven",
+            "basis": "Amount"
+          }
+        },
+        "intermediateProductAbs": "12345",
+        "exceedsI64Max": false,
+        "exactProductCents": {
+          "num": 12345,
+          "den": 2
+        },
+        "expectCents": 6172,
+        "resultFitsI64": true,
+        "derivation": "12,345 cents x 1/2 = 6,172.5 - an exact tie at the cent. halfEven ties to even -> 6,172."
+      },
+      {
+        "id": "cent-tie-halfup-positive",
+        "inputs": {
+          "cents": 12345,
+          "ratio": {
+            "num": 1,
+            "den": 2
+          },
+          "rule": {
+            "incrementCents": 1,
+            "direction": "halfUp",
+            "basis": "Amount"
+          }
+        },
+        "intermediateProductAbs": "12345",
+        "exceedsI64Max": false,
+        "exactProductCents": {
+          "num": 12345,
+          "den": 2
+        },
+        "expectCents": 6173,
+        "resultFitsI64": true,
+        "derivation": "The same input rounded halfUp -> 6,173.",
+        "note": "paired with cent-tie-halfeven-positive"
+      },
+      {
+        "id": "cent-tie-halfeven-negative",
+        "inputs": {
+          "cents": -12345,
+          "ratio": {
+            "num": 1,
+            "den": 2
+          },
+          "rule": {
+            "incrementCents": 1,
+            "direction": "halfEven",
+            "basis": "Amount"
+          }
+        },
+        "intermediateProductAbs": "12345",
+        "exceedsI64Max": false,
+        "exactProductCents": {
+          "num": -12345,
+          "den": 2
+        },
+        "expectCents": -6172,
+        "resultFitsI64": true,
+        "derivation": "-12,345 cents x 1/2 = -6,172.5. halfEven ties to the even multiple, -6,172, regardless of sign: the even rule is sign-symmetric, which is why this case IS asserted while the halfUp negative tie is only an open question."
+      },
+      {
+        "id": "zero-cents",
+        "inputs": {
+          "cents": 0,
+          "ratio": {
+            "num": 37,
+            "den": 100
+          },
+          "rule": {
+            "incrementCents": 1,
+            "direction": "halfEven",
+            "basis": "Amount"
+          }
+        },
+        "intermediateProductAbs": "0",
+        "exceedsI64Max": false,
+        "exactProductCents": {
+          "num": 0,
+          "den": 1
+        },
+        "expectCents": 0,
+        "resultFitsI64": true,
+        "derivation": "0 x 37/100 = 0. Guards an implementation that adds an increment on a zero input."
+      },
+      {
+        "id": "ratio-one",
+        "inputs": {
+          "cents": 123456789,
+          "ratio": {
+            "num": 1,
+            "den": 1
+          },
+          "rule": {
+            "incrementCents": 1,
+            "direction": "halfEven",
+            "basis": "Amount"
+          }
+        },
+        "intermediateProductAbs": "123456789",
+        "exceedsI64Max": false,
+        "exactProductCents": {
+          "num": 123456789,
+          "den": 1
+        },
+        "expectCents": 123456789,
+        "resultFitsI64": true,
+        "derivation": "A ratio of 1 must be the identity, with no rounding drift."
+      }
+    ],
+    "caseCount": 14,
+    "casesForcingI128": 4
+  },
+  "notes": "All inputs are SYNTHETIC (docs/contributing.md section 1.3); the RATIOS are the real statutory ones where a statutory rate is being exercised. Four cases carry an intermediate product larger than i64::MAX and so force the i128 path; each is derived longhand in its own case's derivation field. Three tie pairs (halfEven vs halfUp on one input) are included so that an implementation which rounds once but in the wrong mode fails rather than passing. The halfUp-at-a-negative-tie case is deliberately absent: see openQuestions in rounding/table.json."
+}

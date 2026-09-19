@@ -1,0 +1,290 @@
+{
+  "id": "pending/uprating/2026-stdded",
+  "promotesTo": "t1/uprating/2026-stdded",
+  "tier": "pending",
+  "targetTier": 1,
+  "module": "pfp-params",
+  "milestone": "M0",
+  "lawYear": 2026,
+  "paramVintage": null,
+  "source": {
+    "publisher": "Office of the Law Revision Counsel, U.S. House of Representatives",
+    "title": "26 U.S.C. 63 - Taxable income defined (current text, release point 20260911_119-108)",
+    "url": "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title26-section63&num=0&edition=prelim",
+    "locator": "63(c)(2), 63(c)(7)(A) base amounts, 63(c)(7)(B)(ii) base year and rounding",
+    "retrieved": "2026-09-18",
+    "archive": "params/provenance/usc/usc26-s63.html",
+    "sha256": "83efb2d828ddd0d80a1eb28caa7c863581f95b18da501aef09119922f88e0d57"
+  },
+  "tolerance": {
+    "kind": "exact"
+  },
+  "verification": "pending-hand-verification",
+  "verificationNote": "PENDING HUMAN VERIFICATION. Authored by an AI-assisted session from the archived primary documents BEFORE any implementation existed (docs/contributing.md section 3, ADR-022). A human must read every expected value back against the cited document before this file is promoted to fixtures/tier1/. Not in a locked vintage; params/VINTAGES.lock carries no entry for any of this.",
+  "synthetic": false,
+  "additionalSources": [
+    {
+      "publisher": "Bureau of Labor Statistics, U.S. Department of Labor",
+      "title": "C-CPI-U all-items series SUUR0000SA0 (BLS flat-file time-series database)",
+      "url": "https://download.bls.gov/pub/time.series/su/su.data.1.AllItems",
+      "locator": "series SUUR0000SA0, monthly observations 2015-M09 .. 2025-M08",
+      "retrieved": "2026-09-18",
+      "archive": "params/provenance/bls/time-series/su.data.1.AllItems",
+      "sha256": "c40304234a1e838cffe4ba88567a997b91595c223613f2584aa0cab3191f3f75"
+    },
+    {
+      "publisher": "U.S. Government Publishing Office",
+      "title": "Public Law 119-21 (enrolled)",
+      "url": "https://www.govinfo.gov/content/pkg/PLAW-119publ21/pdf/PLAW-119publ21.pdf",
+      "locator": "section 70101(b),(c) and section 70102, PDF pages 88-89 = 139 Stat. 158-159",
+      "retrieved": "2026-09-18",
+      "archive": "params/provenance/congress/PLAW-119publ21.pdf",
+      "sha256": "42f86c3d408bccb1a663c11a51a90d207b3dbc25e689240da51726154be51c8b"
+    },
+    {
+      "publisher": "Internal Revenue Service, U.S. Department of the Treasury",
+      "title": "Rev. Proc. 2025-32 (inflation-adjusted items for tax year 2026)",
+      "url": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf",
+      "locator": "section 4.14(1), printed page 18",
+      "retrieved": "2026-09-18",
+      "archive": "params/provenance/irs/rp-25-32.pdf",
+      "sha256": "e9ada115fb43a4af5ea326ca91edd40ab0bf29b9be01d2c13d7b8fa96214635b"
+    }
+  ],
+  "inputs": {
+    "pipeline": "uprated = base_value + floor_50(base_value * (C-CPI-U(2025)/C-CPI-U(2024) - 1))",
+    "roundingBasis": "IncreaseOverBase",
+    "roundingDirection": "down",
+    "roundingIncrementDollars": 50,
+    "roundingAuthority": "26 USC 63(c)(7)(B)(ii) flush text",
+    "roundingAuthorityNote": "NOT 26 USC 1(f)(7)(A), which reaches the standard deduction only through 63(c)(4); 63(c)(7)(B)(i) switches 63(c)(4) off for the amounts in 63(c)(2)(B) and (2)(C). DOMAIN-MODEL.md section 15's '# 26 USC 1(f)(7)' comment on this table is the wrong citation (the rule it states is right). There is also no $25 variant here: 1(f)(7)(B) expressly excludes 63(c)(4), and 63(c)(7)(B)(ii) names $50 with no filing-status variation, so mfs rounds at $50 for the standard deduction although it rounds at $25 in the bracket table.",
+    "baseYear": 2024,
+    "baseValuesDollars": {
+      "single": 15750,
+      "mfs": 15750,
+      "hoh": 23625
+    },
+    "indexWindows": [
+      {
+        "calendarYear": 2024,
+        "statutoryWindow": "Sep(Y-1)..Aug(Y), 26 USC 1(f)(6)(B)",
+        "monthly": [
+          {
+            "month": "2023-09",
+            "value": "17149/100"
+          },
+          {
+            "month": "2023-10",
+            "value": "171421/1000"
+          },
+          {
+            "month": "2023-11",
+            "value": "85473/500"
+          },
+          {
+            "month": "2023-12",
+            "value": "85359/500"
+          },
+          {
+            "month": "2024-01",
+            "value": "171649/1000"
+          },
+          {
+            "month": "2024-02",
+            "value": "1727/10"
+          },
+          {
+            "month": "2024-03",
+            "value": "43449/250"
+          },
+          {
+            "month": "2024-04",
+            "value": "21803/125"
+          },
+          {
+            "month": "2024-05",
+            "value": "34937/200"
+          },
+          {
+            "month": "2024-06",
+            "value": "174721/1000"
+          },
+          {
+            "month": "2024-07",
+            "value": "21849/125"
+          },
+          {
+            "month": "2024-08",
+            "value": "21856/125"
+          }
+        ],
+        "sumOfTwelve": "207619/100",
+        "meanExact": {
+          "num": 207619,
+          "den": 1200
+        }
+      },
+      {
+        "calendarYear": 2025,
+        "statutoryWindow": "Sep(Y-1)..Aug(Y), 26 USC 1(f)(6)(B)",
+        "monthly": [
+          {
+            "month": "2024-09",
+            "value": "175099/1000"
+          },
+          {
+            "month": "2024-10",
+            "value": "87673/500"
+          },
+          {
+            "month": "2024-11",
+            "value": "8759/50"
+          },
+          {
+            "month": "2024-12",
+            "value": "175219/1000"
+          },
+          {
+            "month": "2025-01",
+            "value": "88181/500"
+          },
+          {
+            "month": "2025-02",
+            "value": "88567/500"
+          },
+          {
+            "month": "2025-03",
+            "value": "4438/25"
+          },
+          {
+            "month": "2025-04",
+            "value": "178081/1000"
+          },
+          {
+            "month": "2025-05",
+            "value": "178427/1000"
+          },
+          {
+            "month": "2025-06",
+            "value": "178991/1000"
+          },
+          {
+            "month": "2025-07",
+            "value": "22409/125"
+          },
+          {
+            "month": "2025-08",
+            "value": "179839/1000"
+          }
+        ],
+        "sumOfTwelve": "212647/100",
+        "meanExact": {
+          "num": 212647,
+          "den": 1200
+        }
+      }
+    ]
+  },
+  "expect": {
+    "rows": [
+      {
+        "filingStatus": "single",
+        "baseValueDollars": 15750,
+        "baseYear": 2024,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 5028,
+          "den": 207619
+        },
+        "rawIncreaseExact": {
+          "num": 79191000,
+          "den": 207619
+        },
+        "rawIncreaseApprox": "381.424629",
+        "flooredIncreaseDollars": 350,
+        "computedDollars": 16100,
+        "publishedDollars": 16100,
+        "residualDollars": 0,
+        "reproducesPublished": true,
+        "alternativeReadingFloorTheTotalDollars": 16100
+      },
+      {
+        "filingStatus": "mfs",
+        "baseValueDollars": 15750,
+        "baseYear": 2024,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 5028,
+          "den": 207619
+        },
+        "rawIncreaseExact": {
+          "num": 79191000,
+          "den": 207619
+        },
+        "rawIncreaseApprox": "381.424629",
+        "flooredIncreaseDollars": 350,
+        "computedDollars": 16100,
+        "publishedDollars": 16100,
+        "residualDollars": 0,
+        "reproducesPublished": true,
+        "alternativeReadingFloorTheTotalDollars": 16100
+      },
+      {
+        "filingStatus": "hoh",
+        "baseValueDollars": 23625,
+        "baseYear": 2024,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 5028,
+          "den": 207619
+        },
+        "rawIncreaseExact": {
+          "num": 118786500,
+          "den": 207619
+        },
+        "rawIncreaseApprox": "572.136943",
+        "flooredIncreaseDollars": 550,
+        "computedDollars": 24175,
+        "publishedDollars": 24150,
+        "residualDollars": 25,
+        "reproducesPublished": false,
+        "alternativeReadingFloorTheTotalDollars": 24150
+      },
+      {
+        "filingStatus": "mfj",
+        "baseValueDollars": null,
+        "baseYear": 2024,
+        "derivation": "26 USC 63(c)(2)(A): 200 percent of the dollar amount in effect under subparagraph (C) for the taxable year, i.e. 200% of the ROUNDED single result, not 200% of the base",
+        "computedDollars": 32200,
+        "publishedDollars": 32200,
+        "residualDollars": 0,
+        "reproducesPublished": true
+      },
+      {
+        "filingStatus": "qss",
+        "baseValueDollars": null,
+        "baseYear": 2024,
+        "derivation": "26 USC 63(c)(2)(A): 200 percent of the dollar amount in effect under subparagraph (C) for the taxable year, i.e. 200% of the ROUNDED single result, not 200% of the base",
+        "computedDollars": 32200,
+        "publishedDollars": 32200,
+        "residualDollars": 0,
+        "reproducesPublished": true
+      }
+    ],
+    "reproducedCount": 4,
+    "rowCount": 5,
+    "residualCount": 1
+  },
+  "residuals": {
+    "count": 1,
+    "rows": [
+      {
+        "filingStatus": "hoh",
+        "computedDollars": 24175,
+        "publishedDollars": 24150,
+        "residualDollars": 25
+      }
+    ]
+  },
+  "notes": "hoh does not reproduce: the statutory rule (floor the INCREASE over the 2024 base to a multiple of $50) gives 24,175 where Rev. Proc. 2025-32 section 4.14(1) publishes 24,150. Residual +$25, recorded not fixed. This residual does NOT depend on the index value: 24,150 - 23,625 = 525 is 10.5 x 50, so no cost-of-living adjustment whatsoever can make the literal rule land on it. 23,625 is a multiple of $25 but not of $50, which makes hoh the ONLY case in the entire M0 parameter set where flooring the increase and flooring the total differ - every statutory bracket base amount is an exact multiple of its status's increment, so no bracket threshold discriminates the two bases for any filing status. The published figure matches the floor-the-total reading. The human decision (decision B2 in docs/verification/m0-hand-verification.md) is whether to implement the statute as written and not reproduce the published hoh figure, or to follow IRS practice and add a FinalAmount value to RoundingRule.basis before seam S1 freezes at M0."
+}
