@@ -38,7 +38,10 @@ hygiene gates (real; each exits 1 on a violation):
   lint-dollars             fail on dollar literals in engine crates outside tests (ADR-022)
   data-hygiene             data files only under fixtures/ or params/, fixtures carry the
                            synthetic marker or a citation, params carry provenance, locked
-                           vintages are unchanged (SECURITY.md §13.3); no SSN-shaped
+                           vintages are unchanged (SECURITY.md §13.3), and every table
+                           under params/vintages/ and params/index-series/ passes the
+                           pfp-params loader with its index_series resolved to an
+                           archived series (TESTING.md §11.2 gate 9); no SSN-shaped
                            string, plan-shaped JSON outside fixtures/plans/ or asOf-stamped
                            JSON outside fixtures/ in any file (§13.4)
   protected-paths [--lock FILE] [PATH ...]

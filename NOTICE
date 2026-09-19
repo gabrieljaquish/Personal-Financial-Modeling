@@ -11,5 +11,14 @@ port lands (see docs/DECISIONS.md, ADR-004). No copyleft-licensed code is
 linked, vendored or shipped; such projects are used only as out-of-process
 test-time oracles.
 
+The files under params/provenance/ are archived, byte-exact copies of works of
+the United States Government (Internal Revenue Service; Office of the Law
+Revision Counsel and Government Publishing Office; Bureau of Labor
+Statistics). They are not the Authors' work, are not subject to copyright
+protection in the United States (17 U.S.C. 105), and are outside the Apache-2.0
+licence grant above: no licence is asserted over them and none is needed. They
+are catalogued, with publisher URLs and SHA-256 digests, in
+params/provenance/INDEX.toml and params/provenance/bls/MANIFEST.md.
+
 Third-party names identify published methodologies and imply no affiliation,
 sponsorship or endorsement; all trademarks belong to their owners.

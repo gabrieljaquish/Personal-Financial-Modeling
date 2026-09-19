@@ -7,7 +7,16 @@
 //! immutable vintages identified by name plus content hash and locked by
 //! `params/VINTAGES.lock`; a visible override layer. Uprating is computed from the
 //! base year in one step (`basis: IncreaseOverBase`), never chained year over year.
-//! The loader and the first vintage land in the next M0 change.
+//!
+//! # What is here
+//!
+//! - [`ParamTable`] and [`IndexSeries`]: typed, validated tables parsed from TOML
+//!   **text** (the crate never opens a file); the shape read, including each
+//!   extension the first vintage needed, is tabulated in the `table` module docs.
+//! - [`Vintage`] and [`ParamView`]: published-value lookup by `(year, breakdown
+//!   key)`, the projection of any year from the statutory base, and provenance.
+//! - [`shipped`]: the first vintage, embedded at compile time. It is **pending
+//!   hand verification and not locked**; [`Vintage::is_verified`] says so.
 //!
 //! # Purity and determinism contract (engine crate)
 //!
@@ -24,3 +33,19 @@
 //! (ADR-022, `cargo xtask lint-dollars`): statutory constants come from `params/`.
 
 #![forbid(unsafe_code)]
+
+mod error;
+mod provenance;
+mod raw;
+mod series;
+pub mod shipped;
+mod table;
+mod view;
+
+pub use error::{ParamError, ProjectionError};
+pub use provenance::{DateYmd, Source, VerificationStatus};
+pub use series::IndexSeries;
+pub use table::{
+    BaseYear, Derivation, Increment, ParamTable, Projection, ProjectionRule, RoundingSpec,
+};
+pub use view::{Origin, ParamValue, ParamView, ProjectionStep, Vintage, VintageId};

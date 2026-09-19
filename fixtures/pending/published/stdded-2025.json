@@ -1,0 +1,43 @@
+{
+  "id": "pending/published/stdded-2025",
+  "promotesTo": null,
+  "tier": "pending",
+  "targetTier": 1,
+  "module": "pfp-params",
+  "milestone": "M0",
+  "lawYear": 2025,
+  "paramVintage": null,
+  "source": {
+    "publisher": "Internal Revenue Service, U.S. Department of the Treasury",
+    "title": "Rev. Proc. 2025-32 (inflation-adjusted items for tax year 2026)",
+    "url": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf",
+    "locator": "section 3.01, printed page 9",
+    "retrieved": "2026-09-18",
+    "archive": "params/provenance/irs/rp-25-32.pdf",
+    "sha256": "e9ada115fb43a4af5ea326ca91edd40ab0bf29b9be01d2c13d7b8fa96214635b"
+  },
+  "tolerance": {
+    "kind": "exact"
+  },
+  "verification": "pending-hand-verification",
+  "verificationNote": "PENDING HUMAN VERIFICATION. Authored by an AI-assisted session from the archived primary documents BEFORE any implementation existed (docs/contributing.md section 3, ADR-022). A human must read every expected value back against the cited document before this file is promoted to fixtures/tier1/. Not in a locked vintage; params/VINTAGES.lock carries no entry for any of this.",
+  "synthetic": false,
+  "kind": "transcription",
+  "expect": {
+    "basicStandardDeductionDollars": {
+      "single": 15750,
+      "mfs": 15750,
+      "mfj": 31500,
+      "qss": 31500,
+      "hoh": 23625
+    },
+    "basicStandardDeductionCents": {
+      "single": 1575000,
+      "mfs": 1575000,
+      "mfj": 3150000,
+      "qss": 3150000,
+      "hoh": 2362500
+    }
+  },
+  "notes": "Basic standard deduction only; the aged/blind add-on and the dependent limitation are out of this pull request's scope. 2025 is governed by Rev. Proc. 2025-32 section 3.01, NOT by Rev. Proc. 2024-40 section 2.15(1): PL 119-21 section 70102(c) applies the 63(c)(7) amendments to taxable years beginning after 2024-12-31, and Rev. Proc. 2025-32 section 3.01 states 'Accordingly, section 2.15(1) of Rev. Proc. 2024-40 is removed.' The withdrawn 30,000 / 22,500 / 15,000 / 15,000 figures must never enter a vintage."
+}

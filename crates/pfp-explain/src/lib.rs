@@ -4,8 +4,19 @@
 //! fixture intermediate, the UI audit trail and the effective-marginal-rate
 //! machinery. `Explanation`, `Reason` and `Bound` carry the reconciliation
 //! invariant (agreement, coverage, reachability) that is the decision code's only
-//! test oracle. The `Line` node lands in the next M0 change; the explanation tree
-//! and the flip-value bisection helper freeze with seam S7 at M2.
+//! test oracle. M0 ships the [`Line`] node, the typed references it carries
+//! ([`LineId`], [`ParamRef`], [`RuleId`]) and [`Lines`], the ordered, validated
+//! collection a worksheet returns; the explanation tree, `LedgerRef`,
+//! `TaxLineRef`, `AssumptionRef` and the flip-value bisection helper freeze with
+//! seam S7 at M2.
+//!
+//! # Deterministic ordering
+//!
+//! A [`Lines`] keeps its lines in the order the worksheet computed them, and a
+//! line may only name inputs that are already present, so that order is a
+//! topological order of the dependency graph by construction and the graph is
+//! acyclic by construction. Serialization is that order; nothing here iterates a
+//! hash map (D8).
 //!
 //! # Purity and determinism contract (engine crate)
 //!
@@ -22,3 +33,11 @@
 //! (ADR-022, `cargo xtask lint-dollars`): statutory constants come from `params/`.
 
 #![forbid(unsafe_code)]
+
+mod id;
+mod line;
+mod lines;
+
+pub use id::{IdError, LineId, ParamRef, RuleId};
+pub use line::Line;
+pub use lines::{Lines, TraceError};
