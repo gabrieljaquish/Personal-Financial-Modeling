@@ -1,0 +1,102 @@
+//! `cargo xtask`: the repository task runner (`ARCHITECTURE.md` §3).
+//!
+//! The real subcommands are the repository-hygiene gates that `SECURITY.md` §13
+//! and `TESTING.md` §11 require from M0: `check-magic`, `lint-dollars`,
+//! `data-hygiene` and `protected-paths`. The build helpers (`build-web`, `dist`,
+//! `validation-report`, `schema`, `openapi`) are declared here so the command
+//! surface is stable, and each states the M0 step that implements it.
+//!
+//! Exit codes: 0 clean, 1 violations found, 2 usage error or not implemented.
+
+// Not an engine crate: the file system, the clock and process I/O are its job.
+#![forbid(unsafe_code)]
+#![allow(
+    clippy::disallowed_types,
+    clippy::disallowed_methods,
+    clippy::disallowed_macros
+)]
+
+mod dollars;
+mod engine;
+mod hygiene;
+mod magic;
+mod protected;
+mod repo;
+
+use std::process::ExitCode;
+
+const USAGE: &str = "\
+usage: cargo xtask <subcommand> [args]
+
+hygiene gates (real; each exits 1 on a violation):
+  check-magic [--history] [PATH ...]
+                           fail if the .pfplan container magic appears anywhere in the
+                           working tree (default; ignored files included, build output
+                           only skipped), or in the given files, directories or archives
+                           (.tar, .tgz, .tar.gz, .zip). --history byte-scans every blob
+                           in the git object database. No allowlist, ever.
+  lint-dollars             fail on dollar literals in engine crates outside tests (ADR-022)
+  data-hygiene             data files only under fixtures/ or params/, fixtures carry the
+                           synthetic marker or a citation, params carry provenance, locked
+                           vintages are unchanged (SECURITY.md §13.3); no SSN-shaped
+                           string, plan-shaped JSON outside fixtures/plans/ or asOf-stamped
+                           JSON outside fixtures/ in any file (§13.4)
+  protected-paths [--lock FILE] [PATH ...]
+                           fail if any given path (or stdin, one per line) touches
+                           fixtures/tier1/ or a locked params/ vintage (ADR-022). --lock
+                           reads the lock from FILE (the base revision's copy) instead
+                           of params/VINTAGES.lock
+  engine-crates            print the engine crates present in the workspace, one per line
+
+build helpers (declared; not implemented at this step of M0):
+  build-web | dist | validation-report | schema | openapi
+";
+
+fn main() -> ExitCode {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let Some(cmd) = args.first() else {
+        eprint!("{USAGE}");
+        return ExitCode::from(2);
+    };
+    let rest = &args[1..];
+    let outcome = match cmd.as_str() {
+        "check-magic" => magic::run(rest),
+        "lint-dollars" => dollars::run(),
+        "data-hygiene" => hygiene::run(),
+        "protected-paths" => protected::run(rest),
+        "engine-crates" => {
+            for name in engine::existing_engine_crates(&repo::root()) {
+                println!("{name}");
+            }
+            Ok(true)
+        }
+        "build-web" => not_implemented(cmd, "M0 step 4 (embedded web build: npm ci --ignore-scripts + vite build, sorted and hashed)"),
+        "dist" => not_implemented(cmd, "M0 step 5 (release pipeline: universal build, signing, DMG and tarball channels)"),
+        "validation-report" => not_implemented(cmd, "M0 step 4 (validation report from whatever corpora exist, embedded in the About page)"),
+        "schema" => not_implemented(cmd, "M0 step 4 (JSON-Schema export via schemars; the plan schema itself freezes at M2, seam S5)"),
+        "openapi" => not_implemented(cmd, "M0 step 4 (OpenAPI export from the Rust DTOs via utoipa, snapshot-tested)"),
+        "-h" | "--help" | "help" => {
+            print!("{USAGE}");
+            Ok(true)
+        }
+        other => {
+            eprintln!("xtask: unknown subcommand `{other}`\n");
+            eprint!("{USAGE}");
+            return ExitCode::from(2);
+        }
+    };
+    match outcome {
+        Ok(true) => ExitCode::SUCCESS,
+        Ok(false) => ExitCode::from(1),
+        Err(e) => {
+            eprintln!("xtask: {e}");
+            ExitCode::from(2)
+        }
+    }
+}
+
+/// The build helpers are declared now so hooks and CI can name them; each one
+/// says which M0 step implements it rather than pretending to succeed.
+fn not_implemented(cmd: &str, step: &str) -> Result<bool, String> {
+    Err(format!("`{cmd}` is not implemented until {step}"))
+}

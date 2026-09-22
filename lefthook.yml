@@ -1,0 +1,106 @@
+#
+# lefthook — stage 0 of the pipeline (TESTING.md §11.1).
+#
+# Stage 0 is the seconds-long gate that runs on the developer's machine, before
+# a mistake becomes a commit or a push. It is deliberately the *hygiene* stage:
+# the checks here are the ones whose value is lost once the thing has been
+# committed, because a secret or a household plan file in the history cannot be
+# taken back out by a later CI failure.
+#
+# Install it once, per clone:
+#
+#     lefthook install
+#
+# Nothing in this repository installs it for you — the hook is a change to the
+# developer's own `.git/hooks`, which is theirs to make. CI runs every one of
+# these checks again (`.github/workflows/ci.yml`), so a clone without the hooks
+# is slower to find out, never permitted to land the problem.
+#
+# To skip a hook for one commit — for a genuine emergency, not for convenience —
+# `LEFTHOOK=0 git commit …`. The checks then run in CI instead.
+#
+
+# `cargo` and `cargo xtask` both need to run from the workspace root; lefthook
+# runs jobs there already. `colors` follows the terminal.
+min_version: 2.0.0
+
+# ---------------------------------------------------------------------------
+# pre-commit — hygiene, in the order of what is least recoverable
+# ---------------------------------------------------------------------------
+pre-commit:
+  parallel: false
+  jobs:
+    # 1. Secrets, over the staged diff only (SECURITY.md §13.2, ADR-023).
+    #
+    # `--max-decode-depth 0` turns off gitleaks' escape/encoding decoder. It is
+    # not an allowlist and it is not a convenience: `docs/SECURITY.md` §3.1
+    # documents the container header as JSON, in which the seven-byte magic can
+    # only be written with a `\u`-style JSON escape for its trailing NUL, and
+    # the decoder turns that example back into the byte sequence — so with
+    # decoding on, every scan of this repository fails on its own design
+    # document, for ever. The magic rule may
+    # take no allowlist (ADR-023), so the decoder is switched off here, at the
+    # invocation, rather than the rule being weakened in `.gitleaks.toml`.
+    # To reproduce, run the same command without the flag: the only finding is
+    # that example. The cost is real - encoded secrets are not decoded for any
+    # rule - so revisit this flag if that example is ever rewritten.
+    - name: gitleaks
+      run: gitleaks git --staged --pre-commit --max-decode-depth 0 --no-banner --redact .
+
+    # 2. The container magic, anywhere in the tree (ADR-023; no allowlist, ever).
+    #
+    # This is the control of record: byte-exact, independent of gitleaks, with
+    # no decoder, no keyword prefilter and no exempt path. It is the one check
+    # standing between a real household's `.pfplan` and a public repository
+    # (threat T5), which is why it scans the whole working tree rather than just
+    # what is staged — and walks it itself rather than asking git, so that the
+    # `*.pfplan` entry in `.gitignore` does not hide a container from it.
+    - name: check-magic
+      run: cargo xtask check-magic
+
+    # 3. Protected paths, over the staged file list (ADR-022; SECURITY.md §13.5).
+    #
+    # `fixtures/tier1/` and locked `params/` vintages are the ground truth the
+    # engine is tested against, so a change to them is never routine and never
+    # an assistant's to make. The gate has no override: a legitimate tier-1
+    # change is a human decision made in review.
+    - name: protected-paths
+      run: git diff --cached --name-only --diff-filter=ACMR | cargo xtask protected-paths
+
+    # 4. Data files only under `fixtures/` or `params/`; fixtures carry the
+    # synthetic marker or a citation; parameter tables carry provenance; locked
+    # vintages are unchanged (SECURITY.md §13.3, "pre-commit and CI").
+    - name: data-hygiene
+      run: cargo xtask data-hygiene
+
+    # 5. No dollar constants in engine code: the assistant never authors both a
+    # constant and the test that checks it (ADR-022). Statutory amounts come
+    # from `params/`, sourced and versioned.
+    - name: lint-dollars
+      run: cargo xtask lint-dollars
+
+    # 6. Formatting, so that a later diff is a change and not a reformat.
+    - name: fmt
+      run: cargo fmt --all --check
+
+# ---------------------------------------------------------------------------
+# pre-push — the correctness checks, once, before the work leaves the machine
+# ---------------------------------------------------------------------------
+#
+# These take minutes rather than seconds, which is why they sit at push rather
+# than at every commit. They are the same commands CI runs, so a green push is
+# a good predictor of a green pipeline.
+#
+# Clippy is here and not in pre-commit, which is a recorded departure from the
+# stage-0 list in TESTING.md §11.1 ("clippy on changed crates"): a workspace
+# clippy run after a dependency change is minutes, a hook that slow gets
+# skipped, and a lint finding — unlike a secret or a plan file — is fully
+# recoverable after the commit. `docs/contributing.md` §7.2 says the same.
+pre-push:
+  parallel: false
+  jobs:
+    - name: clippy
+      run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+    - name: test
+      run: cargo test --workspace --all-features

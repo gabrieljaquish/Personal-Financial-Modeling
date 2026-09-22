@@ -1,0 +1,182 @@
+#
+# cargo-deny configuration — the supply-chain gate (PLAN.md §4.1 M0 scope,
+# TESTING.md §11.1 stage 1, SECURITY.md §11 supply-chain table rows).
+#
+# Four checks, all of which must pass before a PR can land:
+#
+#   advisories  RustSec advisories and yanked crates          (SECURITY.md §11)
+#   licenses    the allowlist of ADR-004, as enumerated in
+#               ARCHITECTURE.md §10.3 and SECURITY.md §11     (ADR-004)
+#   bans        no OpenSSL, no HTTP client outside `pfp-net`,
+#               no wildcard version requirement               (ADR-001, ADR-020)
+#   sources     crates.io only; no git dependencies           (SECURITY.md §11)
+#
+# Run it with `cargo deny check`.
+#
+
+[graph]
+# The product is one universal macOS Mach-O (ARCHITECTURE.md §9 item 3) plus the
+# `wasm32-unknown-unknown` engine-purity build that enforces determinism rule D1
+# (ARCHITECTURE.md §4.3). Those are the three targets a dependency can reach, so
+# they are the three the graph is resolved for.
+targets = [
+    "aarch64-apple-darwin",
+    "x86_64-apple-darwin",
+    "wasm32-unknown-unknown",
+]
+all-features = true
+
+[output]
+feature-depth = 1
+
+# ---------------------------------------------------------------------------
+# advisories — enforced, not reported (SECURITY.md §11: "Gate fails")
+# ---------------------------------------------------------------------------
+[advisories]
+db-urls = ["https://github.com/rustsec/advisory-db"]
+# A yanked crate in the lockfile is a supply-chain signal, not a nuisance.
+yanked = "deny"
+# Unmaintained crates are reported for the whole graph, transitive dependencies
+# included: the binary ships everything it links.
+unmaintained = "all"
+# No advisory is ignored. An advisory that must be lived with is an ADR with an
+# expiry, not a silent line in this file.
+ignore = []
+
+# ---------------------------------------------------------------------------
+# licenses — the ADR-004 allowlist
+# ---------------------------------------------------------------------------
+#
+# ADR-004 fixes the decision (Apache-2.0; permissive in-process only; GPL/AGPL/
+# PolyForm/Parity are out-of-process oracles and never imports). The enumerated
+# set this list must match verbatim is stated identically in ARCHITECTURE.md
+# §10.3 and in the SECURITY.md §11 supply-chain table:
+#
+#   MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, CC0-1.0, Unicode-3.0, Zlib
+#
+# "Extending the list needs an ADR" (SECURITY.md §11). Adding a licence here
+# without one is the change this gate exists to stop.
+[licenses]
+allow = [
+    "Apache-2.0",
+    "MIT",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "CC0-1.0",
+    "Unicode-3.0",
+    "Zlib",
+]
+# Anything that is not on the list — including a crate whose licence cannot be
+# identified with confidence — is denied. `confidence-threshold` at the default
+# 0.8 accepts a fuzzy text match; the gate is the reason to be strict, so a
+# licence text that does not match cleanly is reported as unknown and fails.
+confidence-threshold = 0.93
+# No per-crate exception is granted. A licence-*metadata* gap (a crate whose
+# SPDX expression does not describe its actual licence text) is handled by the
+# separate clarification mechanism of SECURITY.md §11, which records what a
+# licence is and never what the project wishes it were — and which may never
+# admit a copyleft crate. There is no such crate in the graph today; see
+# `[licenses.clarify]` below.
+exceptions = []
+# The allowlist is the design's, not the dependency graph's: at M0 the graph is
+# a handful of crates and most of the eight are unused. An unused entry is not a
+# finding.
+unused-allowed-license = "allow"
+# Workspace members are `publish = false` (Cargo.toml) and all carry
+# `license = "Apache-2.0"`, so they are checked like any other crate.
+private = { ignore = false }
+
+# [[licenses.clarify]] — deliberately empty at this milestone.
+#
+# SECURITY.md §11 asks for the `ring` clarification to be pre-declared at M0 so
+# the gate is green on the day `rustls` lands (ADR-006). It is NOT written here,
+# for two reasons that belong on the record rather than in a guess:
+#
+#   1. `ring` is not in the dependency graph yet (this PR is the scaffold; the
+#      TLS server is a later PR), so a clarification would be inert, and the
+#      `license-files` entry it needs carries a checksum of a licence text that
+#      cannot be verified against a crate that is not vendored.
+#   2. An honest clarification for `ring` records `MIT AND ISC AND OpenSSL`, and
+#      `OpenSSL` is not one of the eight allowed licences — which the same
+#      section says may only be extended by ADR, while forbidding a
+#      clarification that records what the project wishes a licence were. The
+#      contradiction is a real one and wants an ADR, not a config line.
+#
+# It lands with the crate, in the PR that adds `rustls` — and it cannot land
+# until the contradiction is decided. That open decision is recorded, as a
+# blocker for the `rustls` PR, in `docs/contributing.md` §8 item 1; it is closed
+# by an ADR in `docs/DECISIONS.md`, not by a line in this file.
+
+# ---------------------------------------------------------------------------
+# bans — the architectural constraints, enforced mechanically
+# ---------------------------------------------------------------------------
+[bans]
+# Duplicate versions are a size and audit-surface problem, not a correctness
+# one; they are reported so the graph stays legible without blocking a PR on a
+# transitive dependency's release cadence.
+multiple-versions = "warn"
+# A wildcard version requirement defeats the lockfile and the reproducible
+# double-build (ARCHITECTURE.md §9 item 4).
+wildcards = "deny"
+# Path dependencies between workspace members are how the crate graph is built
+# (ARCHITECTURE.md §3); their version requirements are not the wildcards this
+# check is about.
+allow-wildcard-paths = true
+# Engine output must not depend on the order a hash map iterates (D8), and the
+# lint lists live in `clippy.toml`; nothing here duplicates them.
+skip = []
+skip-tree = []
+
+deny = [
+    # --- No OpenSSL anywhere (ADR-001, ADR-006) ---------------------------
+    # TLS, AEAD and KDF are pure Rust, so that a two-target universal build
+    # needs neither OpenSSL nor CMake. A crate that pulls `openssl-sys` back in
+    # breaks the release form, not just a preference.
+    { crate = "openssl", reason = "ADR-001: pure-Rust TLS/AEAD/KDF — no OpenSSL, no CMake in a two-target universal build" },
+    { crate = "openssl-sys", reason = "ADR-001: pure-Rust TLS/AEAD/KDF — no OpenSSL, no CMake in a two-target universal build" },
+    { crate = "openssl-probe", reason = "ADR-001: only ever reached through an OpenSSL backend, which this build does not have" },
+    { crate = "native-tls", reason = "ADR-001/ADR-006: TLS is rustls with the ring provider; native-tls is an OpenSSL/Secure Transport shim" },
+
+    # --- Only `pfp-net` may depend on an HTTP client (ADR-020) ------------
+    # v1 makes zero outbound connections, and `pfp-net` — the one crate ever
+    # permitted a client — does not exist until the first opt-in outbound
+    # feature does (ARCHITECTURE.md §3). So today these bans are absolute,
+    # which is exactly "every other workspace member" when there is no other.
+    #
+    # WHEN `pfp-net` IS CREATED, do not delete these entries: add
+    # `wrappers = ["pfp-net"]` to the client it actually uses, which re-admits
+    # that crate through that one parent and leaves the ban standing
+    # everywhere else. The wrapper is written then rather than now because
+    # cargo-deny reports a wrapper naming a crate absent from the graph as an
+    # `unused-wrapper` warning, and a gate whose clean run prints warnings is
+    # a gate people stop reading.
+    #
+    # `hyper` is deliberately absent from this list: it is the server half of
+    # the axum/tokio stack (ADR-006), and banning it would ban the product's
+    # own listener.
+    { crate = "reqwest", reason = "ADR-020: pfp-net is the only crate permitted an HTTP client" },
+    { crate = "ureq", reason = "ADR-020: pfp-net is the only crate permitted an HTTP client" },
+    { crate = "isahc", reason = "ADR-020: pfp-net is the only crate permitted an HTTP client" },
+    { crate = "attohttpc", reason = "ADR-020: pfp-net is the only crate permitted an HTTP client" },
+    { crate = "surf", reason = "ADR-020: pfp-net is the only crate permitted an HTTP client" },
+    { crate = "curl", reason = "ADR-020: pfp-net is the only crate permitted an HTTP client" },
+    { crate = "curl-sys", reason = "ADR-020: pfp-net is the only crate permitted an HTTP client" },
+
+    # --- Determinism rule D6 (ARCHITECTURE.md §4.3) -----------------------
+    # Normal deviates come from the in-repo AS241 inverse CDF with golden
+    # vectors. `rand_distr` does not promise value stability across versions,
+    # so a bump could silently move every Monte Carlo result.
+    { crate = "rand_distr", reason = "D6: rand_distr does not promise value stability across versions; deviates come from the in-repo AS241 inverse CDF" },
+]
+
+# ---------------------------------------------------------------------------
+# sources — crates.io only (SECURITY.md §11: "Build refuses")
+# ---------------------------------------------------------------------------
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+# No git dependency without an ADR: a git source has no lockfile-backed checksum
+# in the sense the reproducible double-build needs.
+allow-git = []

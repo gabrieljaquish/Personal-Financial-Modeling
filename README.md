@@ -15,7 +15,8 @@ The focus is **planning, not tracking**. Budgeting and account-tracking tools al
 
 ## Status
 
-Design complete; implementation not started. See the design documents below.
+Design complete; implementation has started with the M0 scaffold ([PLAN.md](docs/PLAN.md) §4.1).
+See the design documents below.
 
 ## Design documents
 
@@ -36,6 +37,83 @@ The build plan and specifications live in [`docs/`](docs/). Suggested reading or
 2. On first run, a setup flow collects your household, accounts, income, goals and assumptions.
 3. Everything you enter is stored in an **encrypted file on your own machine**.
 4. Explore projections, scenarios and recommendations in a browser UI served locally.
+
+## Development
+
+The design documents are the specification. [`docs/contributing.md`](docs/contributing.md)
+collects the rules that apply before a first commit: synthetic data only, the no-allowlist
+container-magic rule, the AI-assistance protocol and the licence boundary.
+
+### Prerequisites
+
+| Tool | Version | Notes |
+|---|---|---|
+| Rust | the channel pinned in [`rust-toolchain.toml`](rust-toolchain.toml) | With `rustup` the pin applies automatically and the `wasm32-unknown-unknown` target is installed with it. See "What only CI can enforce" below |
+| Node and npm | the exact version in `web/.nvmrc` (CI uses it; `engines` in `web/package.json` is the accepted range) | A build-time tool only; no Node runtime ships in the binary |
+| [lefthook](https://github.com/evilmartians/lefthook) | — | Runs the pre-commit gates |
+| [gitleaks](https://github.com/gitleaks/gitleaks) | — | Secret scanning, pre-commit and in CI |
+| `cargo-deny`, `cargo-audit` | — | `cargo install cargo-deny cargo-audit`; they land in `~/.cargo/bin`, which must be on `PATH` |
+
+### Build and test
+
+```sh
+cargo build --workspace
+cargo test --workspace
+cargo fmt --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo deny check            # advisories, licence allowlist, bans, sources
+cargo audit
+```
+
+### Repository hygiene gates
+
+Each gate exits 0 when clean and 1 on a violation. They run pre-commit and in CI; run them
+directly at any time:
+
+```sh
+cargo xtask check-magic              # the .pfplan container magic anywhere in the working
+                                     # tree, git-ignored files included (or in the given
+                                     # files, directories or archives). No allowlist, ever.
+cargo xtask check-magic --history    # the same, over every blob in the git history
+cargo xtask lint-dollars             # dollar literals in engine crates outside tests
+cargo xtask data-hygiene             # data files only under fixtures/ or params/; synthetic
+                                     # markers or citations; provenance; locked vintages
+cargo xtask protected-paths <path>…  # edits to fixtures/tier1/ or a locked params/ vintage
+                                     # (paths as arguments, or one per line on stdin)
+```
+
+`cargo xtask` with no arguments prints the full command list, including the build helpers that
+later steps of M0 implement.
+
+### Git hooks
+
+```sh
+lefthook install
+```
+
+Install once after cloning. The hook set is declared in `lefthook.yml`.
+
+### Web build
+
+```sh
+cd web
+npm ci --ignore-scripts
+npm run build
+```
+
+`--ignore-scripts` is not optional: npm lifecycle scripts do not run in this repository.
+`cargo xtask build-web` will wrap these commands (with sorted, hashed output for the embedded
+build) later in M0; until then, run them directly.
+
+### What only CI can enforce
+
+- **The toolchain pin.** `rust-toolchain.toml` is honoured wherever `rustup` is present. A
+  Homebrew-only Rust ignores it, so a local build may use a different compiler; CI is
+  authoritative for the version the release is built with.
+- **The `wasm32-unknown-unknown` purity build**, which proves that engine crates touch no
+  filesystem, network, clock, environment or entropy (determinism rule D1,
+  [ARCHITECTURE.md](docs/ARCHITECTURE.md) §4.3). It needs a `rustup`-installed target, so it is
+  a CI-only job.
 
 ## Design principles
 

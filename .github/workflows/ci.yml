@@ -1,0 +1,318 @@
+#
+# Stage 1 — per push and per pull request (TESTING.md §11.1, target ~15 minutes).
+#
+# Every job here is a merge gate (TESTING.md §11.2 item 1). The five jobs are the
+# five kinds of thing that can be wrong with a change:
+#
+#   rust          it does not build, is not formatted, or trips a lint or a test
+#   purity        it broke the engine's no-I/O contract (determinism rule D1)
+#   supply-chain  it added an advisory, a forbidden licence, a ban or a git source
+#   hygiene       it put user data, a secret or a ground-truth edit in the repository
+#   web           the front end does not build, or a package licence is not permitted
+#
+# Deliberately absent, each because the thing it checks does not exist yet: the
+# three fixture tiers, property tests, the `pfp-sim` feature matrix, the OpenAPI
+# and JSON-Schema snapshots, `vitest`, the Playwright security contract and the
+# `criterion` smoke run. They join this file in the milestone that introduces
+# them; the job list is not the whole of TESTING.md §11.1 and does not pretend to
+# be.
+#
+# Conventions, applied throughout:
+#   * Read-only token. No job in this file needs to write anything, and no job
+#     uses a secret. The release workflow is where credentials live, behind a
+#     protected environment, a signed tag and a manual approval (ARCHITECTURE.md
+#     §9 item 6) — never here.
+#   * Every third-party action is pinned to a full 40-character commit SHA with
+#     the tag it resolved to in a trailing comment. A tag is mutable; a SHA is
+#     not (SECURITY.md §11, threat T4).
+#   * The runner image is a named macOS version, never `macos-latest`: a
+#     rolling label changes the build platform with no commit (SECURITY.md §11,
+#     "pinned runner image"; PLAN.md §4.1). Moving it is a reviewed change.
+#   * Tools come from Homebrew or from the pinned Rust toolchain rather than
+#     from marketplace actions, so that the supply chain of the gate is as small
+#     as the supply chain of the product.
+#   * Values that come from the event are passed through `env:` and never
+#     interpolated into a shell script.
+#
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# The whole pipeline is read-only.
+permissions:
+  contents: read
+
+# One run per workflow per ref: a new push supersedes the run already in flight.
+# The group key carries the event name so a pull-request run and a push run for
+# the same ref never cancel each other. `cancel-in-progress` is a literal rather
+# than an expression: `concurrency` is evaluated very early, before any job
+# context exists, and the set of expressions valid there is narrower than at job
+# level — a flag that silently evaluated to a truthy string would cancel runs
+# nobody asked to cancel. On `main` pushes are sequential, so cancellation there
+# is near-theoretical and the simpler form costs nothing.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  # Homebrew on a hosted runner: install what was asked for, nothing else.
+  HOMEBREW_NO_AUTO_UPDATE: "1"
+  HOMEBREW_NO_INSTALL_CLEANUP: "1"
+  HOMEBREW_NO_ANALYTICS: "1"
+  CARGO_TERM_COLOR: always
+  # Deliberately NOT `RUSTFLAGS: -D warnings`: RUSTFLAGS reaches every crate
+  # compiled, dependencies included, so one upstream deprecation would fail the
+  # build for a reason nobody in this repository can fix. Warnings are denied
+  # where they belong instead — the workspace lint table in `Cargo.toml`, and
+  # `cargo clippy … -- -D warnings` below.
+
+jobs:
+  # -------------------------------------------------------------------------
+  # rust — fmt, clippy, tests
+  # -------------------------------------------------------------------------
+  #
+  # On macOS because the product is a macOS executable (PLAN.md, terminology):
+  # the platform that ships is the platform that is tested. The toolchain comes
+  # from `rust-toolchain.toml` — `rustup show` reads that file and installs the
+  # pinned channel with its components, so the version is declared in one place
+  # and no action is needed to select it.
+  rust:
+    name: rust (fmt, clippy, test)
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install the pinned toolchain
+        run: |
+          rustup show
+          rustc --version
+          cargo --version
+
+      - name: Formatting
+        run: cargo fmt --all --check
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+
+      - name: Tests
+        run: cargo test --workspace --all-features --locked
+
+  # -------------------------------------------------------------------------
+  # purity — the engine has no filesystem, network, clock, environment or entropy
+  # -------------------------------------------------------------------------
+  #
+  # Determinism rule D1 (ARCHITECTURE.md §4.3) is enforced by compiling the
+  # engine crates for `wasm32-unknown-unknown`, a target with no `std::fs`, no
+  # sockets and no system clock: code that reaches for any of them fails to
+  # link. The crate list is not hard-coded here — `cargo xtask engine-crates`
+  # prints the engine crates that actually exist, because a crate is created in
+  # the milestone that first needs it (ARCHITECTURE.md §3) and a list in this
+  # file would silently stop covering new ones.
+  #
+  # The target itself comes from `rust-toolchain.toml`, which names it. That is
+  # why this job is CI-only: a Homebrew Rust cannot add a target, so the purity
+  # build cannot be reproduced on a developer machine without rustup.
+  #
+  # Default features only: the `rayon` fan-out lives behind the `parallel`
+  # feature and is off in the wasm32 build (D11).
+  purity:
+    name: purity (wasm32 engine build)
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install the pinned toolchain and the wasm32 target
+        run: |
+          rustup show
+          rustup target list --installed
+
+      - name: Build the engine crates for wasm32-unknown-unknown
+        run: |
+          set -euo pipefail
+          packages=()
+          while IFS= read -r crate; do
+            [ -n "$crate" ] && packages+=("--package" "$crate")
+          done < <(cargo xtask engine-crates)
+          if [ ${#packages[@]} -eq 0 ]; then
+            echo "No engine crates exist yet; nothing to check."
+            exit 0
+          fi
+          printf 'engine crates: %s\n' "${packages[*]}"
+          cargo build --locked --target wasm32-unknown-unknown "${packages[@]}"
+
+  # -------------------------------------------------------------------------
+  # supply-chain — advisories, licences, bans, sources
+  # -------------------------------------------------------------------------
+  #
+  # `cargo deny check` runs all four checks configured in `deny.toml`;
+  # `cargo audit` is the second, independent read of the same RustSec database,
+  # kept because SECURITY.md §11 lists both and because two tools disagreeing
+  # about an advisory is itself information.
+  supply-chain:
+    name: supply-chain (cargo-deny, cargo-audit)
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install the pinned toolchain
+        run: rustup show
+
+      - name: Install cargo-deny and cargo-audit
+        run: brew install --quiet cargo-deny cargo-audit
+
+      - name: cargo-deny (advisories, licences, bans, sources)
+        run: cargo deny --locked check
+
+      - name: cargo-audit
+        run: cargo audit --deny warnings
+
+  # -------------------------------------------------------------------------
+  # hygiene — the repository is the application only
+  # -------------------------------------------------------------------------
+  #
+  # SECURITY.md §13 and ADR-023. Four `xtask` gates plus gitleaks. `fetch-depth:
+  # 0` is needed because `protected-paths` is checked against the pull request's
+  # own diff, which needs the merge base.
+  hygiene:
+    name: hygiene (magic, dollars, data, protected paths, gitleaks)
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The protected-path check needs the merge base of the pull request.
+          fetch-depth: 0
+
+      - name: Install the pinned toolchain
+        run: rustup show
+
+      - name: Install gitleaks
+        run: brew install --quiet gitleaks
+
+      # The container-magic gate. No allowlist, ever (ADR-023): this is the one
+      # mechanical control standing between a real household's `.pfplan` and a
+      # public repository, and a single exempted path would blind it
+      # permanently. It is byte-exact and independent of gitleaks.
+      - name: Container magic (no allowlist, ever)
+        run: cargo xtask check-magic
+
+      - name: Dollar literals in engine crates
+        run: cargo xtask lint-dollars
+
+      - name: Data hygiene
+        run: cargo xtask data-hygiene
+
+      # Ground-truth paths — `fixtures/tier1/` and locked `params/` vintages —
+      # are checked against the pull request's diff (ADR-022). The base
+      # revision's lock is used where it exists, so that one change cannot
+      # unlock a vintage and edit it in the same breath.
+      - name: Protected paths (against the pull-request diff)
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE_REF:-}" ]; then
+            echo "Not a pull request: protected-paths runs against a PR diff, so there is nothing to check here."
+            exit 0
+          fi
+          base="origin/${BASE_REF}"
+          git rev-parse --verify --quiet "${base}^{commit}" > /dev/null
+          # The lock is read from the BASE revision where one exists, so that a
+          # change cannot unlock a vintage and edit it in the same pull request.
+          # Written as an if/else rather than an optional array argument:
+          # macOS runners ship bash 3.2, where expanding an empty array under
+          # `set -u` is an error rather than nothing.
+          if git cat-file -e "${base}:params/VINTAGES.lock" 2> /dev/null; then
+            git show "${base}:params/VINTAGES.lock" > "${RUNNER_TEMP}/VINTAGES.lock"
+            git diff --name-only --diff-filter=ACMR "${base}...HEAD" \
+              | cargo xtask protected-paths --lock "${RUNNER_TEMP}/VINTAGES.lock"
+          else
+            echo "No params/VINTAGES.lock at ${base}; checking paths against the working-tree lock."
+            git diff --name-only --diff-filter=ACMR "${base}...HEAD" \
+              | cargo xtask protected-paths
+          fi
+
+      # gitleaks over the checked-out tree and over the history this checkout
+      # holds. `--max-decode-depth 0` disables gitleaks' escape/encoding
+      # decoder; it is NOT an allowlist and NOT a convenience.
+      # `docs/SECURITY.md` §3.1 documents the plan-file container header as
+      # JSON, where the seven-byte magic can only be written with a `\u`-style
+      # escape for its trailing NUL — and the decoder turns that example back
+      # into the byte sequence, so with decoding on every scan of this
+      # repository fails on its own design document, for ever. The magic rule
+      # may take no allowlist (ADR-023), so the decoder is switched off at the
+      # invocation instead of the rule being weakened in `.gitleaks.toml`. To
+      # reproduce, run the same command without the flag: the only finding is
+      # that example. The cost is real - encoded secrets are not decoded for any
+      # rule - so revisit this flag if that example is ever rewritten. The
+      # byte-exact control above is unaffected.
+      - name: gitleaks (working tree)
+        run: gitleaks dir --no-banner --redact --max-decode-depth 0 .
+
+      - name: gitleaks (history)
+        run: gitleaks git --no-banner --redact --max-decode-depth 0 .
+
+  # -------------------------------------------------------------------------
+  # web — the embedded front end
+  # -------------------------------------------------------------------------
+  #
+  # `--ignore-scripts` on every install: an npm lifecycle script is arbitrary
+  # code execution at install time, and the front end is a build-time input to a
+  # signed artifact (SECURITY.md §11, threat T4). `npm audit signatures` checks
+  # that every resolved package is signed by the registry. The per-package
+  # licence check is a separate control from `cargo-deny`'s, because no
+  # front-end licence has been confirmed per package in advance (ADR-004).
+  #
+  # macOS, like the rest of the pipeline, because `web/dist` is compiled into
+  # the macOS executable by `rust-embed` and the release build's platform is
+  # part of the front end's determinism story (ARCHITECTURE.md §9 item 1).
+  web:
+    name: web (install, signatures, licences, build)
+    runs-on: macos-15
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # The Node version is the exact pin in `web/.nvmrc`, not the `engines.node`
+      # range in `web/package.json`: a range lets two runs a week apart build
+      # `web/dist` on different Node patch releases with nothing in the
+      # repository changed, and `web/dist` is compiled into a binary whose
+      # digest is compared across runners (PLAN.md §4.1, front-end build
+      # determinism; risk R21). Renovate moves the pin deliberately.
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: web/.nvmrc
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Registry signatures
+        run: npm audit signatures
+
+      - name: Per-package licence check
+        run: npm run licenses
+
+      - name: Type-check and build
+        run: npm run build

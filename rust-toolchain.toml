@@ -1,0 +1,9 @@
+# Pinned toolchain (ARCHITECTURE.md §1, SECURITY.md §11: floor 1.84, bumped deliberately).
+# Enforced wherever rustup is present (CI runners). A Homebrew-only Rust ignores this
+# file, so a local build may use a newer compiler; CI is authoritative.
+[toolchain]
+channel = "1.98.1"
+components = ["clippy", "rustfmt"]
+# The engine-purity build target (D1). Installed by rustup on CI runners; a Homebrew
+# Rust cannot add targets, so that job is CI-only (README, "Development").
+targets = ["wasm32-unknown-unknown"]
