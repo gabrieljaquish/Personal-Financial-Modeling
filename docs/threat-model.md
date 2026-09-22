@@ -49,9 +49,12 @@ The table is `SECURITY.md` §2.2, condensed. The last column names the section o
 The controls for T2, T3, T3-s, T4, T5 and T7 that the server, the repository gates and the
 front end can provide are built and tested in this repository (`README.md`, "Security
 test ids in this step"). The container (T1), the keychain slot (T3, M3), the importers
-(T6, M4) and the browser suite that asserts the T7 rows at run time do not exist yet; the
-validation report on the About page says which corpora exist and which are not yet
-introduced (`docs/validation-report.md`).
+(T6, M4), the browser suite that asserts the T7 rows at run time, the release-pipeline
+half of T4 - the reproducible double build, the CycloneDX SBOM with its no-copyleft
+assertion and the signed `SHA256SUMS`, which the M0 release-pipeline step owns
+(`README.md`, S-10 and S-11) - and the redacted diagnostics bundle of T5 (`SECURITY.md`
+§14: exercised from M4) do not exist yet; the validation report on the About page says
+which corpora exist and which are not yet introduced (`docs/validation-report.md`).
 
 ## Explicitly out of scope
 

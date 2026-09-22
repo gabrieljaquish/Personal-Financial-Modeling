@@ -92,7 +92,10 @@ mod tests {
                     .iter()
                     .map(|t| t.tier.as_str())
                     .collect();
-                assert_eq!(tiers, ["tier1", "tier2", "tier3", "pending"]);
+                assert_eq!(
+                    tiers,
+                    ["tier1", "tier2", "tier3", "personas", "plans", "pending"]
+                );
             }
             Ok(None) => assert!(!is_embedded()),
             Err(e) => panic!("{e}"),

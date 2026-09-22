@@ -86,11 +86,28 @@ function otherVerificationCount(t: TierReport): number {
   return t.byVerification.filter((c) => !(VERIFICATIONS as readonly string[]).includes(c.name)).reduce((total, c) => total + c.count, 0);
 }
 
+/** Files under the directory that the generator could not read as envelopes. */
+function unreadableCount(report: ValidationReport, t: TierReport): number {
+  return report.fixtures.invalid.filter((f) => f.path.startsWith(`${t.directory}/`)).length;
+}
+
+/**
+ * Files the generator counted but did not read: anything that is not a JSON
+ * envelope (a snapshot, a recorded oracle line). Stated so that the columns of
+ * a row always add up to its document count; a count of counts, never a target.
+ * Not clamped: a negative number here would mean the report's own counts
+ * disagree with each other, and that is shown rather than hidden.
+ */
+function notReadCount(report: ValidationReport, t: TierReport): number {
+  const read = t.byVerification.reduce((total, c) => total + c.count, 0);
+  return t.fileCount - read - unreadableCount(report, t);
+}
+
 function tiersTable(report: ValidationReport): TableVm {
   return {
-    caption: 'Fixtures by tier and verification value',
+    caption: 'Fixtures by directory and verification value (the last six columns add up to Documents)',
     captionId: 'about-fixtures-caption',
-    columns: ['Tier', 'Status', 'Documents', 'Primary-source-confirmed', 'Hand-worked-reviewed', 'Pending hand verification', 'Other'],
+    columns: ['Directory', 'Status', 'Documents', 'Primary-source-confirmed', 'Hand-worked-reviewed', 'Pending hand verification', 'Other', 'Unreadable', 'Counted, not read'],
     rows: report.fixtures.tiers.map((t) => ({
       header: t.tier,
       cells: [
@@ -100,8 +117,28 @@ function tiersTable(report: ValidationReport): TableVm {
         String(countOf(t.byVerification, 'hand-worked-reviewed')),
         String(countOf(t.byVerification, 'pending-hand-verification')),
         String(otherVerificationCount(t)),
+        String(unreadableCount(report, t)),
+        String(notReadCount(report, t)),
       ],
     })),
+  };
+}
+
+/**
+ * What the fixture tables above leave out, said rather than dropped: every file
+ * the generator could not read, with its problem, and every fixtures/ directory
+ * the design does not name, with its file count.
+ */
+function unreadTable(report: ValidationReport): TableVm {
+  const rows = [
+    ...report.fixtures.invalid.map((f) => ({ header: f.path, cells: ['unreadable: not counted under any verification value', f.problem] })),
+    ...report.fixtures.otherDirectories.map((d) => ({ header: `${d.name}/`, cells: ['directory the design does not name: counted, not read', `${String(d.count)} file(s)`] })),
+  ];
+  return {
+    caption: 'Fixture files the report could not read, and fixture directories it does not list above',
+    captionId: 'about-unread-caption',
+    columns: ['Path', 'What', 'Detail'],
+    rows: rows.length === 0 ? [{ header: 'none', cells: ['every fixture file was read', 'no fixture directory outside those listed above exists'] }] : rows,
   };
 }
 
@@ -140,11 +177,18 @@ function vintagesTable(report: ValidationReport): TableVm {
   };
 }
 
+/** A directory the design names that this report does not list: said as absent, never upgraded. */
+function unlisted(directory: string): SectionStatus {
+  return { state: 'not-yet-introduced', milestone: 'not stated', reference: 'not in this report', note: `This report carries no entry for ${directory}/; treat it as absent.` };
+}
+
 function sectionsTable(report: ValidationReport): TableVm {
   const sections: readonly (readonly [string, SectionStatus])[] = [
     ['Tier-1 fixtures', tier(report, 'tier1')?.status ?? report.fixtures.status],
     ['Tier-2 pinned suites', report.tier2Suites],
     ['Tier-3 goldens', report.tier3Goldens],
+    ['Synthetic personas', tier(report, 'personas')?.status ?? unlisted('fixtures/personas')],
+    ['Plan fixtures (the demo plan, migration shapes)', tier(report, 'plans')?.status ?? unlisted('fixtures/plans')],
     ['Recorded oracles', report.oracles],
     ['Property-based invariants', report.properties.status],
     ['Contract snapshots', report.contractSnapshots.status],
@@ -208,7 +252,7 @@ export function reportVm(loadable: Loadable<ValidationReportResponse>): ReportVm
   }
   return {
     headline: headlineOf(report),
-    tables: [tiersTable(report), milestonesTable(report), vintagesTable(report), sectionsTable(report), unverifiedTable(report), testsTable(report)],
+    tables: [tiersTable(report), unreadTable(report), milestonesTable(report), vintagesTable(report), sectionsTable(report), unverifiedTable(report), testsTable(report)],
     pins: pinsOf(report),
     basis: [
       ['Generated on', report.generatedOn ?? 'no date: the generator reads no clock, and none was given'],

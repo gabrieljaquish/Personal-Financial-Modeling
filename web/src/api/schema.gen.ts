@@ -284,7 +284,8 @@ export interface FixtureReport {
    */
   readonly status: SectionStatus;
   /**
-   * The four directories, always all four.
+   * The six directories the design names, always all six, whether or not
+   * each exists at this commit.
    */
   readonly tiers: readonly TierReport[];
 }
@@ -395,22 +396,49 @@ export interface LineDto {
 }
 
 /**
- * `params/VINTAGES.lock`.
+ * `params/VINTAGES.lock`, verified against the files rather than taken on
+ * trust: an entry counts only when its file hashes to the recorded SHA-256,
+ * and a vintage counts as locked only when every file under its directory is
+ * listed and every entry for it matches (`SECURITY.md` §13.3 rule 4).
  */
 export interface LockReport {
+  /**
+   * Entries whose file hashes differently from the recorded SHA-256.
+   * Minimum: 0.
+   */
+  readonly checksumMismatchCount: number;
   /**
    * Files it names.
    * Minimum: 0.
    */
   readonly entryCount: number;
   /**
-   * Vintage directories it covers.
+   * Vintage directories it names **and** verifies; only these are locked.
    */
   readonly lockedVintages: readonly string[];
+  /**
+   * Entries naming a file that does not exist.
+   * Minimum: 0.
+   */
+  readonly missingCount: number;
+  /**
+   * What the verification found, in words.
+   */
+  readonly note: string;
   /**
    * Whether the file exists.
    */
   readonly present: boolean;
+  /**
+   * Files under a named vintage directory with no entry.
+   * Minimum: 0.
+   */
+  readonly unlistedCount: number;
+  /**
+   * Vintage directories it names but does not verify: an entry does not
+   * match, a named file is missing, or a file in the directory is unlisted.
+   */
+  readonly unverifiedVintages: readonly string[];
 }
 
 /**
@@ -993,7 +1021,8 @@ export interface TestInventory {
 }
 
 /**
- * One tier directory of `fixtures/` (`TESTING.md` §2.2), plus `pending/`.
+ * One directory of `fixtures/` the design names (`TESTING.md` §2.2: the three
+ * tiers, `personas/` and `plans/`), plus `pending/`.
  */
 export interface TierReport {
   /**
@@ -1034,7 +1063,7 @@ export interface TierReport {
    */
   readonly status: SectionStatus;
   /**
-   * `tier1`, `tier2`, `tier3` or `pending`.
+   * `tier1`, `tier2`, `tier3`, `personas`, `plans` or `pending`.
    */
   readonly tier: string;
 }

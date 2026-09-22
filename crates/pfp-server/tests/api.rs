@@ -270,7 +270,7 @@ async fn validation_report_is_served_or_declared_not_generated() {
                 .iter()
                 .map(|t| t["tier"].as_str().unwrap())
                 .collect::<Vec<_>>(),
-            ["tier1", "tier2", "tier3", "pending"]
+            ["tier1", "tier2", "tier3", "personas", "plans", "pending"]
         );
         // Every section carries a state and a milestone, present or not.
         for section in [

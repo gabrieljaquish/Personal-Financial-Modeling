@@ -109,11 +109,11 @@ async fn golden_bodies() {
 #[allow(clippy::too_many_lines)]
 fn synthetic_future_report() -> pfp_server::api::report_dto::ValidationReport {
     use pfp_server::api::report_dto::{
-        ArchiveCheck, CountByKey, FixtureFile, FixtureGroup, FixtureReport, Invariant, LockReport,
-        OpenItem, ParameterReport, PerformanceBudget, PerformanceReport, Pins, PropertyFile,
-        PropertyReport, ProvenanceReport, RefusedTarget, SectionState, SectionStatus, SecurityArea,
-        SecurityReport, SnapshotReport, TableReport, TestInventory, TierReport, UnverifiedItem,
-        UnverifiedReport, ValidationReport, VintageReport,
+        ArchiveCheck, CountByKey, FixtureFile, FixtureGroup, FixtureReport, InvalidFixture,
+        Invariant, LockReport, OpenItem, ParameterReport, PerformanceBudget, PerformanceReport,
+        Pins, PropertyFile, PropertyReport, ProvenanceReport, RefusedTarget, SectionState,
+        SectionStatus, SecurityArea, SecurityReport, SnapshotReport, TableReport, TestInventory,
+        TierReport, UnverifiedItem, UnverifiedReport, ValidationReport, VintageReport,
     };
     let status = |state: SectionState, milestone: &str, note: &str| SectionStatus {
         state,
@@ -205,6 +205,23 @@ fn synthetic_future_report() -> pfp_server::api::report_dto::ValidationReport {
                 ),
                 tier("tier2", SectionState::NotYetIntroduced, vec![]),
                 tier("tier3", SectionState::NotYetIntroduced, vec![]),
+                tier("personas", SectionState::NotYetIntroduced, vec![]),
+                // One readable plan fixture and, below, one the generator could
+                // not read: the page must show both, so the columns add up.
+                {
+                    let mut plans = tier(
+                        "plans",
+                        SectionState::Present,
+                        vec![file(
+                            "fixtures/plans/demo.plan.json",
+                            "plans/demo",
+                            "unstated",
+                            Some("generated"),
+                        )],
+                    );
+                    plans.file_count = 2;
+                    plans
+                },
                 tier(
                     "pending",
                     SectionState::Present,
@@ -216,8 +233,11 @@ fn synthetic_future_report() -> pfp_server::api::report_dto::ValidationReport {
                     )],
                 ),
             ],
-            invalid: vec![],
-            other_directories: vec![key("fixtures/plans", 1)],
+            invalid: vec![InvalidFixture {
+                path: "fixtures/plans/broken.json".to_owned(),
+                problem: "not JSON: synthetic parse error".to_owned(),
+            }],
+            other_directories: vec![key("fixtures/scratch", 1)],
         },
         parameters: ParameterReport {
             status: status(
@@ -259,6 +279,11 @@ fn synthetic_future_report() -> pfp_server::api::report_dto::ValidationReport {
                 present: true,
                 entry_count: 3,
                 locked_vintages: vec!["params/vintages/federal-2026/".to_owned()],
+                unverified_vintages: vec![],
+                checksum_mismatch_count: 0,
+                missing_count: 0,
+                unlisted_count: 0,
+                note: "Every entry verifies (synthetic).".to_owned(),
             },
             provenance: ProvenanceReport {
                 file_count: 23,

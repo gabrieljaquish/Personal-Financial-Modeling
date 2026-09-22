@@ -424,34 +424,90 @@ pub(crate) fn locked_vintage_dirs(entries: &[(String, String)]) -> BTreeSet<Stri
         .collect()
 }
 
-/// Rule 4 over the whole tree: `tracked` is every repository-relative path.
-fn check_lock(root: &Path, lock: &str, tracked: &[String]) -> Result<Vec<String>, String> {
-    let entries = parse_lock(lock)?;
+/// One way rule 4 can fail for one file.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum LockProblem {
+    /// Named in the lock; no such file.
+    Missing,
+    /// The file no longer hashes to its recorded SHA-256.
+    Modified { actual: String, recorded: String },
+    /// Under a locked vintage directory with no lock entry.
+    Unlisted,
+}
+
+/// A file that fails rule 4, and how.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct LockFinding {
+    /// Repository-relative path.
+    pub(crate) rel: String,
+    pub(crate) problem: LockProblem,
+}
+
+/// Rule 4 over the whole tree, as findings: every entry's file is hashed and
+/// compared, and every file under a vintage directory the lock names must be
+/// listed. `tracked` is every repository-relative path. This is the one
+/// implementation; the data-hygiene gate formats it and the validation report
+/// counts it, so the two cannot disagree about whether a vintage is locked.
+pub(crate) fn lock_findings(
+    root: &Path,
+    entries: &[(String, String)],
+    tracked: &[String],
+) -> Result<Vec<LockFinding>, String> {
     let mut out = Vec::new();
     let mut listed = BTreeSet::new();
-    for (hash, rel) in &entries {
+    for (hash, rel) in entries {
         listed.insert(rel.clone());
         let path = root.join(rel);
         if !path.is_file() {
-            out.push(format!(
-                "{rel}: named in {LOCK_PATH} but missing (locked vintages are immutable, rule 4)"
-            ));
+            out.push(LockFinding {
+                rel: rel.clone(),
+                problem: LockProblem::Missing,
+            });
             continue;
         }
         let actual = repo::sha256_hex(&repo::read(&path)?);
         if &actual != hash {
-            out.push(format!("{rel}: locked vintage modified (sha256 {actual} != {hash}); corrections ship as a new vintage (rule 4)"));
+            out.push(LockFinding {
+                rel: rel.clone(),
+                problem: LockProblem::Modified {
+                    actual,
+                    recorded: hash.clone(),
+                },
+            });
         }
     }
-    let dirs = locked_vintage_dirs(&entries);
+    let dirs = locked_vintage_dirs(entries);
     for rel in tracked {
         if dirs.iter().any(|d| rel.starts_with(d)) && !listed.contains(rel) {
-            out.push(format!(
-                "{rel}: added to a locked vintage directory without a {LOCK_PATH} entry (rule 4)"
-            ));
+            out.push(LockFinding {
+                rel: rel.clone(),
+                problem: LockProblem::Unlisted,
+            });
         }
     }
     Ok(out)
+}
+
+/// Rule 4 over the whole tree: `tracked` is every repository-relative path.
+fn check_lock(root: &Path, lock: &str, tracked: &[String]) -> Result<Vec<String>, String> {
+    let entries = parse_lock(lock)?;
+    Ok(lock_findings(root, &entries, tracked)?
+        .into_iter()
+        .map(|finding| {
+            let rel = finding.rel;
+            match finding.problem {
+                LockProblem::Missing => format!(
+                    "{rel}: named in {LOCK_PATH} but missing (locked vintages are immutable, rule 4)"
+                ),
+                LockProblem::Modified { actual, recorded } => format!(
+                    "{rel}: locked vintage modified (sha256 {actual} != {recorded}); corrections ship as a new vintage (rule 4)"
+                ),
+                LockProblem::Unlisted => format!(
+                    "{rel}: added to a locked vintage directory without a {LOCK_PATH} entry (rule 4)"
+                ),
+            }
+        })
+        .collect())
 }
 
 #[cfg(test)]

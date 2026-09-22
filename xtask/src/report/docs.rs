@@ -199,4 +199,63 @@ Some prose.
         assert_eq!(milestone_in("MFJ row moves; M3, with the table"), "M3");
         assert_eq!(milestone_in("M2 reported, M3 gating"), "M2");
     }
+    // -----------------------------------------------------------------------
+    // The repository's restatements of SECURITY.md, held to their source. The
+    // threat model and the data classification each say "SECURITY.md wins and
+    // this file is wrong" where they differ; these tests make a difference a
+    // failed build rather than a wrong document.
+    // -----------------------------------------------------------------------
+
+    fn document(rel: &str) -> String {
+        let path = crate::repo::root().join(rel);
+        String::from_utf8_lossy(&crate::repo::read(&path).unwrap()).into_owned()
+    }
+
+    /// A first cell with any trailing parenthetical dropped: `Decline mode (…)`
+    /// compares as `Decline mode`, so a restatement may cite the section its
+    /// own way while the row itself must match.
+    fn head(cell: &str) -> String {
+        cell.split(" (").next().unwrap_or(cell).trim().to_owned()
+    }
+
+    #[test]
+    fn the_threat_model_restates_the_out_of_scope_rows_of_security_2_3() {
+        let security = document("docs/SECURITY.md");
+        let threat_model = document("docs/threat-model.md");
+        let source: Vec<String> = table_rows(&section(&security, "### 2.3").unwrap())
+            .into_iter()
+            .map(|row| head(&row[0]))
+            .collect();
+        let restated: Vec<String> =
+            table_rows(&section(&threat_model, "## Explicitly out of scope").unwrap())
+                .into_iter()
+                .map(|row| head(&row[0]))
+                .collect();
+        assert!(source.len() >= 10, "{source:?}");
+        assert_eq!(
+            restated, source,
+            "docs/threat-model.md must state SECURITY.md §2.3 row for row, in order"
+        );
+    }
+
+    #[test]
+    fn the_data_classification_restates_the_asset_table_of_security_1_verbatim() {
+        let security = document("docs/SECURITY.md");
+        let classification = document("docs/data-classification.md");
+        let source = table_rows(&section(&security, "## 1.").unwrap());
+        let restated = table_rows(&section(&classification, "## Assets").unwrap());
+        assert_eq!(source.len(), 10, "{source:?}");
+        assert_eq!(
+            restated, source,
+            "docs/data-classification.md must restate SECURITY.md §1 cell for cell (run a diff of the two tables)"
+        );
+        // Its "How it is enforced" section names the rows no gate checks yet.
+        let enforced = section(&classification, "## How it is enforced")
+            .unwrap()
+            .join("\n");
+        for asset in ["A4", "A8", "A9", "A10"] {
+            assert!(enforced.contains(asset), "{asset} is named as unchecked");
+        }
+        assert!(!enforced.contains("every row above has a mechanical check"));
+    }
 }

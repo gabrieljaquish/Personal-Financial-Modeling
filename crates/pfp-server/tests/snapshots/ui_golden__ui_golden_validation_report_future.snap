@@ -27,11 +27,16 @@ expression: "serde_json::to_string_pretty(&value).expect(\"JSON\")"
       }
     },
     "fixtures": {
-      "invalid": [],
+      "invalid": [
+        {
+          "path": "fixtures/plans/broken.json",
+          "problem": "not JSON: synthetic parse error"
+        }
+      ],
       "otherDirectories": [
         {
           "count": 1,
-          "name": "fixtures/plans"
+          "name": "fixtures/scratch"
         }
       ],
       "status": {
@@ -182,6 +187,88 @@ expression: "serde_json::to_string_pretty(&value).expect(\"JSON\")"
         {
           "byMilestone": [
             {
+              "count": 0,
+              "name": "M0"
+            }
+          ],
+          "byMilestoneAndVerification": [],
+          "byModule": [
+            {
+              "count": 0,
+              "name": "pfp-money"
+            }
+          ],
+          "byVerification": [],
+          "directory": "fixtures/personas",
+          "fileCount": 0,
+          "files": [],
+          "reviewKinds": [],
+          "status": {
+            "milestone": "M0",
+            "note": "synthetic",
+            "reference": "TESTING.md (synthetic golden)",
+            "state": "not-yet-introduced"
+          },
+          "tier": "personas"
+        },
+        {
+          "byMilestone": [
+            {
+              "count": 1,
+              "name": "M0"
+            }
+          ],
+          "byMilestoneAndVerification": [
+            {
+              "count": 1,
+              "milestone": "M0",
+              "verification": "unstated"
+            }
+          ],
+          "byModule": [
+            {
+              "count": 1,
+              "name": "pfp-money"
+            }
+          ],
+          "byVerification": [
+            {
+              "count": 1,
+              "name": "unstated"
+            }
+          ],
+          "directory": "fixtures/plans",
+          "fileCount": 2,
+          "files": [
+            {
+              "caseCount": 4,
+              "id": "plans/demo",
+              "milestone": "M0",
+              "module": "pfp-money",
+              "paramVintage": "federal-2026@synthetic",
+              "path": "fixtures/plans/demo.plan.json",
+              "reviewKind": "generated",
+              "synthetic": true,
+              "verification": "unstated"
+            }
+          ],
+          "reviewKinds": [
+            {
+              "count": 1,
+              "name": "generated"
+            }
+          ],
+          "status": {
+            "milestone": "M0",
+            "note": "synthetic",
+            "reference": "TESTING.md (synthetic golden)",
+            "state": "present"
+          },
+          "tier": "plans"
+        },
+        {
+          "byMilestone": [
+            {
               "count": 1,
               "name": "M0"
             }
@@ -251,11 +338,16 @@ expression: "serde_json::to_string_pretty(&value).expect(\"JSON\")"
     },
     "parameters": {
       "lock": {
+        "checksumMismatchCount": 0,
         "entryCount": 3,
         "lockedVintages": [
           "params/vintages/federal-2026/"
         ],
-        "present": true
+        "missingCount": 0,
+        "note": "Every entry verifies (synthetic).",
+        "present": true,
+        "unlistedCount": 0,
+        "unverifiedVintages": []
       },
       "provenance": {
         "cataloguedCount": 5,

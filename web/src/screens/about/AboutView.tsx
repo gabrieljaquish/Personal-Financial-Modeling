@@ -13,14 +13,16 @@ import styles from './About.module.css';
 /**
  * What the user is told is out of scope: SECURITY.md section 2.3, restated row
  * by row. The design document is the source of record; this list points at it and
- * does not narrow it.
+ * does not narrow it. Each label is the row's first cell as the document states
+ * it (a trailing parenthetical aside), and tests/about.test.mjs reads the
+ * document and fails when a row is added, removed or reordered there.
  */
 export const OUT_OF_SCOPE: readonly Entry[] = [
   ['Malware running as the same user, or as root', 'It can read process memory, keystrokes and the decrypted plan; no user-space design defeats it.'],
   ['A malicious browser extension with all-sites access', 'It runs inside this application’s origin and can read what the screens show. Use a dedicated, clean browser profile.'],
   ['Memory forensics of an unlocked process; swap or hibernation images', 'Locking memory and zeroing secrets reduce but do not eliminate exposure; auto-lock and exit-after-lock shorten the exposure.'],
   ['Coercion', 'Out of scope by construction.'],
-  ['An attacker with write access rolling the plan file back to an older authentic version', 'Each version’s authenticity is guaranteed; freshness is not. The generation counter catches accidental stale copies only.'],
+  ['An attacker with write access rolling the file back to an older authentic version', 'Each version’s authenticity is guaranteed; freshness is not. The generation counter catches accidental stale copies only.'],
   ['File-size traffic analysis beyond the 64 KiB bucket', 'Padding hides small differences, not order-of-magnitude plan size.'],
   ['macOS CrashReporter', 'On an abnormal termination macOS writes a diagnostic report the application cannot suppress, and Apple receives it when Analytics sharing is on. The application holds no secret in a recoverable state at abort time; turn Analytics sharing off if that matters to you.'],
   ['Residual metadata of the launch', 'Opening the browser is recorded in the system log, and the launch address reaches browser history for the instant before its fragment is cleared. The token is single-use with a 60-second life, so what survives is the fact and time of a launch, not a usable credential.'],

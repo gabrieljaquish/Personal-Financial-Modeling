@@ -116,7 +116,7 @@ marked pending is counted as validated.\n"
     status_lines(&mut out, &report.fixtures.status);
     let _ = writeln!(
         out,
-        "| Tier | Directory | Status | Documents | By verification |"
+        "| Directory | Path | Status | Documents | By verification |"
     );
     let _ = writeln!(out, "|---|---|---|---|---|");
     for tier in &report.fixtures.tiers {
@@ -267,19 +267,28 @@ marked pending is counted as validated.\n"
     let lock = &report.parameters.lock;
     let _ = writeln!(
         out,
-        "**Lock (`params/VINTAGES.lock`):** {}.\n",
+        "**Lock (`params/VINTAGES.lock`):** {}\n",
         if lock.present {
-            format!(
-                "present, {} entries, covering {}",
-                lock.entry_count,
-                if lock.locked_vintages.is_empty() {
-                    "no vintage directory".to_owned()
+            let list = |dirs: &[String]| {
+                if dirs.is_empty() {
+                    "none".to_owned()
                 } else {
-                    lock.locked_vintages.join(", ")
+                    dirs.join(", ")
                 }
+            };
+            format!(
+                "present, {} entries; verified and locked: {}; named but not verified: {} \
+({} checksum mismatch, {} missing, {} unlisted). {}",
+                lock.entry_count,
+                list(&lock.locked_vintages),
+                list(&lock.unverified_vintages),
+                lock.checksum_mismatch_count,
+                lock.missing_count,
+                lock.unlisted_count,
+                lock.note
             )
         } else {
-            "absent; no vintage is locked".to_owned()
+            "absent; no vintage is locked.".to_owned()
         }
     );
     let provenance = &report.parameters.provenance;

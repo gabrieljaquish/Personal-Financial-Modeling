@@ -107,7 +107,9 @@ cargo xtask assumption-catalogue     # docs/assumption-catalogue.md from params/
 
 The validation report (`docs/TESTING.md` §13; `docs/PLAN.md` §4.13 item 8) is a pure
 function of the repository: fixtures by tier, milestone and verification value; every
-parameter vintage with its content id, lock state, verification status and archived-source
+parameter vintage with its content id, lock state (verified against the files: a lock entry
+counts only when the file still hashes to it, and a vintage is locked only when every file in
+its directory is listed), verification status and archived-source
 checksums; the property tests, contract snapshots and security test ids counted from the
 source tree; and, for every corpus the design specifies but the tree does not hold yet, an
 explicit "not yet introduced (milestone Mx)" entry. No clock, host name, path or person

@@ -418,7 +418,7 @@ expression: openapi_json()
             "description": "See [`SectionStatus`]."
           },
           "tiers": {
-            "description": "The four directories, always all four.",
+            "description": "The six directories the design names, always all six, whether or not\neach exists at this commit.",
             "items": {
               "$ref": "#/components/schemas/TierReport"
             },
@@ -587,8 +587,14 @@ expression: openapi_json()
       },
       "LockReport": {
         "additionalProperties": false,
-        "description": "`params/VINTAGES.lock`.",
+        "description": "`params/VINTAGES.lock`, verified against the files rather than taken on\ntrust: an entry counts only when its file hashes to the recorded SHA-256,\nand a vintage counts as locked only when every file under its directory is\nlisted and every entry for it matches (`SECURITY.md` §13.3 rule 4).",
         "properties": {
+          "checksumMismatchCount": {
+            "description": "Entries whose file hashes differently from the recorded SHA-256.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
           "entryCount": {
             "description": "Files it names.",
             "format": "int32",
@@ -596,21 +602,49 @@ expression: openapi_json()
             "type": "integer"
           },
           "lockedVintages": {
-            "description": "Vintage directories it covers.",
+            "description": "Vintage directories it names **and** verifies; only these are locked.",
             "items": {
               "type": "string"
             },
             "type": "array"
           },
+          "missingCount": {
+            "description": "Entries naming a file that does not exist.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "note": {
+            "description": "What the verification found, in words.",
+            "type": "string"
+          },
           "present": {
             "description": "Whether the file exists.",
             "type": "boolean"
+          },
+          "unlistedCount": {
+            "description": "Files under a named vintage directory with no entry.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "unverifiedVintages": {
+            "description": "Vintage directories it names but does not verify: an entry does not\nmatch, a named file is missing, or a file in the directory is unlisted.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           }
         },
         "required": [
           "present",
           "entryCount",
-          "lockedVintages"
+          "lockedVintages",
+          "unverifiedVintages",
+          "checksumMismatchCount",
+          "missingCount",
+          "unlistedCount",
+          "note"
         ],
         "type": "object"
       },
@@ -1512,7 +1546,7 @@ expression: openapi_json()
       },
       "TierReport": {
         "additionalProperties": false,
-        "description": "One tier directory of `fixtures/` (`TESTING.md` §2.2), plus `pending/`.",
+        "description": "One directory of `fixtures/` the design names (`TESTING.md` §2.2: the three\ntiers, `personas/` and `plans/`), plus `pending/`.",
         "properties": {
           "byMilestone": {
             "description": "Counts by declared milestone.",
@@ -1571,7 +1605,7 @@ expression: openapi_json()
             "description": "See [`SectionStatus`]."
           },
           "tier": {
-            "description": "`tier1`, `tier2`, `tier3` or `pending`.",
+            "description": "`tier1`, `tier2`, `tier3`, `personas`, `plans` or `pending`.",
             "type": "string"
           }
         },
