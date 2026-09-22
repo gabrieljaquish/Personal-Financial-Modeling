@@ -13,7 +13,8 @@ test('routes parse, and everything else under #/ is Not found', () => {
   assert.deepEqual(parseRoute('#/rate-schedule'), { screen: 'rate-schedule' });
   assert.deepEqual(parseRoute('#/assumptions'), { screen: 'assumptions' });
   assert.deepEqual(parseRoute('#/assumptions/irs.ordinary_brackets'), { screen: 'assumption', id: 'irs.ordinary_brackets' });
-  for (const bad of ['#/nope', '#/assumptions/', '#/assumptions/a b', '#/assumptions/a/b', `#/assumptions/${'a'.repeat(81)}`, '#/assumptions/%41', '#/rate-schedule?income=1', '#/Rate-Schedule']) {
+  assert.deepEqual(parseRoute('#/about'), { screen: 'about' });
+  for (const bad of ['#/nope', '#/assumptions/', '#/assumptions/a b', '#/assumptions/a/b', `#/assumptions/${'a'.repeat(81)}`, '#/assumptions/%41', '#/rate-schedule?income=1', '#/Rate-Schedule', '#/about/', '#/About']) {
     assert.deepEqual(parseRoute(bad), { screen: 'not-found' }, bad);
   }
 });
@@ -29,7 +30,7 @@ test('a hash that is not a route is ignored: nothing in the page can knock the a
 });
 
 test('hrefFor and parseRoute round-trip every addressable route; an unaddressable id has no href', () => {
-  for (const route of [{ screen: 'rate-schedule' }, { screen: 'assumptions' }, { screen: 'assumption', id: 'irs.std_deduction' }, { screen: 'assumption', id: 'A-z_0.9' }]) {
+  for (const route of [{ screen: 'rate-schedule' }, { screen: 'assumptions' }, { screen: 'assumption', id: 'irs.std_deduction' }, { screen: 'assumption', id: 'A-z_0.9' }, { screen: 'about' }]) {
     assert.deepEqual(parseRoute(hrefFor(route)), route);
   }
   for (const id of ['has space', 'a/b', 'a'.repeat(81), '', 'é', 'a#b', 'a?b']) {
@@ -62,10 +63,11 @@ test('later route changes focus the right target; the title is not decided by th
   state = routerReducer(state, hash('#/whatever'));
   assert.deepEqual(state.effects, [{ kind: 'focus', id: 'screen-heading' }]);
   assert.equal(titleFor({ screen: 'rate-schedule' }), 'Rate schedule - Personal Financial Modeling');
+  assert.equal(titleFor({ screen: 'about' }), 'About - Personal Financial Modeling');
 });
 
 const APP = 'Personal Financial Modeling';
-const ALL_ROUTES = [{ screen: 'rate-schedule' }, { screen: 'assumptions' }, { screen: 'assumption', id: 'irs.std_deduction' }, { screen: 'not-found' }];
+const ALL_ROUTES = [{ screen: 'rate-schedule' }, { screen: 'assumptions' }, { screen: 'assumption', id: 'irs.std_deduction' }, { screen: 'about' }, { screen: 'not-found' }];
 
 test('the title describes what is on screen: a tab that is not connected says so on every route (WCAG 2.4.2)', () => {
   for (const route of ALL_ROUTES) {
@@ -76,6 +78,7 @@ test('the title describes what is on screen: a tab that is not connected says so
   assert.equal(documentTitle({ screen: 'rate-schedule' }, { connected: true, resolution: 'unknown' }), `Rate schedule - ${APP}`);
   assert.equal(documentTitle({ screen: 'assumptions' }, { connected: true, resolution: 'unknown' }), `Assumptions Registry - ${APP}`);
   assert.equal(documentTitle({ screen: 'not-found' }, { connected: true, resolution: 'unknown' }), `Not found - ${APP}`);
+  assert.equal(documentTitle({ screen: 'about' }, { connected: true, resolution: 'unknown' }), `About - ${APP}`);
 });
 
 test('a registry deep link is titled by its id only once the id resolves; an id that does not is "Not found"', () => {

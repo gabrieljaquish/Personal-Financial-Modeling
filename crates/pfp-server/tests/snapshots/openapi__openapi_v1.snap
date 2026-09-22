@@ -9,6 +9,50 @@ expression: openapi_json()
         "description": "An accepted request with nothing to report.",
         "type": "object"
       },
+      "ArchiveCheck": {
+        "additionalProperties": false,
+        "description": "How the archived copies a document's `[[source]]` blocks cite check out.",
+        "properties": {
+          "archivedCount": {
+            "description": "Sources naming an archived copy under `params/provenance/`.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "checksumMatchCount": {
+            "description": "Archived copies whose SHA-256 equals the recorded one.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "checksumMismatchCount": {
+            "description": "Archived copies whose SHA-256 differs from the recorded one.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "missingCount": {
+            "description": "Sources naming an archive path that does not exist.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sourceCount": {
+            "description": "`[[source]]` blocks.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sourceCount",
+          "archivedCount",
+          "checksumMatchCount",
+          "checksumMismatchCount",
+          "missingCount"
+        ],
+        "type": "object"
+      },
       "AssumptionDto": {
         "description": "One parameter table: an entry of the Assumptions Registry.",
         "properties": {
@@ -174,6 +218,27 @@ expression: openapi_json()
         "type": "integer",
         "x-money": true
       },
+      "CountByKey": {
+        "additionalProperties": false,
+        "description": "A count keyed by a name (a milestone, a module, a verification value, a crate).",
+        "properties": {
+          "count": {
+            "description": "How many.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "name": {
+            "description": "The name counted under (a milestone, a module, a verification value, a crate).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "count"
+        ],
+        "type": "object"
+      },
       "DerivationDto": {
         "description": "A key defined as an exact multiple of another key's rounded result.",
         "properties": {
@@ -228,6 +293,145 @@ expression: openapi_json()
           "qss"
         ],
         "type": "string"
+      },
+      "FixtureFile": {
+        "additionalProperties": false,
+        "description": "One fixture document, as its envelope declares it (`TESTING.md` §2.2).",
+        "properties": {
+          "caseCount": {
+            "description": "How many `expect.cases` or `expect.lines` the document carries.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "id": {
+            "description": "The envelope's `id`.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "milestone": {
+            "description": "The milestone it must be green in.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "module": {
+            "description": "The engine crate it drives (`module`).",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "paramVintage": {
+            "description": "The `paramVintage` pin, when one is recorded.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "description": "Repository-relative path.",
+            "type": "string"
+          },
+          "promotesTo": {
+            "description": "The tier-1 id a pending fixture promotes to.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reviewKind": {
+            "description": "`reviewedBy.kind` of a hand-worked-reviewed fixture.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "synthetic": {
+            "description": "The `synthetic` marker, when declared.",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "verification": {
+            "description": "The `verification` value, or `unstated`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "verification",
+          "caseCount"
+        ],
+        "type": "object"
+      },
+      "FixtureGroup": {
+        "additionalProperties": false,
+        "description": "A fixture count for one milestone and one verification value.",
+        "properties": {
+          "count": {
+            "description": "How many fixtures carry both.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "milestone": {
+            "description": "The fixture's declared `milestone`.",
+            "type": "string"
+          },
+          "verification": {
+            "description": "The fixture's declared `verification`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "milestone",
+          "verification",
+          "count"
+        ],
+        "type": "object"
+      },
+      "FixtureReport": {
+        "additionalProperties": false,
+        "description": "The fixture corpus by tier, milestone and verification value.",
+        "properties": {
+          "invalid": {
+            "description": "Files that could not be read as envelopes.",
+            "items": {
+              "$ref": "#/components/schemas/InvalidFixture"
+            },
+            "type": "array"
+          },
+          "otherDirectories": {
+            "description": "Other `fixtures/` directories that exist (`personas`, `plans`, …) with their file counts.",
+            "items": {
+              "$ref": "#/components/schemas/CountByKey"
+            },
+            "type": "array"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SectionStatus",
+            "description": "See [`SectionStatus`]."
+          },
+          "tiers": {
+            "description": "The four directories, always all four.",
+            "items": {
+              "$ref": "#/components/schemas/TierReport"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "status",
+          "tiers",
+          "invalid",
+          "otherDirectories"
+        ],
+        "type": "object"
       },
       "IndexSeriesDto": {
         "description": "Provenance of an archived index series a table projects with.",
@@ -289,6 +493,54 @@ expression: openapi_json()
         ],
         "type": "object"
       },
+      "InvalidFixture": {
+        "additionalProperties": false,
+        "description": "A file under `fixtures/` that is not a readable envelope.",
+        "properties": {
+          "path": {
+            "description": "Repository-relative path.",
+            "type": "string"
+          },
+          "problem": {
+            "description": "What is wrong with it (never its content).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "problem"
+        ],
+        "type": "object"
+      },
+      "Invariant": {
+        "additionalProperties": false,
+        "description": "One row of the invariant inventory (`TESTING.md` §4).",
+        "properties": {
+          "crateName": {
+            "description": "The crate that guards it.",
+            "type": "string"
+          },
+          "id": {
+            "description": "`I1`, `I4b`, …",
+            "type": "string"
+          },
+          "milestone": {
+            "description": "The milestone that introduces it.",
+            "type": "string"
+          },
+          "name": {
+            "description": "Its name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "crateName",
+          "milestone"
+        ],
+        "type": "object"
+      },
       "LineDto": {
         "description": "One computed value and everything needed to audit it. The worksheet is the\nordered list of these; the tree is followed through `inputs`.",
         "properties": {
@@ -333,6 +585,54 @@ expression: openapi_json()
         ],
         "type": "object"
       },
+      "LockReport": {
+        "additionalProperties": false,
+        "description": "`params/VINTAGES.lock`.",
+        "properties": {
+          "entryCount": {
+            "description": "Files it names.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "lockedVintages": {
+            "description": "Vintage directories it covers.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "present": {
+            "description": "Whether the file exists.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "present",
+          "entryCount",
+          "lockedVintages"
+        ],
+        "type": "object"
+      },
+      "OpenItem": {
+        "additionalProperties": false,
+        "description": "An open hand-verification question recorded in a parameter document.",
+        "properties": {
+          "document": {
+            "description": "The table or series id.",
+            "type": "string"
+          },
+          "item": {
+            "description": "The question.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "document",
+          "item"
+        ],
+        "type": "object"
+      },
       "ParamRefDto": {
         "description": "A reference to one parameter cell.",
         "properties": {
@@ -365,6 +665,145 @@ expression: openapi_json()
         },
         "required": [
           "paramId"
+        ],
+        "type": "object"
+      },
+      "ParameterReport": {
+        "additionalProperties": false,
+        "description": "Parameter vintages, the lock and the provenance archive.",
+        "properties": {
+          "lock": {
+            "$ref": "#/components/schemas/LockReport",
+            "description": "See [`LockReport`]."
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/ProvenanceReport",
+            "description": "See [`ProvenanceReport`]."
+          },
+          "status": {
+            "$ref": "#/components/schemas/SectionStatus",
+            "description": "See [`SectionStatus`]."
+          },
+          "vintages": {
+            "description": "Every vintage under `params/vintages/`.",
+            "items": {
+              "$ref": "#/components/schemas/VintageReport"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "status",
+          "vintages",
+          "lock",
+          "provenance"
+        ],
+        "type": "object"
+      },
+      "PerformanceBudget": {
+        "additionalProperties": false,
+        "description": "One performance budget (`TESTING.md` §10).",
+        "properties": {
+          "budget": {
+            "description": "The budget's name.",
+            "type": "string"
+          },
+          "milestone": {
+            "description": "The milestone it gates from.",
+            "type": "string"
+          },
+          "threshold": {
+            "description": "The threshold as the design states it.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "budget",
+          "threshold",
+          "milestone"
+        ],
+        "type": "object"
+      },
+      "PerformanceReport": {
+        "additionalProperties": false,
+        "description": "Performance budgets.",
+        "properties": {
+          "budgets": {
+            "description": "The budgets the design states; none is measured until a bench exists.",
+            "items": {
+              "$ref": "#/components/schemas/PerformanceBudget"
+            },
+            "type": "array"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SectionStatus",
+            "description": "See [`SectionStatus`]."
+          }
+        },
+        "required": [
+          "status",
+          "budgets"
+        ],
+        "type": "object"
+      },
+      "Pins": {
+        "additionalProperties": false,
+        "description": "What a result would be pinned to (ADR-010), as far as anything exists.",
+        "properties": {
+          "applicationVersion": {
+            "description": "The workspace version the report was generated for.",
+            "type": "string"
+          },
+          "binaryDigest": {
+            "description": "The binary digest; absent until the release pipeline exists.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "engineVersion": {
+            "description": "`engineVersion`; absent until the engine declares one.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "licence": {
+            "description": "The licence declared in the workspace manifest.",
+            "type": "string"
+          },
+          "lockedParamVintageIds": {
+            "description": "Ids of the vintages the lock covers.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "note": {
+            "description": "Why the absent pins are absent.",
+            "type": "string"
+          },
+          "paramVintageContentIds": {
+            "description": "Content ids of every vintage, locked or not.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "schemaVersion": {
+            "description": "The plan `schemaVersion`; absent until the plan schema exists.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "applicationVersion",
+          "licence",
+          "paramVintageContentIds",
+          "lockedParamVintageIds",
+          "note"
         ],
         "type": "object"
       },
@@ -458,6 +897,138 @@ expression: openapi_json()
           "rule",
           "baseValues",
           "derived"
+        ],
+        "type": "object"
+      },
+      "PropertyFile": {
+        "additionalProperties": false,
+        "description": "One source file holding `proptest!` properties.",
+        "properties": {
+          "caseCount": {
+            "description": "The `cases:` budget the file's `ProptestConfig` states, when it states one.",
+            "format": "int32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "crate": {
+            "description": "The crate.",
+            "type": "string"
+          },
+          "path": {
+            "description": "Repository-relative path.",
+            "type": "string"
+          },
+          "propertyNames": {
+            "description": "The property functions, in file order.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "crate",
+          "path",
+          "propertyNames"
+        ],
+        "type": "object"
+      },
+      "PropertyReport": {
+        "additionalProperties": false,
+        "description": "Property-based and metamorphic tests.",
+        "properties": {
+          "files": {
+            "description": "Files holding `proptest!` blocks.",
+            "items": {
+              "$ref": "#/components/schemas/PropertyFile"
+            },
+            "type": "array"
+          },
+          "invariants": {
+            "description": "The design's invariant inventory.",
+            "items": {
+              "$ref": "#/components/schemas/Invariant"
+            },
+            "type": "array"
+          },
+          "invariantsDueAtM0": {
+            "description": "Invariants whose milestone is M0.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "propertyCount": {
+            "description": "Property functions across those files.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SectionStatus",
+            "description": "See [`SectionStatus`]."
+          }
+        },
+        "required": [
+          "status",
+          "files",
+          "propertyCount",
+          "invariants",
+          "invariantsDueAtM0"
+        ],
+        "type": "object"
+      },
+      "ProvenanceReport": {
+        "additionalProperties": false,
+        "description": "`params/provenance/`: the archived primary documents.",
+        "properties": {
+          "cataloguedCount": {
+            "description": "`[[document]]` entries in `params/provenance/INDEX.toml`.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "checksumMatchCount": {
+            "description": "Catalogued documents whose file hashes to the recorded SHA-256.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "checksumMismatchCount": {
+            "description": "Catalogued documents whose file hashes differently.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "fileCount": {
+            "description": "Files under the directory, catalogues included.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "missingCount": {
+            "description": "Catalogued documents whose file is absent.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "verification": {
+            "description": "The catalogue's own `verification` field, verbatim.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "fileCount",
+          "cataloguedCount",
+          "checksumMatchCount",
+          "checksumMismatchCount",
+          "missingCount"
         ],
         "type": "object"
       },
@@ -588,6 +1159,33 @@ expression: openapi_json()
         ],
         "type": "object"
       },
+      "RefusedTarget": {
+        "additionalProperties": false,
+        "description": "One row of `TESTING.md` §5.3: a target the corpus refuses to encode.",
+        "properties": {
+          "reason": {
+            "description": "Why, and what replaces it.",
+            "type": "string"
+          },
+          "target": {
+            "description": "The target.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "ReportStateDto": {
+        "description": "Whether this build carries a validation report.",
+        "enum": [
+          "generated",
+          "not-generated"
+        ],
+        "type": "string"
+      },
       "RoundingDto": {
         "description": "How amounts are rounded when a year is projected.",
         "properties": {
@@ -630,6 +1228,94 @@ expression: openapi_json()
         ],
         "type": "object"
       },
+      "SectionState": {
+        "description": "Whether a corpus the design specifies exists at this commit.",
+        "enum": [
+          "not-yet-introduced",
+          "empty",
+          "partial",
+          "present"
+        ],
+        "type": "string"
+      },
+      "SectionStatus": {
+        "additionalProperties": false,
+        "description": "The status line every section carries.",
+        "properties": {
+          "milestone": {
+            "description": "The milestone the design introduces the section in (`M0`, `M1`, …).",
+            "type": "string"
+          },
+          "note": {
+            "description": "What is and is not counted, in one or two sentences.",
+            "type": "string"
+          },
+          "reference": {
+            "description": "Where the design specifies it (a document and section).",
+            "type": "string"
+          },
+          "state": {
+            "$ref": "#/components/schemas/SectionState",
+            "description": "See [`SectionState`]."
+          }
+        },
+        "required": [
+          "state",
+          "milestone",
+          "reference",
+          "note"
+        ],
+        "type": "object"
+      },
+      "SecurityArea": {
+        "additionalProperties": false,
+        "description": "One area of the security test matrix (`TESTING.md` §8).",
+        "properties": {
+          "area": {
+            "description": "The area.",
+            "type": "string"
+          },
+          "milestone": {
+            "description": "The milestone it is green from.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "area",
+          "milestone"
+        ],
+        "type": "object"
+      },
+      "SecurityReport": {
+        "additionalProperties": false,
+        "description": "The security suite.",
+        "properties": {
+          "areas": {
+            "description": "The matrix's areas with their milestones.",
+            "items": {
+              "$ref": "#/components/schemas/SecurityArea"
+            },
+            "type": "array"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SectionStatus",
+            "description": "See [`SectionStatus`]."
+          },
+          "testIdsNamed": {
+            "description": "Test ids (`S-NN`) named in test sources.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "status",
+          "areas",
+          "testIdsNamed"
+        ],
+        "type": "object"
+      },
       "SessionStatus": {
         "description": "Health and session status.",
         "properties": {
@@ -639,6 +1325,10 @@ expression: openapi_json()
           },
           "appVersion": {
             "description": "The application version.",
+            "type": "string"
+          },
+          "licence": {
+            "description": "The application's licence, as the workspace manifest declares it (SPDX).",
             "type": "string"
           },
           "trustMode": {
@@ -655,9 +1345,39 @@ expression: openapi_json()
         },
         "required": [
           "appVersion",
+          "licence",
           "apiVersion",
           "trustMode",
           "vintages"
+        ],
+        "type": "object"
+      },
+      "SnapshotReport": {
+        "additionalProperties": false,
+        "description": "Contract snapshots (`insta`): the `OpenAPI` document, the header set, golden bodies.",
+        "properties": {
+          "byCrate": {
+            "description": "`.snap` files by crate.",
+            "items": {
+              "$ref": "#/components/schemas/CountByKey"
+            },
+            "type": "array"
+          },
+          "fileCount": {
+            "description": "`.snap` files in total.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SectionStatus",
+            "description": "See [`SectionStatus`]."
+          }
+        },
+        "required": [
+          "status",
+          "byCrate",
+          "fileCount"
         ],
         "type": "object"
       },
@@ -717,6 +1437,158 @@ expression: openapi_json()
         ],
         "type": "object"
       },
+      "TableReport": {
+        "additionalProperties": false,
+        "description": "One parameter table or index series of a vintage.",
+        "properties": {
+          "archive": {
+            "$ref": "#/components/schemas/ArchiveCheck",
+            "description": "See [`ArchiveCheck`]."
+          },
+          "id": {
+            "description": "The table or series id.",
+            "type": "string"
+          },
+          "kind": {
+            "description": "`table` or `index-series`.",
+            "type": "string"
+          },
+          "openItemCount": {
+            "description": "Hand-verification questions still open.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "openItems": {
+            "description": "The open questions themselves.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "verification": {
+            "description": "The `verification` value, or `unstated`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "verification",
+          "openItemCount",
+          "openItems",
+          "archive"
+        ],
+        "type": "object"
+      },
+      "TestInventory": {
+        "additionalProperties": false,
+        "description": "Test functions declared in the source tree: a count of attributes, not a run.",
+        "properties": {
+          "byCrate": {
+            "description": "`#[test]` and `#[tokio::test]` attributes per crate.",
+            "items": {
+              "$ref": "#/components/schemas/CountByKey"
+            },
+            "type": "array"
+          },
+          "note": {
+            "description": "What the numbers are and are not.",
+            "type": "string"
+          },
+          "webTestCount": {
+            "description": "`test(` declarations in `web/tests/*.test.mjs`.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "byCrate",
+          "webTestCount",
+          "note"
+        ],
+        "type": "object"
+      },
+      "TierReport": {
+        "additionalProperties": false,
+        "description": "One tier directory of `fixtures/` (`TESTING.md` §2.2), plus `pending/`.",
+        "properties": {
+          "byMilestone": {
+            "description": "Counts by declared milestone.",
+            "items": {
+              "$ref": "#/components/schemas/CountByKey"
+            },
+            "type": "array"
+          },
+          "byMilestoneAndVerification": {
+            "description": "Counts by milestone and verification together.",
+            "items": {
+              "$ref": "#/components/schemas/FixtureGroup"
+            },
+            "type": "array"
+          },
+          "byModule": {
+            "description": "Counts by declared module.",
+            "items": {
+              "$ref": "#/components/schemas/CountByKey"
+            },
+            "type": "array"
+          },
+          "byVerification": {
+            "description": "Counts by declared verification value.",
+            "items": {
+              "$ref": "#/components/schemas/CountByKey"
+            },
+            "type": "array"
+          },
+          "directory": {
+            "description": "The directory, repository-relative.",
+            "type": "string"
+          },
+          "fileCount": {
+            "description": "Fixture documents in the directory (Markdown notes excluded).",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "files": {
+            "description": "Every fixture document.",
+            "items": {
+              "$ref": "#/components/schemas/FixtureFile"
+            },
+            "type": "array"
+          },
+          "reviewKinds": {
+            "description": "`reviewedBy.kind` counts (`second-reviewer`, `cooling-off-re-review`).",
+            "items": {
+              "$ref": "#/components/schemas/CountByKey"
+            },
+            "type": "array"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SectionStatus",
+            "description": "See [`SectionStatus`]."
+          },
+          "tier": {
+            "description": "`tier1`, `tier2`, `tier3` or `pending`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tier",
+          "directory",
+          "status",
+          "fileCount",
+          "byMilestone",
+          "byVerification",
+          "byModule",
+          "byMilestoneAndVerification",
+          "reviewKinds",
+          "files"
+        ],
+        "type": "object"
+      },
       "TrustModeDto": {
         "description": "Whether the local certificate authority is trusted by this user's browsers.",
         "enum": [
@@ -724,6 +1596,211 @@ expression: openapi_json()
           "declined"
         ],
         "type": "string"
+      },
+      "UnverifiedItem": {
+        "additionalProperties": false,
+        "description": "One row of `TESTING.md` §5.2: a value no locked vintage may carry yet.",
+        "properties": {
+          "gate": {
+            "description": "The gate, verbatim.",
+            "type": "string"
+          },
+          "item": {
+            "description": "The item and why it is open.",
+            "type": "string"
+          },
+          "milestone": {
+            "description": "The milestone named in the gate, or `not stated`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item",
+          "gate",
+          "milestone"
+        ],
+        "type": "object"
+      },
+      "UnverifiedReport": {
+        "additionalProperties": false,
+        "description": "The `unverified` block: printed, not hidden (`TESTING.md` §2.2, §5.2, §13).",
+        "properties": {
+          "items": {
+            "description": "`TESTING.md` §5.2, row by row.",
+            "items": {
+              "$ref": "#/components/schemas/UnverifiedItem"
+            },
+            "type": "array"
+          },
+          "parameterOpenItems": {
+            "description": "Open questions the parameter documents record.",
+            "items": {
+              "$ref": "#/components/schemas/OpenItem"
+            },
+            "type": "array"
+          },
+          "pendingFixtureCount": {
+            "description": "Fixtures awaiting a human read-back (`fixtures/pending/`).",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "pendingParameterDocumentCount": {
+            "description": "Parameter documents (tables and series) still pending hand verification.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "tier1HandWorkedReviewedCount": {
+            "description": "Tier-1 fixtures computed by this project and reviewed.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "tier1PrimarySourceConfirmedCount": {
+            "description": "Tier-1 fixtures transcribed from a publication.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "tier1PrimarySourceConfirmedCount",
+          "tier1HandWorkedReviewedCount",
+          "pendingFixtureCount",
+          "pendingParameterDocumentCount",
+          "items",
+          "parameterOpenItems"
+        ],
+        "type": "object"
+      },
+      "ValidationReport": {
+        "additionalProperties": false,
+        "description": "The validation report.",
+        "properties": {
+          "basis": {
+            "description": "How the report was computed.",
+            "type": "string"
+          },
+          "browserEndToEnd": {
+            "$ref": "#/components/schemas/SectionStatus",
+            "description": "Browser end-to-end journeys (`TESTING.md` §9)."
+          },
+          "contractSnapshots": {
+            "$ref": "#/components/schemas/SnapshotReport",
+            "description": "See [`SnapshotReport`]."
+          },
+          "fixtures": {
+            "$ref": "#/components/schemas/FixtureReport",
+            "description": "See [`FixtureReport`]."
+          },
+          "fuzzCorpora": {
+            "$ref": "#/components/schemas/SectionStatus",
+            "description": "Fuzz corpora (`TESTING.md` §11.3)."
+          },
+          "generatedOn": {
+            "description": "A date given explicitly to the generator; never read from a clock.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mutationScore": {
+            "$ref": "#/components/schemas/SectionStatus",
+            "description": "The surviving-mutant budget (`TESTING.md` §11.3)."
+          },
+          "oracles": {
+            "$ref": "#/components/schemas/SectionStatus",
+            "description": "Recorded out-of-process oracles (`TESTING.md` §7)."
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/ParameterReport",
+            "description": "See [`ParameterReport`]."
+          },
+          "performanceBudgets": {
+            "$ref": "#/components/schemas/PerformanceReport",
+            "description": "See [`PerformanceReport`]."
+          },
+          "pins": {
+            "$ref": "#/components/schemas/Pins",
+            "description": "See [`Pins`]."
+          },
+          "properties": {
+            "$ref": "#/components/schemas/PropertyReport",
+            "description": "See [`PropertyReport`]."
+          },
+          "refused": {
+            "description": "See [`RefusedTarget`].",
+            "items": {
+              "$ref": "#/components/schemas/RefusedTarget"
+            },
+            "type": "array"
+          },
+          "securitySuite": {
+            "$ref": "#/components/schemas/SecurityReport",
+            "description": "See [`SecurityReport`]."
+          },
+          "testInventory": {
+            "$ref": "#/components/schemas/TestInventory",
+            "description": "See [`TestInventory`]."
+          },
+          "tier2Suites": {
+            "$ref": "#/components/schemas/SectionStatus",
+            "description": "Tier-2 pinned suites (`TESTING.md` §3.5)."
+          },
+          "tier3Goldens": {
+            "$ref": "#/components/schemas/SectionStatus",
+            "description": "Tier-3 goldens (`TESTING.md` §3.6)."
+          },
+          "unverified": {
+            "$ref": "#/components/schemas/UnverifiedReport",
+            "description": "See [`UnverifiedReport`]."
+          }
+        },
+        "required": [
+          "basis",
+          "fixtures",
+          "parameters",
+          "properties",
+          "contractSnapshots",
+          "securitySuite",
+          "tier2Suites",
+          "tier3Goldens",
+          "oracles",
+          "mutationScore",
+          "fuzzCorpora",
+          "browserEndToEnd",
+          "performanceBudgets",
+          "testInventory",
+          "unverified",
+          "refused",
+          "pins"
+        ],
+        "type": "object"
+      },
+      "ValidationReportResponse": {
+        "description": "The validation report endpoint's answer.",
+        "properties": {
+          "report": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ValidationReport",
+                "description": "The report, present exactly when `state` is `generated`."
+              }
+            ]
+          },
+          "state": {
+            "$ref": "#/components/schemas/ReportStateDto",
+            "description": "See [`ReportStateDto`]."
+          }
+        },
+        "required": [
+          "state"
+        ],
+        "type": "object"
       },
       "VerificationDto": {
         "description": "The verification status of a table or series.\n\nThe wire forms are exactly `pfp_params::VerificationStatus::wire()` — the\nkebab-case strings a parameter file carries — so the registry and the files\nit lists spell one enum one way. `Unstated` has no file form (it is the\nabsence of the field); the API spells it `unstated`.",
@@ -778,6 +1855,84 @@ expression: openapi_json()
           "verified",
           "tables",
           "indexSeries"
+        ],
+        "type": "object"
+      },
+      "VintageReport": {
+        "additionalProperties": false,
+        "description": "One parameter vintage (`ARCHITECTURE.md` §6, ADR-010).",
+        "properties": {
+          "archive": {
+            "$ref": "#/components/schemas/ArchiveCheck",
+            "description": "See [`ArchiveCheck`], summed over the vintage."
+          },
+          "contentId": {
+            "description": "`<name>@<sha256>` as `pfp-params` computes it; claims nothing by itself.",
+            "type": "string"
+          },
+          "documents": {
+            "description": "Every table and series.",
+            "items": {
+              "$ref": "#/components/schemas/TableReport"
+            },
+            "type": "array"
+          },
+          "indexSeriesCount": {
+            "description": "Archived index series the tables read.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "locked": {
+            "description": "Whether `params/VINTAGES.lock` covers this vintage.",
+            "type": "boolean"
+          },
+          "lockedId": {
+            "description": "The id a result may be pinned to: the content id, only when locked.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "description": "The vintage name.",
+            "type": "string"
+          },
+          "openItemCount": {
+            "description": "Open hand-verification questions across the vintage.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "tableCount": {
+            "description": "Parameter tables.",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "verification": {
+            "description": "The verification values present, worst first.",
+            "items": {
+              "$ref": "#/components/schemas/CountByKey"
+            },
+            "type": "array"
+          },
+          "verified": {
+            "description": "Whether every table and series carries a human sign-off.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "contentId",
+          "locked",
+          "verified",
+          "verification",
+          "tableCount",
+          "indexSeriesCount",
+          "openItemCount",
+          "documents",
+          "archive"
         ],
         "type": "object"
       },
@@ -1186,6 +2341,53 @@ expression: openapi_json()
         "summary": "Exports the rate-schedule worksheet as a CSV or JSON attachment.",
         "tags": [
           "tax"
+        ]
+      }
+    },
+    "/api/v1/validation/report": {
+      "post": {
+        "operationId": "report",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationReportResponse"
+                }
+              }
+            },
+            "description": "The report, or `state: not-generated` with no report (a debug build on a checkout where `cargo xtask validation-report` was not run; a release build always carries one)."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`session_required`."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "`session_cookie_displaced`."
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": [],
+            "sessionProof": []
+          }
+        ],
+        "summary": "The validation report compiled into this build, or the `not-generated` state.",
+        "tags": [
+          "validation"
         ]
       }
     }

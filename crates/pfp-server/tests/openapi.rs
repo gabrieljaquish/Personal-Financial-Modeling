@@ -46,7 +46,7 @@ fn generation_is_deterministic_sorted_and_newline_terminated() {
     assert_sorted(&document(), "");
 }
 
-/// The method half of this test is a statement about the five M0 operations, which
+/// The method half of this test is a statement about the seven M0 operations, which
 /// are `POST` by contract (README, "API methods") — not a rule that the API may
 /// never have a `GET`. It is therefore tied to the admission rule: the change that
 /// flips `API_READ_RULE` to admit `GET` reads is the change that adds `get`
@@ -123,7 +123,8 @@ fn money_fields_carry_x_money() {
     money("RateScheduleResponse", "taxableIncome");
     money("RateScheduleResponse", "tax");
     // No other integer property anywhere is an amount in disguise: integers are
-    // years, lags and ratio terms, by name.
+    // years, lags and ratio terms, by name, or a count of things (the validation
+    // report's integers are all counts, named `count` or `…Count`).
     for (name, schema) in schemas {
         for (field, property) in schema["properties"].as_object().into_iter().flatten() {
             if property["type"] == "integer" {
@@ -136,8 +137,10 @@ fn money_fields_carry_x_money() {
                         "num",
                         "den"
                     ]
-                    .contains(&field.as_str()),
-                    "{name}.{field} is an integer that is not declared as money"
+                    .contains(&field.as_str())
+                        || field == "count"
+                        || field.ends_with("Count"),
+                    "{name}.{field} is an integer that is not declared as money or a count"
                 );
             }
         }

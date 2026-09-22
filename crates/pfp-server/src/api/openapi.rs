@@ -5,6 +5,7 @@ use utoipa::openapi::security::{ApiKey, ApiKeyValue, SecurityScheme};
 use utoipa::{Modify, OpenApi};
 
 use super::dto;
+use super::report_dto;
 use crate::session::COOKIE_NAME;
 
 struct SessionSchemes;
@@ -45,8 +46,14 @@ All money is integer cents.",
         super::tax::rate_schedule,
         super::tax::rate_schedule_export,
         super::assumptions::list,
+        super::validation::report,
     ),
-    components(schemas(dto::CentsDto, dto::ErrorBody)),
+    components(schemas(
+        dto::CentsDto,
+        dto::ErrorBody,
+        dto::ValidationReportResponse,
+        report_dto::ValidationReport
+    )),
     modifiers(&SessionSchemes)
 )]
 struct ApiDoc;

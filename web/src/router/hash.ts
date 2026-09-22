@@ -24,6 +24,7 @@ export type Route =
   | { screen: 'rate-schedule' }
   | { screen: 'assumptions' }
   | { screen: 'assumption'; id: string }
+  | { screen: 'about' }
   | { screen: 'not-found' };
 
 export const DEFAULT_ROUTE: Route = { screen: 'rate-schedule' };
@@ -42,6 +43,9 @@ export function parseRoute(hash: string): Route | null {
   }
   if (path === 'assumptions') {
     return { screen: 'assumptions' };
+  }
+  if (path === 'about') {
+    return { screen: 'about' };
   }
   const prefix = 'assumptions/';
   if (path.startsWith(prefix)) {
@@ -64,6 +68,8 @@ export function hrefFor(route: Route): string | null {
       return '#/assumptions';
     case 'assumption':
       return ROUTE_ID_PATTERN.test(route.id) ? `#/assumptions/${route.id}` : null;
+    case 'about':
+      return '#/about';
     case 'not-found':
       return null;
   }
@@ -82,6 +88,8 @@ export function titleFor(route: Route): string {
       return `Assumptions Registry - ${APP_NAME}`;
     case 'assumption':
       return `${route.id} - Assumptions Registry - ${APP_NAME}`;
+    case 'about':
+      return `About - ${APP_NAME}`;
     case 'not-found':
       return `Not found - ${APP_NAME}`;
   }

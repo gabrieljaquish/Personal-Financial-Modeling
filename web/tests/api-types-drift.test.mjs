@@ -42,9 +42,16 @@ test('money is opaque, enums come with their values, every operation is typed', 
   for (const path of Object.keys(doc.paths)) {
     assert.ok(committed.includes(`readonly '${path}': {`), path);
   }
-  assert.equal(Object.keys(doc.paths).length, 6);
+  assert.equal(Object.keys(doc.paths).length, 7);
+  assert.match(committed, /'\/api\/v1\/validation\/report': \{\n {4}readonly request: undefined;\n {4}readonly ok: ValidationReportResponse;/);
+  assert.ok(committed.includes("export const SectionStateValues = ['not-yet-introduced', 'empty', 'partial', 'present'] as const;"));
+  assert.ok(committed.includes("export const ReportStateDtoValues = ['generated', 'not-generated'] as const;"));
   assert.match(committed, /'\/api\/v1\/tax\/rate-schedule\/export': \{\n {4}readonly request: RateScheduleExportRequest;\n {4}readonly ok: string;\n {4}readonly okStatus: 200;\n {4}readonly expect: 'text';/);
   assert.match(committed, /'\/api\/v1\/session\/relaunch': \{\n {4}readonly request: undefined;\n {4}readonly ok: Accepted;\n {4}readonly okStatus: 202;\n {4}readonly expect: 'json';\n {4}readonly errorStatuses: 401 \| 429 \| 503;/);
+});
+
+test('an integer bound is kept as a note, never dropped', () => {
+  assert.match(committed, /\* Minimum: 0\.\n {3}\*\/\n {2}readonly fileCount: number;/);
 });
 
 test('optional properties admit absence and null; required ones do not', () => {
@@ -57,7 +64,7 @@ test('the generator fails closed on a keyword it does not know', () => {
   const cases = [
     (doc) => (doc.components.schemas.LineDto.properties.label.pattern = '^x$'),
     (doc) => (doc.components.schemas.LineDto.allOf = []),
-    (doc) => (doc.components.schemas.RatioDto.properties.num.minimum = 0),
+    (doc) => (doc.components.schemas.RatioDto.properties.num.multipleOf = 2),
     (doc) => (doc.components.schemas.LineDto.properties.value = { type: 'integer', 'x-money': true }),
     (doc) => (doc.components.schemas.LineDto.properties.label.type = 'number'),
     (doc) => (doc.paths['/api/v1/session/status'].get = {}),

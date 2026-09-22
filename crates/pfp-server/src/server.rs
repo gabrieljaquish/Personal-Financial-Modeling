@@ -147,6 +147,8 @@ pub enum ServerError {
     Csp(CspError),
     /// The embedded parameter vintage does not validate.
     Params(pfp_params::ParamError),
+    /// The embedded validation report is not the shape this build reads.
+    Report(crate::validation::ReportError),
 }
 
 impl fmt::Display for ServerError {
@@ -157,6 +159,7 @@ impl fmt::Display for ServerError {
             Self::Listen(e) => write!(f, "{e}"),
             Self::Csp(e) => write!(f, "the embedded web bundle was refused: {e}"),
             Self::Params(e) => write!(f, "the embedded parameters were refused: {e}"),
+            Self::Report(e) => write!(f, "{e}"),
         }
     }
 }
@@ -176,6 +179,7 @@ impl Server {
     pub fn bind(config: ServerConfig) -> Result<BoundServer, ServerError> {
         let csp = csp::derive(&config.assets).map_err(ServerError::Csp)?;
         let vintage = pfp_params::shipped::federal_2026().map_err(ServerError::Params)?;
+        let validation = crate::validation::embedded().map_err(ServerError::Report)?;
         let tls = server_config(&config.material).map_err(ServerError::Tls)?;
         let fingerprint = leaf_fingerprint(&config.material.leaf_cert_der);
 
@@ -199,6 +203,7 @@ impl Server {
             sessions: Arc::clone(&sessions),
             events: Arc::clone(&events),
             vintage: Arc::new(vintage),
+            validation: validation.map(Arc::new),
             trust_mode: config.trust_mode,
             relaunch: config.relaunch,
             assets: config.assets,

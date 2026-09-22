@@ -129,6 +129,10 @@ function tsType(schema, where) {
       only(schema, ['type', 'description', 'format', 'minLength', 'maxLength', 'enum'], where);
       return 'enum' in schema ? schema.enum.map((v) => literal(v, where)).join(' | ') : 'string';
     case 'integer':
+      // A bound is a constraint the type cannot express; it is kept as a note
+      // (see `constraintNotes`), never dropped.
+      only(schema, ['type', 'description', 'format', 'minimum', 'maximum'], where);
+      return PRIMITIVES[type];
     case 'boolean':
       only(schema, ['type', 'description', 'format'], where);
       return PRIMITIVES[type];
@@ -159,13 +163,19 @@ function tsType(schema, where) {
   }
 }
 
-function lengthNotes(schema) {
+function constraintNotes(schema) {
   const notes = [];
   if ('minLength' in schema) {
     notes.push(`Minimum length: ${schema.minLength}.`);
   }
   if ('maxLength' in schema) {
     notes.push(`Maximum length: ${schema.maxLength}.`);
+  }
+  if ('minimum' in schema) {
+    notes.push(`Minimum: ${schema.minimum}.`);
+  }
+  if ('maximum' in schema) {
+    notes.push(`Maximum: ${schema.maximum}.`);
   }
   return notes;
 }
@@ -215,7 +225,7 @@ function namedSchema(name, schema) {
       // also say nullable; the type admits both.
       const optional = !required.has(key);
       const nullable = optional && !/(^|\| )null$/.test(type) ? `${type} | null` : type;
-      return `${jsdoc(property.description, lengthNotes(property), '  ')}  readonly ${key}${optional ? '?' : ''}: ${nullable};\n`;
+      return `${jsdoc(property.description, constraintNotes(property), '  ')}  readonly ${key}${optional ? '?' : ''}: ${nullable};\n`;
     })
     .join('');
   return `${jsdoc(schema.description, [], '')}export interface ${name} {\n${body}}\n`;

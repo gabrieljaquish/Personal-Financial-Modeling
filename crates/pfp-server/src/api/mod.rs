@@ -14,6 +14,7 @@
 //! | `/tax/rate-schedule` | cookie + proof | 200 the worksheet |
 //! | `/tax/rate-schedule/export` | cookie + proof | 200 the worksheet as a CSV or JSON attachment |
 //! | `/assumptions/list` | cookie + proof | 200 the Assumptions Registry |
+//! | `/validation/report` | cookie + proof | 200 the validation report, or its `not-generated` state |
 //!
 //! Admission and the session gate run before this router (`service.rs`); handlers
 //! see only admitted, authenticated requests.
@@ -22,8 +23,10 @@ pub mod assumptions;
 pub mod dto;
 pub mod export;
 pub mod openapi;
+pub mod report_dto;
 pub mod session;
 pub mod tax;
+pub mod validation;
 
 use std::sync::Arc;
 
@@ -49,15 +52,18 @@ pub const RATE_SCHEDULE_PATH: &str = "/api/v1/tax/rate-schedule";
 pub const RATE_SCHEDULE_EXPORT_PATH: &str = "/api/v1/tax/rate-schedule/export";
 /// `POST /api/v1/assumptions/list`.
 pub const ASSUMPTIONS_PATH: &str = "/api/v1/assumptions/list";
+/// `POST /api/v1/validation/report`.
+pub const VALIDATION_REPORT_PATH: &str = "/api/v1/validation/report";
 
 /// Every API path, for route-template logging and the `OpenAPI` assertions.
-pub const PATHS: [&str; 6] = [
+pub const PATHS: [&str; 7] = [
     BOOTSTRAP_PATH,
     STATUS_PATH,
     RELAUNCH_PATH,
     RATE_SCHEDULE_PATH,
     RATE_SCHEDULE_EXPORT_PATH,
     ASSUMPTIONS_PATH,
+    VALIDATION_REPORT_PATH,
 ];
 
 /// The route **template** of a path, for the event log: a known path, or a
@@ -103,6 +109,10 @@ pub(crate) fn router(state: Arc<AppState>) -> Router {
         .route(
             ASSUMPTIONS_PATH,
             post(assumptions::list).fallback(method_not_allowed),
+        )
+        .route(
+            VALIDATION_REPORT_PATH,
+            post(validation::report).fallback(method_not_allowed),
         )
         .fallback(not_found)
         .layer(DefaultBodyLimit::max(MAX_BODY_BYTES))

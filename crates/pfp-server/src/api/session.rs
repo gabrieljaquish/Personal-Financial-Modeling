@@ -67,6 +67,7 @@ pub(crate) async fn bootstrap(
 pub(crate) async fn status(State(state): State<Arc<AppState>>) -> Json<SessionStatus> {
     Json(SessionStatus {
         app_version: env!("CARGO_PKG_VERSION").to_owned(),
+        licence: env!("CARGO_PKG_LICENSE").to_owned(),
         api_version: "v1".to_owned(),
         trust_mode: state.trust_mode.into(),
         vintages: vec![VintageSummaryDto::from(state.vintage.as_ref())],

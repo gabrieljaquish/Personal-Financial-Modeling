@@ -11,6 +11,18 @@
 //! * the bundle is older than its inputs (the hash `cargo xtask build-web` wrote
 //!   next to it no longer matches `web/src`, the lockfile, …) → a **release build
 //!   fails** ("the front end is stale"); a debug build warns.
+//!
+//! The validation report follows the same pattern (`PLAN.md` §4.13 item 8):
+//!
+//! * `build/validation-report.json` exists (written by `cargo xtask
+//!   validation-report`) → `cfg(pfp_validation_report)` is set and
+//!   `validation.rs` embeds it;
+//! * it is absent → a **release build fails**; a debug build warns and the API
+//!   serves the explicit "report not generated" state.
+//!
+//! Its freshness is the drift gate's business (`cargo xtask validation-report
+//! --check` in CI and the `xtask` test), not this script's: the report's inputs are
+//! the whole tree.
 
 // Not an engine crate, and a build script: the file system is its job.
 #![forbid(unsafe_code)]
@@ -28,13 +40,34 @@ use std::process::ExitCode;
 mod web_inputs;
 
 const REMEDY: &str = "run `cargo xtask build-web` (needs Node; see web/README.md)";
+const REPORT_REMEDY: &str = "run `cargo xtask validation-report`";
+/// Where `cargo xtask validation-report` writes the JSON, relative to the repository root.
+const REPORT_PATH: &str = "build/validation-report.json";
 
 fn main() -> ExitCode {
     println!("cargo:rustc-check-cfg=cfg(pfp_web_dist)");
+    println!("cargo:rustc-check-cfg=cfg(pfp_validation_report)");
 
     let manifest_dir = PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").unwrap_or_default());
-    let web = manifest_dir.join("..").join("..").join("web");
+    let root = manifest_dir.join("..").join("..");
+    let web = root.join("web");
     let release = std::env::var("PROFILE").is_ok_and(|profile| profile == "release");
+
+    // The validation report, first: it is independent of the bundle.
+    let report = root.join(REPORT_PATH);
+    println!("cargo:rerun-if-changed={}", report.display());
+    if report.is_file() {
+        println!("cargo:rustc-cfg=pfp_validation_report");
+    } else if release {
+        eprintln!(
+            "error: {REPORT_PATH} is absent, so there is no validation report to embed: {REPORT_REMEDY}"
+        );
+        return ExitCode::FAILURE;
+    } else {
+        println!(
+            "cargo:warning={REPORT_PATH} is absent: this debug build serves the \"report not generated\" state; {REPORT_REMEDY}"
+        );
+    }
 
     // Re-run when the bundle, its stamp or any input changes. Cargo scans a named
     // directory recursively.

@@ -31,6 +31,8 @@ export const openapi = () => JSON.parse(read('openapi__openapi_v1.snap'));
 export const sessionStatus = () => JSON.parse(read('ui_golden__ui_golden_session_status.snap'));
 export const assumptions = () => JSON.parse(read('ui_golden__ui_golden_assumptions_list.snap'));
 export const rateSchedule = () => JSON.parse(read('ui_golden__ui_golden_rate_schedule.snap'));
+/** A SYNTHETIC, future-shaped validation report response (see the recording test for why it is not the server's). */
+export const validationReport = () => JSON.parse(read('ui_golden__ui_golden_validation_report_future.snap'));
 
 /** The JSON export as sent: pretty-printed, one trailing newline. */
 export const rateScheduleJsonExport = () => `${read('ui_golden__ui_golden_rate_schedule_json.snap')}\n`;

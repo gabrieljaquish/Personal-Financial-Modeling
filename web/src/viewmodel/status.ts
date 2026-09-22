@@ -100,6 +100,7 @@ export function aboutVm(status: SessionStatus): AboutVm {
   return {
     entries: [
       ['Application version', status.appVersion],
+      ['Licence', status.licence],
       ['API version', status.apiVersion],
       ['Certificate trust', trust],
       ...status.vintages.map((vintage): readonly [string, string] => {

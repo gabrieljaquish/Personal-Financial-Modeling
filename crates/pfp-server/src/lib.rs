@@ -12,6 +12,8 @@
 //! * [`headers`] and [`csp`] — the exact response-header set;
 //! * [`api`] — the JSON API, its DTOs and the `OpenAPI` document;
 //! * [`assets`] — the web shell and its content-hashed assets, from memory;
+//! * [`validation`] — the validation report compiled into the binary, or its
+//!   explicit absence;
 //! * [`events`] and [`error`] — logs and error bodies that carry no content;
 //! * [`tls`] — the certificate scheme (a name-constrained local CA whose private key
 //!   is discarded after it signs the one leaf), the `rustls` configuration and the
@@ -51,6 +53,7 @@ mod service;
 pub mod session;
 pub mod tls;
 pub mod trust;
+pub mod validation;
 
 pub use accept::{AcceptLimits, AcceptStats, HttpLimits, ListenError, TlsListener};
 pub use api::openapi::openapi_json;
@@ -70,3 +73,4 @@ pub use tls::{
     StoreError, TlsMaterial,
 };
 pub use trust::{InstallOutcome, PlatformError, TrustStatus, TrustStore, UnsupportedTrustStore};
+pub use validation::ReportError;

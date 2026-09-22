@@ -14,6 +14,7 @@ import type { Route } from './router/hash.ts';
 import { useRoute } from './router/useRoute.ts';
 import { AssumptionsScreen } from './screens/assumptions/AssumptionsScreen.tsx';
 import { NotFoundScreen } from './screens/not-found/NotFoundScreen.tsx';
+import { AboutScreen } from './screens/about/AboutScreen.tsx';
 import { RateScheduleScreen } from './screens/rate-schedule/RateScheduleScreen.tsx';
 import type { SessionState } from './session/handshake.ts';
 import { SessionNotice } from './session/SessionNotice.tsx';
@@ -117,6 +118,7 @@ export function App({ initialSession }: { initialSession: SessionState }) {
   const connected = shell.session === 'connected';
   const [status] = useLoadable(client.status, connected);
   const [assumptions, retryAssumptions] = useLoadable(client.assumptions, connected);
+  const [validation, retryValidation] = useLoadable(client.validationReport, connected);
   const registry = useMemo(() => (assumptions.kind === 'ready' ? { kind: 'ready' as const, value: registryVm(assumptions.value) } : assumptions), [assumptions]);
 
   // The title describes what is on screen, which the route alone does not know.
@@ -143,6 +145,7 @@ export function App({ initialSession }: { initialSession: SessionState }) {
         {route.screen === 'assumptions' || route.screen === 'assumption' ? (
           <AssumptionsScreen registry={registry} routedId={route.screen === 'assumption' ? route.id : null} onRetry={retryAssumptions} />
         ) : null}
+        {route.screen === 'about' ? <AboutScreen status={status} report={validation} onRetry={retryValidation} /> : null}
         {route.screen === 'not-found' ? <NotFoundScreen /> : null}
       </AppView>
     </AnnounceContext>

@@ -273,6 +273,26 @@ fn is_loader_document(rel: &str) -> bool {
 /// Rule 8 over `(repository-relative path, text)` pairs. Returns the violations
 /// and, for each vintage that assembles, its `<name>@<sha256>` content id.
 pub(crate) fn check_vintages(documents: &[(String, String)]) -> (Vec<String>, Vec<String>) {
+    let (violations, vintages) = parse_vintages(documents);
+    let ids = vintages
+        .values()
+        .map(|v| v.content_id().to_string())
+        .collect();
+    (violations, ids)
+}
+
+/// Whether `rel` is a document [`parse_vintages`] reads: a `.toml` under
+/// `params/vintages/` or `params/index-series/`.
+pub(crate) fn is_vintage_document(rel: &str) -> bool {
+    is_loader_document(rel)
+}
+
+/// Rule 8's parse, shared with the validation report and the assumption
+/// catalogue so that every reader of `params/` goes through the one loader.
+/// Returns the violations and every vintage that assembles, by name.
+pub(crate) fn parse_vintages(
+    documents: &[(String, String)],
+) -> (Vec<String>, BTreeMap<String, pfp_params::Vintage>) {
     let mut violations = Vec::new();
     let mut series = Vec::new();
     let mut vintages: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
@@ -300,16 +320,18 @@ pub(crate) fn check_vintages(documents: &[(String, String)]) -> (Vec<String>, Ve
             ));
         }
     }
-    let mut ids = Vec::new();
+    let mut parsed = BTreeMap::new();
     for (name, tables) in &vintages {
         match pfp_params::Vintage::parse(name, tables, &series) {
-            Ok(v) => ids.push(v.content_id().to_string()),
+            Ok(v) => {
+                parsed.insert((*name).to_owned(), v);
+            }
             Err(e) => violations.push(format!(
                 "{VINTAGES_DIR}{name}/: the vintage does not assemble: {e} (rule 8)"
             )),
         }
     }
-    (violations, ids)
+    (violations, parsed)
 }
 
 /// Rules 5–7 for one file of any type. Reports never echo the matched text.

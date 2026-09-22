@@ -30,6 +30,7 @@ test('every route renders one h1, each landmark once, one status region, and the
     ['#/rate-schedule', 'Rate schedule', 'Rate schedule'],
     ['#/assumptions', 'Assumptions Registry', 'Assumptions Registry'],
     ['#/assumptions/irs.std_deduction', 'Assumptions Registry', 'Assumptions Registry'],
+    ['#/about', 'About this application', 'About'],
     ['#/nope', 'Nothing at this address', null],
   ];
   for (const [hash, heading, current] of routes) {
@@ -55,13 +56,14 @@ test('DOM order of focusable elements: skip link first, then navigation, then th
     'a:Skip to main content',
     'a:Rate schedule',
     'a:Assumptions Registry',
+    'a:About',
     'select:#rs-status',
     'input:#rs-year',
     'input:#rs-income',
     'button:Calculate',
   ]);
   const notFound = renderApp('#/nope').tree;
-  assert.deepEqual(focusables(notFound), ['a:Skip to main content', 'a:Rate schedule', 'a:Assumptions Registry', 'a:Rate schedule', 'a:Assumptions Registry']);
+  assert.deepEqual(focusables(notFound), ['a:Skip to main content', 'a:Rate schedule', 'a:Assumptions Registry', 'a:About', 'a:Rate schedule', 'a:Assumptions Registry', 'a:About']);
 });
 
 test('landmarks are in the order the grid areas are laid out: header, main, aside, footer', () => {
@@ -72,7 +74,7 @@ test('landmarks are in the order the grid areas are laid out: header, main, asid
 });
 
 test('the verification banner is on every route, is a labelled region and not a live region', () => {
-  for (const hash of ['', '#/assumptions', '#/nope']) {
+  for (const hash of ['', '#/assumptions', '#/about', '#/nope']) {
     const { tree } = renderApp(hash);
     const [banner] = byAttr(tree, 'aria-label', 'Parameter verification status');
     assert.equal(banner.attrs.role, 'region');
@@ -137,7 +139,7 @@ test('not connected: the header claims no current page, on every route and in ev
       assert.deepEqual(byAttr(tree, 'aria-current', 'page'), [], `${kind} ${hash}`);
       assert.equal(elements(tree).filter((e) => 'aria-current' in e.attrs).length, 0, `${kind} ${hash}`);
       // The links are still there: the navigation is not removed, it just claims nothing.
-      assert.deepEqual(byTag(byTag(tree, 'nav')[0], 'a').map((a) => textOf(a)), ['Rate schedule', 'Assumptions Registry']);
+      assert.deepEqual(byTag(byTag(tree, 'nav')[0], 'a').map((a) => textOf(a)), ['Rate schedule', 'Assumptions Registry', 'About']);
       assert.equal(textOf(byId(tree, 'session-notice-heading')).length > 0, true);
     }
   }

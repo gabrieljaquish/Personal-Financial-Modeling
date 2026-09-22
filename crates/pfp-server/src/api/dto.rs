@@ -21,6 +21,8 @@ use pfp_params::{
 };
 use serde::{Deserialize, Serialize};
 use utoipa::openapi::extensions::ExtensionsBuilder;
+
+use super::report_dto::ValidationReport;
 use utoipa::openapi::schema::{KnownFormat, ObjectBuilder, SchemaFormat, SchemaType, Type};
 use utoipa::openapi::{RefOr, Schema};
 use utoipa::{PartialSchema, ToSchema};
@@ -140,6 +142,8 @@ impl From<&Vintage> for VintageSummaryDto {
 pub struct SessionStatus {
     /// The application version.
     pub app_version: String,
+    /// The application's licence, as the workspace manifest declares it (SPDX).
+    pub licence: String,
     /// The API version: the `v1` of `/api/v1`.
     pub api_version: String,
     /// See [`TrustModeDto`].
@@ -703,6 +707,28 @@ impl From<&Vintage> for VintageDto {
 pub struct AssumptionsResponse {
     /// Every vintage compiled into this build.
     pub vintages: Vec<VintageDto>,
+}
+
+/// Whether this build carries a validation report.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReportStateDto {
+    /// `report` is the report `cargo xtask validation-report` generated for the tree this build was made from.
+    Generated,
+    /// No report was generated before this (debug) build; `report` is absent. A
+    /// release build cannot be in this state.
+    NotGenerated,
+}
+
+/// The validation report endpoint's answer.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ValidationReportResponse {
+    /// See [`ReportStateDto`].
+    pub state: ReportStateDto,
+    /// The report, present exactly when `state` is `generated`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub report: Option<ValidationReport>,
 }
 
 #[cfg(test)]

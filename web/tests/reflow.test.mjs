@@ -13,6 +13,7 @@ import { test } from 'node:test';
 import { createElement } from 'react';
 
 import { AppView } from '../src/App.tsx';
+import { AboutView } from '../src/screens/about/AboutView.tsx';
 import { AssumptionsView } from '../src/screens/assumptions/AssumptionsView.tsx';
 import { RateScheduleView } from '../src/screens/rate-schedule/RateScheduleView.tsx';
 import { INITIAL_RS_STATE, rsReducer } from '../src/screens/rate-schedule/state.ts';
@@ -73,6 +74,7 @@ test('reflow: every element that renders an unbreakable run is covered by overfl
     'rate schedule, ready': render(createElement(RateScheduleView, { state: ready, publishedYears: ['2026'], handlers })).tree,
     registry: render(createElement(AssumptionsView, { registry, routedId: null, onRetry() {}, onSorted() {} })).tree,
     'registry entry': render(createElement(AssumptionsView, { registry, routedId: 'irs.std_deduction', onRetry() {}, onSorted() {} })).tree,
+    about: render(createElement(AboutView, { status: { kind: 'ready', value: golden.sessionStatus() }, report: { kind: 'ready', value: golden.validationReport() }, onRetry() {} })).tree,
     shell: render(
       createElement(AppView, {
         shell: { session: 'connected', relaunch: { kind: 'idle' } },

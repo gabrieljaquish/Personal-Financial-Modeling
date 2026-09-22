@@ -5,7 +5,7 @@ assets to `web/dist`, which `rust-embed` compiles into the `pfp` executable; the
 Rust server serves them from the canonical loopback origin. Node is a build-time
 tool and never ships (`ARCHITECTURE.md` §9, ADR-002).
 
-At M0 this is two screens behind a session handshake:
+At M0 this is three screens behind a session handshake:
 
 - **Rate schedule** (`#/rate-schedule`): filing status, tax year and taxable
   income in; the rate-schedule tax out, with **every line explained** — the amount
@@ -14,6 +14,15 @@ At M0 this is two screens behind a session handshake:
 - **Assumptions Registry** (`#/assumptions`, `#/assumptions/<parameter id>`):
   every parameter with its source, as-of date, vintage, projection rule and
   rounding rule, and its verification status **shown honestly**.
+- **About** (`#/about`): the validation report the build embeds
+  (`POST /api/v1/validation/report`), rendered as tables with its honest headline
+  first — the tier-1 fixture count, the count pending human verification and the
+  lock and verification state of every parameter vintage, all computed from the
+  report's counts, never typed; a corpus the design specifies but the tree does
+  not hold yet reads "Not yet introduced (milestone Mx)" and is never omitted;
+  a build made without running `cargo xtask validation-report` says so in the
+  first sentence. Also the application version and licence, a link to the
+  Assumptions Registry, and the out-of-scope statement of `SECURITY.md` §2.3.
 
 The UI never computes money or tax. Every number on screen came from the API as
 an integer number of cents and was only formatted (`src/format/money.ts`); the
@@ -329,11 +338,11 @@ src/
   router/                   parseRoute / hrefFor / reducer; the useRoute hook
   format/                   money, ratio, year, label tables: the only numeric conversions
   table/sort.ts             the one sorter; never sorts amounts
-  viewmodel/                DTO -> display strings: worksheet, registry, verification status
+  viewmodel/                DTO -> display strings: worksheet, registry, verification status, validation report
   components/               LiveStatus, VintageStatusBanner, VerificationBadge, SortableTable,
                             WorksheetTable, ParamRefLink, FormErrorSummary, FailureAlert,
                             ExportActions, PrimaryNav, AboutBuild (+ CSS modules)
-  screens/                  rate-schedule (state, effects, view, container), assumptions, not-found
+  screens/                  rate-schedule (state, effects, view, container), assumptions, about, not-found
   index.css                 document tokens, reset, base control sizes, print page
 tests/
   support/register.mjs      .tsx and CSS-module hooks for node:test

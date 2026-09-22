@@ -25,6 +25,7 @@ use pfp_params::Vintage;
 use tower::ServiceExt;
 
 use crate::admission::{admit, HeaderFact, RequestFacts, RouteClass};
+use crate::api::report_dto::ValidationReport;
 use crate::api::{self, BOOTSTRAP_PATH, RELAUNCH_PATH};
 use crate::assets::AssetManifest;
 use crate::error::ApiError;
@@ -43,6 +44,8 @@ pub(crate) struct AppState {
     pub(crate) sessions: Arc<SessionManager>,
     pub(crate) events: Arc<EventLog>,
     pub(crate) vintage: Arc<Vintage>,
+    /// The validation report the build embedded; `None` when none was generated.
+    pub(crate) validation: Option<Arc<ValidationReport>>,
     pub(crate) trust_mode: TrustMode,
     pub(crate) relaunch: Option<Arc<dyn RelaunchHook>>,
     pub(crate) assets: AssetManifest,

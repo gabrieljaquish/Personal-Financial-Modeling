@@ -7,7 +7,9 @@
 #   rust          it does not build, is not formatted, or trips a lint or a test
 #   purity        it broke the engine's no-I/O contract (determinism rule D1)
 #   supply-chain  it added an advisory, a forbidden licence, a ban or a git source
-#   hygiene       it put user data, a secret or a ground-truth edit in the repository
+#   hygiene       it put user data, a secret or a ground-truth edit in the repository,
+#                 or let a generated document (the validation report, the assumption
+#                 catalogue) drift from the tree it is generated from
 #   web           the front end does not build, or a package licence is not permitted
 #   embedded      the executable does not embed the real front end, or the release
 #                 profile does not build
@@ -223,6 +225,16 @@ jobs:
       - name: Data hygiene
         run: cargo xtask data-hygiene
 
+      # The generated documents are pure functions of the tree (PLAN.md §4.1,
+      # §4.13 item 8; TESTING.md §13): a stale docs/validation-report.md or
+      # docs/assumption-catalogue.md fails here, and the xtask test suite asserts
+      # the same. No clock enters either, so the comparison is exact.
+      - name: Validation report drift
+        run: cargo xtask validation-report --check
+
+      - name: Assumption catalogue drift
+        run: cargo xtask assumption-catalogue --check
+
       # The source rules of the server half (SECURITY.md §3.7, §7.1, §11): file
       # and socket access only in the crates allowed them, and no credential on
       # a command line or in the environment. `data-hygiene` above already runs
@@ -348,13 +360,16 @@ jobs:
   # a green `rust` job proves nothing about the embedding. This job is the other
   # half, in one runner so that no artifact has to travel between jobs:
   #
-  #   1. `cargo xtask build-web` — `npm ci --ignore-scripts`, `npm run build`, the
+  #   1. `cargo xtask validation-report` — the validation report the server embeds
+  #      (PLAN.md §4.13 item 8), generated into git-ignored build/; the `rust` job
+  #      runs without it and exercises the "report not generated" state;
+  #   2. `cargo xtask build-web` — `npm ci --ignore-scripts`, `npm run build`, the
   #      shape check on `web/dist`, and the Rust recomputation of the input hash
   #      that `npm run build` recorded (the two implementations must agree);
-  #   2. the whole test suite again, now with the real bundle embedded;
-  #   3. the release profile (`lto = "fat"`, `codegen-units = 1`, `panic = "abort"`),
+  #   3. the whole test suite again, now with the real bundle and the report embedded;
+  #   4. the release profile (`lto = "fat"`, `codegen-units = 1`, `panic = "abort"`),
   #      which no other job compiles, and whose build script FAILS on an absent or
-  #      stale bundle instead of falling back to the placeholder.
+  #      stale bundle, or an absent report, instead of falling back.
   #
   # Not a release: nothing is signed, uploaded or kept.
   embedded:
@@ -374,6 +389,9 @@ jobs:
           node-version-file: web/.nvmrc
           cache: npm
           cache-dependency-path: web/package-lock.json
+
+      - name: Generate the validation report
+        run: cargo xtask validation-report
 
       - name: Build the front end
         run: cargo xtask build-web
@@ -407,6 +425,19 @@ jobs:
             echo "no script of web/dist/assets is named inside target/release/pfp" >&2
             exit 1
           fi
+
+      # The same guard for the validation report: with none generated the release
+      # profile must REFUSE to build instead of serving the "not generated" state.
+      - name: The release profile refuses to build without the validation report
+        run: |
+          set -euo pipefail
+          mv build/validation-report.json "${RUNNER_TEMP}/validation-report.aside"
+          if cargo build --release -p pfp-app --locked 2> "${RUNNER_TEMP}/no-report.log"; then
+            echo "a release build succeeded with build/validation-report.json absent" >&2
+            exit 1
+          fi
+          grep -F "no validation report to embed" "${RUNNER_TEMP}/no-report.log"
+          mv "${RUNNER_TEMP}/validation-report.aside" build/validation-report.json
 
       # The release-only guard, exercised rather than trusted: with no bundle the
       # release profile must REFUSE to build instead of embedding the placeholder.

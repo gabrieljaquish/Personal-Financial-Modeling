@@ -20,6 +20,7 @@ import type {
   Operations,
   RateScheduleResponse,
   SessionStatus,
+  ValidationReportResponse,
 } from './schema.gen.ts';
 
 export type Outcome<T> = { ok: true; value: T } | { ok: false; failure: ApiFailure };
@@ -46,6 +47,8 @@ export interface ApiClient {
   /** The export as the text the server sent, never parsed here, and the `Content-Disposition` it came with. */
   exportRateSchedule(inputs: RateScheduleInputs, format: ExportFormatDto): Promise<Outcome<ExportedFile>>;
   relaunch(): Promise<Outcome<Accepted>>;
+  /** The validation report the build embedded, or its explicit `not-generated` state. */
+  validationReport(): Promise<Outcome<ValidationReportResponse>>;
 }
 
 type JsonPath = { [P in keyof Operations]: Operations[P]['expect'] extends 'json' ? P : never }[keyof Operations];
@@ -78,6 +81,7 @@ const SHAPES: { readonly [P in JsonPath]: Readonly<Record<string, Kind>> } = {
   '/api/v1/session/status': { appVersion: 'string', apiVersion: 'string', trustMode: 'string', vintages: 'array' },
   '/api/v1/session/relaunch': {},
   '/api/v1/assumptions/list': { vintages: 'array' },
+  '/api/v1/validation/report': { state: 'string' },
   '/api/v1/tax/rate-schedule': {
     year: 'number',
     filingStatus: 'string',
@@ -120,5 +124,6 @@ export function createClient(env: ApiEnv, onSessionLost: (loss: SessionLoss) => 
     // A 401 here is an outcome of the recovery itself, shown beside its button;
     // it must not replace the displaced notice that offers the recovery.
     relaunch: () => call('/api/v1/session/relaunch', undefined, false),
+    validationReport: () => call('/api/v1/validation/report', undefined),
   };
 }

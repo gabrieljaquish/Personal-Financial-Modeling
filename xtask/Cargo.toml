@@ -15,7 +15,16 @@ path = "src/main.rs"
 # The data-hygiene gate drives the typed parameter loader over every table under
 # `params/` (TESTING.md §11.2 gate 9), so a table no crate embeds is still checked.
 pfp-params = { workspace = true }
+# The assumption catalogue renders the loader's `Cents` and `Ratio` as text.
+pfp-money = { workspace = true }
 sha2 = { workspace = true }
+# The validation report (`validation-report`): its model is the server's DTO file,
+# compiled in here by `#[path]` (`serde` + `utoipa` derives), its fixture envelopes
+# are JSON, and the report itself is written as sorted JSON. All three are already
+# in the lock through `pfp-server`; nothing new is fetched.
+serde = { workspace = true }
+serde_json = { workspace = true }
+utoipa = { workspace = true }
 
 [lints]
 workspace = true

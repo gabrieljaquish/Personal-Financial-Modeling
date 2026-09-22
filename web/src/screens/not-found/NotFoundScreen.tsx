@@ -8,7 +8,7 @@ export function NotFoundScreen() {
   return (
     <section className={styles.screen} aria-labelledby="screen-heading">
       <ScreenHeading>Nothing at this address</ScreenHeading>
-      <p>This address does not name a screen of the application. The two screens are:</p>
+      <p>This address does not name a screen of the application. The screens are:</p>
       <ul role="list">
         <li>
           <a className={styles.inlineLink} href={hrefFor({ screen: 'rate-schedule' }) ?? '#/'}>
@@ -18,6 +18,11 @@ export function NotFoundScreen() {
         <li>
           <a className={styles.inlineLink} href={hrefFor({ screen: 'assumptions' }) ?? '#/'}>
             Assumptions Registry
+          </a>
+        </li>
+        <li>
+          <a className={styles.inlineLink} href={hrefFor({ screen: 'about' }) ?? '#/'}>
+            About
           </a>
         </li>
       </ul>

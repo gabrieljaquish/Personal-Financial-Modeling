@@ -5,6 +5,7 @@ import styles from './PrimaryNav.module.css';
 const ITEMS: readonly { route: Route; label: string; screens: readonly Route['screen'][] }[] = [
   { route: { screen: 'rate-schedule' }, label: 'Rate schedule', screens: ['rate-schedule'] },
   { route: { screen: 'assumptions' }, label: 'Assumptions Registry', screens: ['assumptions', 'assumption'] },
+  { route: { screen: 'about' }, label: 'About', screens: ['about'] },
 ];
 
 /**

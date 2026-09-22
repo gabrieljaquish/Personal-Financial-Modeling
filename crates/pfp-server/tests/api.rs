@@ -16,6 +16,7 @@ use support::HttpServer;
 const STATUS: &str = "/api/v1/session/status";
 const SCHEDULE: &str = "/api/v1/tax/rate-schedule";
 const ASSUMPTIONS: &str = "/api/v1/assumptions/list";
+const VALIDATION: &str = "/api/v1/validation/report";
 
 #[tokio::test]
 async fn status_reports_versions_trust_mode_and_the_unverified_vintage() {
@@ -27,6 +28,7 @@ async fn status_reports_versions_trust_mode_and_the_unverified_vintage() {
     let body = response.json();
     assert_eq!(body["apiVersion"], "v1");
     assert_eq!(body["appVersion"], env!("CARGO_PKG_VERSION"));
+    assert_eq!(body["licence"], "Apache-2.0");
     assert_eq!(body["trustMode"], "declined");
     let vintage = &body["vintages"][0];
     assert_eq!(vintage["name"], "federal-2026");
@@ -249,6 +251,65 @@ async fn assumptions_registry_lists_every_table_with_provenance() {
     server.stop().await;
 }
 
+/// The report is whatever the build embedded, or the explicit statement that
+/// nothing was: this test passes in both states and asserts the honest one.
+#[tokio::test]
+async fn validation_report_is_served_or_declared_not_generated() {
+    let server = HttpServer::start();
+    let session = server.establish().await;
+    let response = server.send(server.authed(VALIDATION, &session)).await;
+    assert_eq!(response.status, 200);
+    assert_eq!(response.header("content-type"), Some("application/json"));
+    let body = response.json();
+    if pfp_server::validation::is_embedded() {
+        assert_eq!(body["state"], "generated");
+        let report = &body["report"];
+        let tiers = report["fixtures"]["tiers"].as_array().unwrap();
+        assert_eq!(
+            tiers
+                .iter()
+                .map(|t| t["tier"].as_str().unwrap())
+                .collect::<Vec<_>>(),
+            ["tier1", "tier2", "tier3", "pending"]
+        );
+        // Every section carries a state and a milestone, present or not.
+        for section in [
+            "tier2Suites",
+            "tier3Goldens",
+            "oracles",
+            "mutationScore",
+            "fuzzCorpora",
+            "browserEndToEnd",
+        ] {
+            assert!(report[section]["state"].is_string(), "{section}");
+            assert!(report[section]["milestone"].is_string(), "{section}");
+        }
+        // The unverified block is printed, never hidden, and pending is never verified.
+        let unverified = &report["unverified"];
+        assert!(unverified["items"]
+            .as_array()
+            .is_some_and(|i| !i.is_empty()));
+        assert!(unverified["pendingFixtureCount"].is_u64());
+        for tier in tiers {
+            for file in tier["files"].as_array().unwrap() {
+                if file["verification"] == "pending-hand-verification" {
+                    assert_ne!(tier["tier"], "tier1", "{}", file["path"]);
+                }
+            }
+        }
+        // The server and the report agree about the vintage it serves.
+        let status = server.send(server.authed(STATUS, &session)).await.json();
+        let content_ids = report["pins"]["paramVintageContentIds"].as_array().unwrap();
+        assert!(content_ids.contains(&status["vintages"][0]["contentId"]));
+        assert_eq!(report["pins"]["licence"], status["licence"]);
+        assert!(!report["basis"].as_str().unwrap().is_empty());
+    } else {
+        assert_eq!(body["state"], "not-generated");
+        assert!(body.get("report").is_none());
+    }
+    server.stop().await;
+}
+
 #[tokio::test]
 async fn every_api_route_is_post_only_and_session_gated() {
     let server = HttpServer::start();
@@ -258,6 +319,7 @@ async fn every_api_route_is_post_only_and_session_gated() {
         SCHEDULE,
         "/api/v1/tax/rate-schedule/export",
         ASSUMPTIONS,
+        VALIDATION,
         "/api/v1/session/relaunch",
     ] {
         let anonymous = server.send(server.api(path)).await;

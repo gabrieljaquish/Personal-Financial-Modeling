@@ -5,6 +5,7 @@ expression: "serde_json::to_string_pretty(&status_value).expect(\"JSON\")"
 {
   "apiVersion": "v1",
   "appVersion": "0.0.0-golden",
+  "licence": "Apache-2.0",
   "trustMode": "declined",
   "vintages": [
     {

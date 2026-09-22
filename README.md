@@ -87,10 +87,48 @@ cargo xtask lint-server              # std::fs only in pfp-vault/pfp-app and std
                                      # read anywhere in pfp-app, tests included
 cargo xtask protected-paths <path>…  # edits to fixtures/tier1/ or a locked params/ vintage
                                      # (paths as arguments, or one per line on stdin)
+cargo xtask validation-report --check
+                                     # docs/validation-report.md (and build/validation-report.json
+                                     # if generated) equal a fresh build of the validation report
+cargo xtask assumption-catalogue --check
+                                     # docs/assumption-catalogue.md equals a fresh render of params/
 ```
 
 `cargo xtask` with no arguments prints the full command list, including the build helpers
-(`build-web` is implemented; the others arrive with later steps of M0).
+(`build-web`, `validation-report` and `assumption-catalogue` are implemented; the others
+arrive with later steps of M0).
+
+### Validation report and assumption catalogue
+
+```sh
+cargo xtask validation-report        # build/validation-report.json + docs/validation-report.md
+cargo xtask assumption-catalogue     # docs/assumption-catalogue.md from params/
+```
+
+The validation report (`docs/TESTING.md` §13; `docs/PLAN.md` §4.13 item 8) is a pure
+function of the repository: fixtures by tier, milestone and verification value; every
+parameter vintage with its content id, lock state, verification status and archived-source
+checksums; the property tests, contract snapshots and security test ids counted from the
+source tree; and, for every corpus the design specifies but the tree does not hold yet, an
+explicit "not yet introduced (milestone Mx)" entry. No clock, host name, path or person
+enters it; a date appears only when given with `--generated-on YYYY-MM-DD`. The model is one
+Rust file (`crates/pfp-server/src/api/report_dto.rs`) compiled into both `xtask` (the writer)
+and `pfp-server` (the reader), and every struct refuses unknown fields.
+
+The JSON is written under git-ignored `build/` because the data-hygiene gate reserves `.json`
+documents for `fixtures/` and `params/`; `pfp-server` embeds it at compile time exactly as it
+embeds `web/dist`:
+
+- **debug build, no `build/validation-report.json`**: the build warns and
+  `POST /api/v1/validation/report` answers `state: not-generated` with no report, which the
+  About page says in its first sentence;
+- **release build, report absent**: the build **fails** and says to run
+  `cargo xtask validation-report`.
+
+`docs/validation-report.md` is the committed rendering; `--check` (in CI's hygiene job and in
+the `xtask` test suite) fails when it, or a generated JSON, differs from a fresh build. The
+assumption catalogue is rendered from `params/` through the `pfp-params` loader, so it cannot
+name a parameter id the engine would not load, and is checked the same way.
 
 ### Git hooks
 
@@ -245,8 +283,8 @@ warns too; the warning is conservative by design.
 
 ### API methods
 
-The six M0 operations (`session/bootstrap`, `session/status`, `session/relaunch`,
-`tax/rate-schedule`, `tax/rate-schedule/export`, `assumptions/list`) are `POST`, and that is their contract rather than a placeholder. None of
+The seven M0 operations (`session/bootstrap`, `session/status`, `session/relaunch`,
+`tax/rate-schedule`, `tax/rate-schedule/export`, `assumptions/list`, `validation/report`) are `POST`, and that is their contract rather than a placeholder. None of
 them appears in [ARCHITECTURE.md](docs/ARCHITECTURE.md) §5 under another method; each is an
 RPC-shaped operation; the one that takes financial input carries it in a body because URLs carry
 opaque ids only; and [SECURITY.md](docs/SECURITY.md) §7.2 requires an exact `Origin` on every
@@ -260,7 +298,7 @@ request that adds the first `GET`. That pull request flips the one constant `API
 `crates/pfp-server/src/admission.rs` to `SafeMethodsWithFetchMetadata` (already written and
 unit-tested: still `Sec-Fetch-Site: same-origin`, still the session pair, still an exact `Origin`
 whenever one is present) and adds `get` operations to the OpenAPI document. It does not move the
-six operations that exist, so the snapshot and the generated front-end types for them are stable.
+seven operations that exist, so the snapshot and the generated front-end types for them are stable.
 
 ### Security test ids in this step
 
