@@ -3,11 +3,49 @@ name = "pfp-server"
 description = "Loopback TLS server, session and API for the local web application"
 version.workspace = true
 edition.workspace = true
-rust-version.workspace = true
+# Higher than the workspace floor on purpose: `time` 0.3.47, the first release
+# without RUSTSEC-2026-0009, needs Rust 1.88. The engine crates keep 1.84.
+rust-version = "1.88"
 license.workspace = true
 publish.workspace = true
 
 [dependencies]
+axum = { workspace = true }
+getrandom = { workspace = true }
+hyper = { workspace = true }
+hyper-util = { workspace = true }
+pfp-domain = { workspace = true }
+pfp-explain = { workspace = true }
+pfp-money = { workspace = true }
+pfp-params = { workspace = true }
+pfp-tax = { workspace = true }
+rcgen = { workspace = true }
+rust-embed = { workspace = true }
+rustls = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+subtle = { workspace = true }
+time = { workspace = true }
+# `macros` is for `tokio::select!` in the accept loop; `io-util` for the shutdown
+# and the bounded drain of the graceful close (`linger.rs`).
+tokio = { workspace = true, features = ["rt", "net", "time", "sync", "macros", "io-util"] }
+tokio-rustls = { workspace = true }
+tower = { workspace = true }
+utoipa = { workspace = true }
+zeroize = { workspace = true }
+
+[build-dependencies]
+# The front-end input hash of the stale-bundle check (`build.rs`).
+sha2 = { workspace = true }
+
+[dev-dependencies]
+insta = { workspace = true }
+# The CSV escaping round trip (`tests/export.rs`, S-12).
+proptest = { workspace = true }
+# `test-util`: the paused clock of the linger time-budget tests.
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "io-util", "test-util"] }
+x509-parser = { workspace = true }
 
 [lints]
 workspace = true

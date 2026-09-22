@@ -1,0 +1,330 @@
+# The price-index series the projection rules of this vintage read.
+#
+# This is NOT a parameter table. It carries no `projection` block and no
+# `RoundingRule`, because neither means anything here: an index observation is
+# not an amount that gets uprated. `TESTING.md` §11.2 gate 9 and the
+# "a table without a projection rule is a CI error" rule are both about
+# parameter tables. No design document specifies the shape of an archived
+# index-series table or exempts one from that rule; `kind` below is the
+# distinction, and the gap is reported as an erratum (`vintages/federal-2026/VINTAGE.md`,
+# deviation 4).
+#
+# Values are DECIMAL STRINGS, not TOML floats. A bare `135.837` in TOML is
+# IEEE-754 binary64, which `ARCHITECTURE.md` §4.3 D3 and ADR-007 forbid in a
+# money path; two of the four window means below are non-terminating decimals
+# (denominator 1200) and must be carried as exact rationals. The strings are
+# the published values, digit for digit, with no rounding, truncation or
+# adjustment.
+#
+# STATUS: PENDING HAND VERIFICATION. Not locked. See `vintages/federal-2026/VINTAGE.md`.
+
+id           = "bls.cpi.chained.suur0000sa0"
+kind         = "index-series"
+index_series = "cpi.chained.aug12m"  # the name a parameter table writes in
+                                     # `projection.index_series` to read this
+                                     # series: the index (`cpi.chained`) under
+                                     # the [window] below (12 months ending
+                                     # August). Binding a table to its archived
+                                     # series is data, not code.
+series_id    = "SUUR0000SA0"
+unit         = "index"
+base_period  = "DECEMBER 1999=100"
+periodicity  = "monthly"
+as_of        = "2026-09-18"          # the SNAPSHOT date of the archived flat
+                                     # file, not a law date. The C-CPI-U is
+                                     # revisable, so a dated snapshot is the
+                                     # only honest as-of; see
+                                     # [revision_vintage] below.
+verification = "pending-hand-verification"
+
+# What the statute names, and what it does not.
+#
+# 26 USC 1(f)(6)(A), verbatim: "The term 'C-CPI-U' means the Chained Consumer
+# Price Index for All Urban Consumers (as published by the Bureau of Labor
+# Statistics of the Department of Labor)."
+#
+# The statute names the index by its published title and by its publisher. It
+# does NOT cite a BLS series id, and no statutory text maps the title to one.
+# The mapping to `SUUR0000SA0` is a project identification made from BLS's own
+# catalogue, and it is the `TESTING.md` §5.2 M0 gate item "the identity of the
+# index series behind index = 'cpi.chained'". It is open.
+#
+# The evidence for the identification, both inside the archive:
+#   - `params/provenance/bls/time-series/su.series` carries the row
+#     SUUR0000SA0 | area 0000 | item SA0 | seasonal U | periodicity R |
+#     DECEMBER 1999=100 | "All items in U.S. city average, all urban consumers,
+#     chained, not seasonally adjusted".
+#   - `params/provenance/bls/chained-cpi-questions-and-answers.htm`, table 1
+#     ("Published C-CPI-U series"), lists SUUR0000SA0 as the all-items series
+#     and states that all C-CPI-U series are published only at the U.S. city
+#     average level.
+statutory_name = "Chained Consumer Price Index for All Urban Consumers (C-CPI-U)"
+
+# The averaging window the statute names.
+#
+# 26 USC 1(f)(6)(B), verbatim: "The C-CPI-U for any calendar year is the
+# average of the C-CPI-U as of the close of the 12-month period ending on
+# August 31 of such calendar year."
+#
+# So the C-CPI-U for calendar year Y is the simple mean of the twelve monthly
+# observations for September of Y-1 through August of Y. The statute says "the
+# average" and prescribes no weighting, no rounding and no truncation.
+[window]
+kind         = "trailing-12-month-mean"
+ends_month   = 8                     # August
+ends_day     = 31
+months       = 12
+first_month  = "September of the preceding calendar year"
+divisor      = 12
+source       = "26 USC 1(f)(6)(B)"
+
+# A projection needs the RATIO C-CPI-U(Y-1) / C-CPI-U(B), in which the divisor
+# 12 cancels. The ratio is therefore a ratio of the two twelve-month SUMS, and
+# an implementation that forms the sums as exact rationals never has to
+# represent a non-terminating mean at all. `window_sum` below is recorded for
+# exactly that reason; it is derived arithmetic over `observations`, not an
+# independent datum, and it is exact (every observation has three decimals).
+
+# ---------------------------------------------------------------------------
+# Observations — copied from the archived flat file with full precision
+# ---------------------------------------------------------------------------
+# Source: `params/provenance/bls/time-series/su.data.1.AllItems`, series
+# SUUR0000SA0. Only the four calendar-year windows this vintage's projections
+# read are transcribed; the archive holds the whole series, 1999-M12 through
+# 2026-M08.
+#
+# Which window feeds what (26 USC 1(f)(3)(A)(i): the adjustment for calendar
+# year Y reads the C-CPI-U for the PRECEDING calendar year):
+#   CY2016 — denominator for the tops of the 10% and 12% brackets, tax year 2026
+#   CY2017 — denominator for bracket thresholds, tax year 2025 (all edges) and
+#            tax year 2026 (the four edges clause (i) names)
+#   CY2024 — denominator for the standard deduction (base year 2024), and the
+#            numerator for the tax-year-2025 adjustment
+#   CY2025 — numerator for the tax-year-2026 adjustment
+#
+# Every observation below carries NO footnote code in the archived file. The
+# `su.footnote` code table defines exactly two codes — `I` = Initial and
+# `U` = Interim — and nothing else; it does not define the absence of a code.
+# See [revision_vintage] for what the absence is inferred to mean, and on what
+# authority.
+
+[observations.2016]                  # window_sum = 1631.916
+"2015-M09" = "135.837"
+"2015-M10" = "135.735"
+"2015-M11" = "135.393"
+"2015-M12" = "134.788"
+"2016-M01" = "134.966"
+"2016-M02" = "134.953"
+"2016-M03" = "135.655"
+"2016-M04" = "136.332"
+"2016-M05" = "136.895"
+"2016-M06" = "137.329"
+"2016-M07" = "137.007"
+"2016-M08" = "137.026"
+
+[observations.2017]                  # window_sum = 1658.841
+"2016-M09" = "137.328"
+"2016-M10" = "137.536"
+"2016-M11" = "137.253"
+"2016-M12" = "137.221"
+"2017-M01" = "138.035"
+"2017-M02" = "138.403"
+"2017-M03" = "138.461"
+"2017-M04" = "138.810"
+"2017-M05" = "138.922"
+"2017-M06" = "138.989"
+"2017-M07" = "138.755"
+"2017-M08" = "139.128"
+
+[observations.2024]                  # window_sum = 2076.190
+"2023-M09" = "171.490"
+"2023-M10" = "171.421"
+"2023-M11" = "170.946"
+"2023-M12" = "170.718"
+"2024-M01" = "171.649"
+"2024-M02" = "172.700"
+"2024-M03" = "173.796"
+"2024-M04" = "174.424"
+"2024-M05" = "174.685"
+"2024-M06" = "174.721"
+"2024-M07" = "174.792"
+"2024-M08" = "174.848"
+
+[observations.2025]                  # window_sum = 2126.470
+"2024-M09" = "175.099"
+"2024-M10" = "175.346"
+"2024-M11" = "175.180"
+"2024-M12" = "175.219"
+"2025-M01" = "176.362"
+"2025-M02" = "177.134"
+"2025-M03" = "177.520"
+"2025-M04" = "178.081"
+"2025-M05" = "178.427"
+"2025-M06" = "178.991"
+"2025-M07" = "179.272"
+"2025-M08" = "179.839"
+
+# Exact sums of the twelve observations above. Derived, not published: every
+# observation has three decimals, so each sum is exact at three decimals. The
+# calendar-year value is this divided by 12 — which does not terminate for 2024
+# and 2025 (denominators 1200), which is why the sums and not the means are
+# what this table carries.
+[window_sum]
+2016 = "1631.916"
+2017 = "1658.841"
+2024 = "2076.190"
+2025 = "2126.470"
+
+# ---------------------------------------------------------------------------
+# Revision vintage — which published values of a revisable series count
+# ---------------------------------------------------------------------------
+[revision_vintage]
+snapshot_date = "2026-09-18"
+
+# The C-CPI-U, unlike the CPI-U and CPI-W, is revised after first publication.
+# CPI news release USDL-25-1356 (August 2025), archived as
+# `params/provenance/bls/cpi_09112025.htm`, states it twice and not quite
+# consistently. Technical Note: the CPI-U and CPI-W "are considered final when
+# released, but the C-CPI-U is issued in preliminary form and subject to three
+# subsequent quarterly revisions." Table 5 footnote 1: the C-CPI-U "is issued
+# first in preliminary form ... and is subject to four revisions", then gives
+# the finalisation schedule:
+#
+#   "The C-CPI-U indexes are updated quarterly until they become final.
+#    January-March indexes are final in January of the following year;
+#    April-June indexes are final in April of the following year;
+#    July-September indexes are final in July of the following year;
+#    October-December indexes are final in October of the following year."
+#
+# Both sentences are archived; neither was reconciled here, and the
+# three-versus-four discrepancy is BLS's own.
+#
+# FINALITY OF THE WINDOWS THIS VINTAGE READS. Applying that schedule at the
+# 2026-09-18 snapshot date, every month of September 2023 - August 2024 and of
+# September 2024 - August 2025 has passed its finalisation date, and none
+# carries a footnote code in the archived file. The same holds for the 2016 and
+# 2017 windows. The finality claim rests on the release's schedule, cited
+# above, NOT on `su.footnote`: that file is 51 bytes and binds exactly two
+# codes, `I` = Initial and `U` = Interim. It says nothing about a blank code,
+# and no archived file binds a blank code to "final".
+windows_final = [2016, 2017, 2024, 2025]
+finality_authority = "params/provenance/bls/cpi_09112025.htm (USDL-25-1356), Table 5 footnote 1, applied at snapshot_date"
+footnote_codes_defined = ["I = Initial", "U = Interim"]
+
+# THE OPEN PROBLEM, and it is the important one on this table.
+#
+# 26 USC 1(f)(6)(A) continues: "The values of the Chained Consumer Price Index
+# for All Urban Consumers taken into account for purposes of determining the
+# cost-of-living adjustment for any calendar year under this subsection shall
+# be the latest values so published as of the date on which such Bureau
+# publishes the initial value of the Chained Consumer Price Index for All Urban
+# Consumers for the month of August for the preceding calendar year."
+#
+# For the calendar-year 2026 adjustment that freeze date is the publication of
+# the initial August 2025 C-CPI-U — USDL-25-1356, embargoed until 8:30 a.m. ET
+# Thursday, September 11, 2025. On that date several months of the September
+# 2024 - August 2025 window were still interim and August 2025 was initial. The
+# observations transcribed above are TODAY'S values for those months, which are
+# final and may differ from the ones the IRS read.
+#
+# BLS does not republish superseded vintages: the flat files and the public API
+# both serve the current vintage only, and no "as published on 2025-09-11"
+# series id exists. Recovering that vintage means recovering the August 2025
+# release's own tables.
+#
+# Consequence, stated so nobody misreads a failure: an uprating-reproduction
+# test run against this table could disagree with a published threshold for a
+# reason that is not the code — a revision moving a window mean across a $50 or
+# $25 rounding step. Under `docs/contributing.md` §3.1 and §3.3 that is evidence
+# to report, never a licence to nudge an observation or a rounding rule.
+# Whether any such crossing occurs is NOT asserted here and was not tested.
+statutory_freeze_rule = "26 USC 1(f)(6)(A)"
+statutory_freeze_event_cy2026 = "publication of the initial August 2025 C-CPI-U: USDL-25-1356, 2025-09-11"
+snapshot_may_differ_from_freeze = true
+
+# ---------------------------------------------------------------------------
+# Open hand-verification items for THIS table (`TESTING.md` §5.2)
+# ---------------------------------------------------------------------------
+[hand_verification]
+open = [
+  "M0 GATE: the identity of the series behind index = 'cpi.chained'. 26 USC 1(f)(6)(A) names the index by title only; the mapping to SUUR0000SA0 rests on su.series and the BLS chained-CPI FAQ, not on statute. Cannot be discharged by reading 26 USC 1 or 63.",
+  "The 26 USC 1(f)(6)(A) revision-vintage freeze: decide whether the project computes against today's final values and records any residual, or recovers the values as published on 2025-09-11 from the August 2025 release's own tables.",
+  "BLS states both 'three subsequent quarterly revisions' (Technical Note) and 'four revisions' (Table 5 footnote 1) in the same release. Unreconciled; it does not affect which months are final at this snapshot, but a reader will trip over it.",
+]
+
+[hand_verification.carried_forward]
+# Not a problem for this vintage; a problem for the next one.
+#
+# There is no October 2025 CPI. Federal appropriations lapsed 2025-10-01 to
+# 2025-11-12; BLS could not collect the October reference-period data and
+# cancelled the release. In the archive: SUUR0000SA0 has no 2025-M10 row at
+# all; `params/provenance/bls/2025-lapse-revised-release-dates.htm` records the
+# October 2025 CPI release as "Canceled"; and the shutdown FAQ records that BLS
+# did not issue an October 2025 CPI news release.
+#
+# The windows this vintage reads (CY2024 and CY2025, and the CY2016 and CY2017
+# bases) are all complete. The gap falls inside September 2025 - August 2026,
+# which is the C-CPI-U for calendar year 2026 and therefore feeds the
+# adjustment for tax year 2027.
+#
+# DO NOT INVENT A RULE FOR THE MISSING MONTH. 1(f)(6)(B) says "the average of
+# the C-CPI-U as of the close of the 12-month period" and says nothing about
+# eleven months. Whether the CY2026 figure is an eleven-month mean, a mean over
+# an imputed October, or something the Secretary prescribes is an open legal
+# question, and it belongs against whatever the IRS publishes for tax year 2027.
+item = "October 2025 is absent from the series; the CY2026 window has 11 of 12 months. Affects the tax-year-2027 adjustment, not this vintage."
+gate = "the 2027 annual parameter update (TESTING.md §12)"
+
+# ---------------------------------------------------------------------------
+# Provenance
+# ---------------------------------------------------------------------------
+
+[[source]]
+title     = "C-CPI-U all-items series SUUR0000SA0 (BLS time-series flat file)"
+publisher = "Bureau of Labor Statistics, U.S. Department of Labor"
+url       = "https://download.bls.gov/pub/time.series/su/su.data.1.AllItems"
+retrieved = "2026-09-18"
+archive   = "params/provenance/bls/time-series/su.data.1.AllItems"
+sha256    = "c40304234a1e838cffe4ba88567a997b91595c223613f2584aa0cab3191f3f75"
+
+[[source]]
+title     = "su series catalogue (evidences the SUUR0000SA0 title and base period)"
+publisher = "Bureau of Labor Statistics, U.S. Department of Labor"
+url       = "https://download.bls.gov/pub/time.series/su/su.series"
+retrieved = "2026-09-18"
+archive   = "params/provenance/bls/time-series/su.series"
+sha256    = "7da3ac42aef524b2cc21fe2cb8f6ab71124ae808db699f2b4d5919b306bafbcc"
+
+[[source]]
+title     = "su footnote-code table (defines I = Initial and U = Interim, and nothing else)"
+publisher = "Bureau of Labor Statistics, U.S. Department of Labor"
+url       = "https://download.bls.gov/pub/time.series/su/su.footnote"
+retrieved = "2026-09-18"
+archive   = "params/provenance/bls/time-series/su.footnote"
+sha256    = "732d760a9e80af7637f7bcded8f4828dd0422b46faa98e03099e8fd3d792170f"
+
+[[source]]
+title     = "Consumer Price Index - August 2025 (USDL-25-1356): C-CPI-U revision schedule and the 26 USC 1(f)(6)(A) freeze event"
+publisher = "Bureau of Labor Statistics, U.S. Department of Labor"
+url       = "https://www.bls.gov/news.release/archives/cpi_09112025.htm"
+retrieved = "2026-09-18"
+archive   = "params/provenance/bls/cpi_09112025.htm"
+sha256    = "f376b178ee4e16a7cc2ae6810e2164cad96aa8da156900623b2ff780a78f26bf"
+locator   = "Technical Note; Table 5 footnote 1"
+
+[[source]]
+title     = "FAQs about the Chained Consumer Price Index for All Urban Consumers (published-series list, table 1)"
+publisher = "Bureau of Labor Statistics, U.S. Department of Labor"
+url       = "https://www.bls.gov/cpi/additional-resources/chained-cpi-questions-and-answers.htm"
+retrieved = "2026-09-18"
+archive   = "params/provenance/bls/chained-cpi-questions-and-answers.htm"
+sha256    = "7dddb81e1b25b28d9eb638a13d35117ba15a658bdfd980ee1702e43d124bde2e"
+
+[[source]]
+title     = "26 U.S.C. §1(f)(6) (the index and its averaging window)"
+publisher = "Office of the Law Revision Counsel, U.S. House of Representatives"
+url       = "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title26-section1&num=0&edition=prelim"
+retrieved = "2026-09-18"
+archive   = "params/provenance/usc/usc26-s1.html"
+sha256    = "9a23b4e2577dbab0b19b5498407338e0a0dc0f1f78b3d2f7e4b877f180686313"
+locator   = "release point 20260911_119-108"

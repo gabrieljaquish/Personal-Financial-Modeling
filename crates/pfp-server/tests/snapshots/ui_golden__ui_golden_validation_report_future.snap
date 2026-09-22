@@ -1,0 +1,545 @@
+---
+source: crates/pfp-server/tests/ui_golden.rs
+expression: "serde_json::to_string_pretty(&value).expect(\"JSON\")"
+---
+{
+  "report": {
+    "basis": "SYNTHETIC golden for the front-end tests; describes no real tree.",
+    "browserEndToEnd": {
+      "milestone": "M0",
+      "note": "A browser suite exists (synthetic).",
+      "reference": "TESTING.md (synthetic golden)",
+      "state": "partial"
+    },
+    "contractSnapshots": {
+      "byCrate": [
+        {
+          "count": 11,
+          "name": "pfp-server"
+        }
+      ],
+      "fileCount": 11,
+      "status": {
+        "milestone": "M0",
+        "note": "synthetic",
+        "reference": "TESTING.md (synthetic golden)",
+        "state": "present"
+      }
+    },
+    "fixtures": {
+      "invalid": [
+        {
+          "path": "fixtures/plans/broken.json",
+          "problem": "not JSON: synthetic parse error"
+        }
+      ],
+      "otherDirectories": [
+        {
+          "count": 1,
+          "name": "fixtures/scratch"
+        }
+      ],
+      "status": {
+        "milestone": "M0",
+        "note": "synthetic",
+        "reference": "TESTING.md (synthetic golden)",
+        "state": "partial"
+      },
+      "tiers": [
+        {
+          "byMilestone": [
+            {
+              "count": 3,
+              "name": "M0"
+            }
+          ],
+          "byMilestoneAndVerification": [
+            {
+              "count": 1,
+              "milestone": "M0",
+              "verification": "hand-worked-reviewed"
+            },
+            {
+              "count": 2,
+              "milestone": "M0",
+              "verification": "primary-source-confirmed"
+            }
+          ],
+          "byModule": [
+            {
+              "count": 3,
+              "name": "pfp-money"
+            }
+          ],
+          "byVerification": [
+            {
+              "count": 1,
+              "name": "hand-worked-reviewed"
+            },
+            {
+              "count": 2,
+              "name": "primary-source-confirmed"
+            }
+          ],
+          "directory": "fixtures/tier1",
+          "fileCount": 3,
+          "files": [
+            {
+              "caseCount": 4,
+              "id": "t1/money/a",
+              "milestone": "M0",
+              "module": "pfp-money",
+              "paramVintage": "federal-2026@synthetic",
+              "path": "fixtures/tier1/money/a.json",
+              "synthetic": false,
+              "verification": "primary-source-confirmed"
+            },
+            {
+              "caseCount": 4,
+              "id": "t1/money/b",
+              "milestone": "M0",
+              "module": "pfp-money",
+              "paramVintage": "federal-2026@synthetic",
+              "path": "fixtures/tier1/money/b.json",
+              "synthetic": false,
+              "verification": "primary-source-confirmed"
+            },
+            {
+              "caseCount": 4,
+              "id": "t1/ledger/c",
+              "milestone": "M0",
+              "module": "pfp-money",
+              "paramVintage": "federal-2026@synthetic",
+              "path": "fixtures/tier1/ledger/c.json",
+              "reviewKind": "cooling-off-re-review",
+              "synthetic": true,
+              "verification": "hand-worked-reviewed"
+            }
+          ],
+          "reviewKinds": [
+            {
+              "count": 1,
+              "name": "cooling-off-re-review"
+            }
+          ],
+          "status": {
+            "milestone": "M0",
+            "note": "synthetic",
+            "reference": "TESTING.md (synthetic golden)",
+            "state": "present"
+          },
+          "tier": "tier1"
+        },
+        {
+          "byMilestone": [
+            {
+              "count": 0,
+              "name": "M0"
+            }
+          ],
+          "byMilestoneAndVerification": [],
+          "byModule": [
+            {
+              "count": 0,
+              "name": "pfp-money"
+            }
+          ],
+          "byVerification": [],
+          "directory": "fixtures/tier2",
+          "fileCount": 0,
+          "files": [],
+          "reviewKinds": [],
+          "status": {
+            "milestone": "M0",
+            "note": "synthetic",
+            "reference": "TESTING.md (synthetic golden)",
+            "state": "not-yet-introduced"
+          },
+          "tier": "tier2"
+        },
+        {
+          "byMilestone": [
+            {
+              "count": 0,
+              "name": "M0"
+            }
+          ],
+          "byMilestoneAndVerification": [],
+          "byModule": [
+            {
+              "count": 0,
+              "name": "pfp-money"
+            }
+          ],
+          "byVerification": [],
+          "directory": "fixtures/tier3",
+          "fileCount": 0,
+          "files": [],
+          "reviewKinds": [],
+          "status": {
+            "milestone": "M0",
+            "note": "synthetic",
+            "reference": "TESTING.md (synthetic golden)",
+            "state": "not-yet-introduced"
+          },
+          "tier": "tier3"
+        },
+        {
+          "byMilestone": [
+            {
+              "count": 0,
+              "name": "M0"
+            }
+          ],
+          "byMilestoneAndVerification": [],
+          "byModule": [
+            {
+              "count": 0,
+              "name": "pfp-money"
+            }
+          ],
+          "byVerification": [],
+          "directory": "fixtures/personas",
+          "fileCount": 0,
+          "files": [],
+          "reviewKinds": [],
+          "status": {
+            "milestone": "M0",
+            "note": "synthetic",
+            "reference": "TESTING.md (synthetic golden)",
+            "state": "not-yet-introduced"
+          },
+          "tier": "personas"
+        },
+        {
+          "byMilestone": [
+            {
+              "count": 1,
+              "name": "M0"
+            }
+          ],
+          "byMilestoneAndVerification": [
+            {
+              "count": 1,
+              "milestone": "M0",
+              "verification": "unstated"
+            }
+          ],
+          "byModule": [
+            {
+              "count": 1,
+              "name": "pfp-money"
+            }
+          ],
+          "byVerification": [
+            {
+              "count": 1,
+              "name": "unstated"
+            }
+          ],
+          "directory": "fixtures/plans",
+          "fileCount": 2,
+          "files": [
+            {
+              "caseCount": 4,
+              "id": "plans/demo",
+              "milestone": "M0",
+              "module": "pfp-money",
+              "paramVintage": "federal-2026@synthetic",
+              "path": "fixtures/plans/demo.plan.json",
+              "reviewKind": "generated",
+              "synthetic": true,
+              "verification": "unstated"
+            }
+          ],
+          "reviewKinds": [
+            {
+              "count": 1,
+              "name": "generated"
+            }
+          ],
+          "status": {
+            "milestone": "M0",
+            "note": "synthetic",
+            "reference": "TESTING.md (synthetic golden)",
+            "state": "present"
+          },
+          "tier": "plans"
+        },
+        {
+          "byMilestone": [
+            {
+              "count": 1,
+              "name": "M0"
+            }
+          ],
+          "byMilestoneAndVerification": [
+            {
+              "count": 1,
+              "milestone": "M0",
+              "verification": "pending-hand-verification"
+            }
+          ],
+          "byModule": [
+            {
+              "count": 1,
+              "name": "pfp-money"
+            }
+          ],
+          "byVerification": [
+            {
+              "count": 1,
+              "name": "pending-hand-verification"
+            }
+          ],
+          "directory": "fixtures/pending",
+          "fileCount": 1,
+          "files": [
+            {
+              "caseCount": 4,
+              "id": "pending/money/d",
+              "milestone": "M0",
+              "module": "pfp-money",
+              "paramVintage": "federal-2026@synthetic",
+              "path": "fixtures/pending/money/d.json",
+              "synthetic": false,
+              "verification": "pending-hand-verification"
+            }
+          ],
+          "reviewKinds": [],
+          "status": {
+            "milestone": "M0",
+            "note": "synthetic",
+            "reference": "TESTING.md (synthetic golden)",
+            "state": "present"
+          },
+          "tier": "pending"
+        }
+      ]
+    },
+    "fuzzCorpora": {
+      "milestone": "M4",
+      "note": "No fuzz target exists.",
+      "reference": "TESTING.md (synthetic golden)",
+      "state": "not-yet-introduced"
+    },
+    "generatedOn": "2001-02-03",
+    "mutationScore": {
+      "milestone": "M1",
+      "note": "No budget is declared.",
+      "reference": "TESTING.md (synthetic golden)",
+      "state": "not-yet-introduced"
+    },
+    "oracles": {
+      "milestone": "M1",
+      "note": "No oracle exists.",
+      "reference": "TESTING.md (synthetic golden)",
+      "state": "not-yet-introduced"
+    },
+    "parameters": {
+      "lock": {
+        "checksumMismatchCount": 0,
+        "entryCount": 3,
+        "lockedVintages": [
+          "params/vintages/federal-2026/"
+        ],
+        "missingCount": 0,
+        "note": "Every entry verifies (synthetic).",
+        "present": true,
+        "unlistedCount": 0,
+        "unverifiedVintages": []
+      },
+      "provenance": {
+        "cataloguedCount": 5,
+        "checksumMatchCount": 5,
+        "checksumMismatchCount": 0,
+        "fileCount": 23,
+        "missingCount": 0,
+        "verification": "primary-source-confirmed"
+      },
+      "status": {
+        "milestone": "M0",
+        "note": "federal-2026 is locked and verified.",
+        "reference": "TESTING.md (synthetic golden)",
+        "state": "present"
+      },
+      "vintages": [
+        {
+          "archive": {
+            "archivedCount": 10,
+            "checksumMatchCount": 10,
+            "checksumMismatchCount": 0,
+            "missingCount": 0,
+            "sourceCount": 10
+          },
+          "contentId": "federal-2026@synthetic",
+          "documents": [
+            {
+              "archive": {
+                "archivedCount": 4,
+                "checksumMatchCount": 4,
+                "checksumMismatchCount": 0,
+                "missingCount": 0,
+                "sourceCount": 4
+              },
+              "id": "irs.ordinary_brackets",
+              "kind": "table",
+              "openItemCount": 0,
+              "openItems": [],
+              "verification": "primary-source-confirmed"
+            },
+            {
+              "archive": {
+                "archivedCount": 6,
+                "checksumMatchCount": 6,
+                "checksumMismatchCount": 0,
+                "missingCount": 0,
+                "sourceCount": 6
+              },
+              "id": "bls.cpi.chained.suur0000sa0",
+              "kind": "index-series",
+              "openItemCount": 0,
+              "openItems": [],
+              "verification": "primary-source-confirmed"
+            }
+          ],
+          "indexSeriesCount": 1,
+          "locked": true,
+          "lockedId": "federal-2026@synthetic",
+          "name": "federal-2026",
+          "openItemCount": 0,
+          "tableCount": 2,
+          "verification": [
+            {
+              "count": 3,
+              "name": "primary-source-confirmed"
+            }
+          ],
+          "verified": true
+        }
+      ]
+    },
+    "performanceBudgets": {
+      "budgets": [
+        {
+          "budget": "Cold start",
+          "milestone": "M0",
+          "threshold": "Launch to browser under 2 s"
+        }
+      ],
+      "status": {
+        "milestone": "M0",
+        "note": "No bench exists.",
+        "reference": "TESTING.md (synthetic golden)",
+        "state": "not-yet-introduced"
+      }
+    },
+    "pins": {
+      "applicationVersion": "0.0.0-golden",
+      "licence": "Apache-2.0",
+      "lockedParamVintageIds": [
+        "federal-2026@synthetic"
+      ],
+      "note": "Synthetic.",
+      "paramVintageContentIds": [
+        "federal-2026@synthetic"
+      ]
+    },
+    "properties": {
+      "files": [
+        {
+          "caseCount": 2048,
+          "crate": "pfp-money",
+          "path": "crates/pfp-money/tests/properties.rs",
+          "propertyNames": [
+            "rounding_is_idempotent"
+          ]
+        }
+      ],
+      "invariants": [
+        {
+          "crateName": "pfp-params",
+          "id": "I7",
+          "milestone": "M0",
+          "name": "Uprating idempotent and path-independent"
+        }
+      ],
+      "invariantsDueAtM0": [
+        "I7"
+      ],
+      "propertyCount": 1,
+      "status": {
+        "milestone": "M0",
+        "note": "synthetic",
+        "reference": "TESTING.md (synthetic golden)",
+        "state": "partial"
+      }
+    },
+    "refused": [
+      {
+        "reason": "Appears nowhere in its cited source (synthetic).",
+        "target": "A synthetic folklore number"
+      }
+    ],
+    "securitySuite": {
+      "areas": [
+        {
+          "area": "Server and browser",
+          "milestone": "M0"
+        }
+      ],
+      "status": {
+        "milestone": "M0",
+        "note": "synthetic",
+        "reference": "TESTING.md (synthetic golden)",
+        "state": "partial"
+      },
+      "testIdsNamed": [
+        "S-01",
+        "S-02"
+      ]
+    },
+    "testInventory": {
+      "byCrate": [
+        {
+          "count": 43,
+          "name": "pfp-money"
+        }
+      ],
+      "note": "Declared, not run (synthetic).",
+      "webTestCount": 184
+    },
+    "tier2Suites": {
+      "milestone": "M1",
+      "note": "No suite has been transliterated.",
+      "reference": "TESTING.md (synthetic golden)",
+      "state": "not-yet-introduced"
+    },
+    "tier3Goldens": {
+      "milestone": "M3",
+      "note": "No golden exists.",
+      "reference": "TESTING.md (synthetic golden)",
+      "state": "not-yet-introduced"
+    },
+    "unverified": {
+      "items": [
+        {
+          "gate": "M1, before a synthetic lock",
+          "item": "A synthetic open item",
+          "milestone": "M1"
+        }
+      ],
+      "parameterOpenItems": [
+        {
+          "document": "irs.ordinary_brackets",
+          "item": "A synthetic open question"
+        }
+      ],
+      "pendingFixtureCount": 1,
+      "pendingParameterDocumentCount": 0,
+      "tier1HandWorkedReviewedCount": 1,
+      "tier1PrimarySourceConfirmedCount": 2
+    }
+  },
+  "state": "generated"
+}

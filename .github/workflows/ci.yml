@@ -1,14 +1,18 @@
 #
 # Stage 1 — per push and per pull request (TESTING.md §11.1, target ~15 minutes).
 #
-# Every job here is a merge gate (TESTING.md §11.2 item 1). The five jobs are the
-# five kinds of thing that can be wrong with a change:
+# Every job here is a merge gate (TESTING.md §11.2 item 1). The six jobs are the
+# six kinds of thing that can be wrong with a change:
 #
 #   rust          it does not build, is not formatted, or trips a lint or a test
 #   purity        it broke the engine's no-I/O contract (determinism rule D1)
 #   supply-chain  it added an advisory, a forbidden licence, a ban or a git source
-#   hygiene       it put user data, a secret or a ground-truth edit in the repository
+#   hygiene       it put user data, a secret or a ground-truth edit in the repository,
+#                 or let a generated document (the validation report, the assumption
+#                 catalogue) drift from the tree it is generated from
 #   web           the front end does not build, or a package licence is not permitted
+#   embedded      the executable does not embed the real front end, or the release
+#                 profile does not build
 #
 # Deliberately absent, each because the thing it checks does not exist yet: the
 # three fixture tiers, property tests, the `pfp-sim` feature matrix, the OpenAPI
@@ -68,6 +72,10 @@ env:
   HOMEBREW_NO_INSTALL_CLEANUP: "1"
   HOMEBREW_NO_ANALYTICS: "1"
   CARGO_TERM_COLOR: always
+  # insta never writes or accepts a snapshot here: a mismatch is a failed test,
+  # not a `.snap.new` beside the committed file. insta already resolves its
+  # default to this when `CI` is set; written down so that it is not inherited.
+  INSTA_UPDATE: "no"
   # Deliberately NOT `RUSTFLAGS: -D warnings`: RUSTFLAGS reaches every crate
   # compiled, dependencies included, so one upstream deprecation would fail the
   # build for a reason nobody in this repository can fix. Warnings are denied
@@ -184,11 +192,11 @@ jobs:
   # hygiene — the repository is the application only
   # -------------------------------------------------------------------------
   #
-  # SECURITY.md §13 and ADR-023. Four `xtask` gates plus gitleaks. `fetch-depth:
+  # SECURITY.md §13 and ADR-023. Five `xtask` gates plus gitleaks. `fetch-depth:
   # 0` is needed because `protected-paths` is checked against the pull request's
   # own diff, which needs the merge base.
   hygiene:
-    name: hygiene (magic, dollars, data, protected paths, gitleaks)
+    name: hygiene (magic, dollars, data, server lints, protected paths, gitleaks)
     runs-on: macos-15
     timeout-minutes: 20
     steps:
@@ -216,6 +224,25 @@ jobs:
 
       - name: Data hygiene
         run: cargo xtask data-hygiene
+
+      # The generated documents are pure functions of the tree (PLAN.md §4.1,
+      # §4.13 item 8; TESTING.md §13): a stale docs/validation-report.md or
+      # docs/assumption-catalogue.md fails here, and the xtask test suite asserts
+      # the same. No clock enters either, so the comparison is exact.
+      - name: Validation report drift
+        run: cargo xtask validation-report --check
+
+      - name: Assumption catalogue drift
+        run: cargo xtask assumption-catalogue --check
+
+      # The source rules of the server half (SECURITY.md §3.7, §7.1, §11): file
+      # and socket access only in the crates allowed them, and no credential on
+      # a command line or in the environment. `data-hygiene` above already runs
+      # the same rules; the separate step is here so that a violation is reported
+      # under its own name, and so that the gate survives `data-hygiene` being
+      # rearranged.
+      - name: Server source rules
+        run: cargo xtask lint-server
 
       # Ground-truth paths — `fixtures/tier1/` and locked `params/` vintages —
       # are checked against the pull request's diff (ADR-022). The base
@@ -314,5 +341,114 @@ jobs:
       - name: Per-package licence check
         run: npm run licenses
 
+      # `npm run build` runs the same tests again before it bundles; the separate
+      # step is here so that a failing test is reported as a failing test.
+      - name: Test
+        run: npm test
+
       - name: Type-check and build
         run: npm run build
+
+  # -------------------------------------------------------------------------
+  # embedded — the executable with the real front end inside it
+  # -------------------------------------------------------------------------
+  #
+  # `web/dist` is git-ignored, so the `rust` job above compiles `pfp-server` with
+  # no bundle: its build script takes the debug-only branch that serves a built-in
+  # placeholder page, and every test there runs against the placeholder. That is
+  # deliberate (the Rust suite must pass on a checkout with no Node), but it means
+  # a green `rust` job proves nothing about the embedding. This job is the other
+  # half, in one runner so that no artifact has to travel between jobs:
+  #
+  #   1. `cargo xtask validation-report` — the validation report the server embeds
+  #      (PLAN.md §4.13 item 8), generated into git-ignored build/; the `rust` job
+  #      runs without it and exercises the "report not generated" state;
+  #   2. `cargo xtask build-web` — `npm ci --ignore-scripts`, `npm run build`, the
+  #      shape check on `web/dist`, and the Rust recomputation of the input hash
+  #      that `npm run build` recorded (the two implementations must agree);
+  #   3. the whole test suite again, now with the real bundle and the report embedded;
+  #   4. the release profile (`lto = "fat"`, `codegen-units = 1`, `panic = "abort"`),
+  #      which no other job compiles, and whose build script FAILS on an absent or
+  #      stale bundle, or an absent report, instead of falling back.
+  #
+  # Not a release: nothing is signed, uploaded or kept.
+  embedded:
+    name: embedded (bundle, tests against it, release build)
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install the pinned toolchain
+        run: rustup show
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: web/.nvmrc
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Generate the validation report
+        run: cargo xtask validation-report
+
+      - name: Build the front end
+        run: cargo xtask build-web
+
+      # `pfp-server` and `pfp-app` are compiled here with the real bundle: the build
+      # script has decided that `web/dist` is present and fresh (a stale bundle is
+      # a warning in this profile and an error in the release profile below), and
+      # the embedded-asset tests run instead of skipping.
+      - name: Tests with the real bundle embedded
+        run: cargo test --workspace --all-features --locked
+
+      - name: Release build
+        run: cargo build --release -p pfp-app --locked
+
+      # What was just built is the real thing: it runs, and the front end inside
+      # it is the bundle, not the placeholder. `--version` starts no server and
+      # opens nothing. The asset name is read from `web/dist`, not written here.
+      - name: The release executable embeds the bundle
+        run: |
+          set -euo pipefail
+          ./target/release/pfp --version
+          found=0
+          for asset in web/dist/assets/*.js; do
+            name="assets/$(basename "$asset")"
+            if LC_ALL=C grep -q -a -F "$name" target/release/pfp; then
+              echo "embedded: $name"
+              found=1
+            fi
+          done
+          if [ "$found" -ne 1 ]; then
+            echo "no script of web/dist/assets is named inside target/release/pfp" >&2
+            exit 1
+          fi
+
+      # The same guard for the validation report: with none generated the release
+      # profile must REFUSE to build instead of serving the "not generated" state.
+      - name: The release profile refuses to build without the validation report
+        run: |
+          set -euo pipefail
+          mv build/validation-report.json "${RUNNER_TEMP}/validation-report.aside"
+          if cargo build --release -p pfp-app --locked 2> "${RUNNER_TEMP}/no-report.log"; then
+            echo "a release build succeeded with build/validation-report.json absent" >&2
+            exit 1
+          fi
+          grep -F "no validation report to embed" "${RUNNER_TEMP}/no-report.log"
+          mv "${RUNNER_TEMP}/validation-report.aside" build/validation-report.json
+
+      # The release-only guard, exercised rather than trusted: with no bundle the
+      # release profile must REFUSE to build instead of embedding the placeholder.
+      # Last, because it leaves the release build script in its failed state.
+      - name: The release profile refuses to build without the bundle
+        run: |
+          set -euo pipefail
+          mv web/dist "${RUNNER_TEMP}/dist.aside"
+          if cargo build --release -p pfp-app --locked 2> "${RUNNER_TEMP}/no-bundle.log"; then
+            echo "a release build succeeded with web/dist absent" >&2
+            exit 1
+          fi
+          grep -F "web/dist is absent" "${RUNNER_TEMP}/no-bundle.log"
+          mv "${RUNNER_TEMP}/dist.aside" web/dist

@@ -1,0 +1,86 @@
+/*
+ * Form patterns. Target size (WCAG 2.2 SC 2.5.8): met by MINIMUM SIZE, 24 by 24
+ * CSS pixels or more, not by the spacing exception.
+ */
+
+.field {
+  display: grid;
+  gap: var(--pfp-space-1);
+  justify-items: start;
+  max-width: var(--pfp-measure);
+}
+
+.field label {
+  font-weight: 600;
+}
+
+.hint {
+  color: var(--pfp-ink-muted);
+  font-size: 0.9375rem;
+}
+
+/* An error is words beside its field, with a mark that is not a colour. */
+.fieldError {
+  padding-left: var(--pfp-space-2);
+  border-left: 4px double var(--pfp-attention-ink);
+  color: var(--pfp-attention-ink);
+  font-weight: 600;
+}
+
+.errorSummary {
+  display: grid;
+  gap: var(--pfp-space-2);
+  max-width: var(--pfp-measure);
+  padding: var(--pfp-space-3);
+  border: 3px double var(--pfp-attention-ink);
+  border-radius: var(--pfp-radius);
+  background-color: var(--pfp-surface);
+}
+
+.errorTitle {
+  font-size: 1.125rem;
+}
+
+.errorList {
+  display: grid;
+  gap: var(--pfp-space-1);
+  list-style: none;
+}
+
+.errorJump {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
+  min-inline-size: 1.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--pfp-attention-ink);
+  text-align: start;
+  text-decoration: underline;
+}
+
+.submit {
+  justify-self: start;
+  background-color: var(--pfp-accent);
+  color: var(--pfp-accent-ink);
+  font-weight: 600;
+}
+
+.actions {
+  display: grid;
+  gap: var(--pfp-space-2);
+}
+
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pfp-space-2);
+}
+
+@media print {
+  .errorSummary,
+  .actions {
+    display: none;
+  }
+}

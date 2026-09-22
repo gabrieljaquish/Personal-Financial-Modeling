@@ -1,0 +1,17 @@
+---
+source: crates/pfp-server/tests/ui_golden.rs
+expression: "serde_json::to_string_pretty(&status_value).expect(\"JSON\")"
+---
+{
+  "apiVersion": "v1",
+  "appVersion": "0.0.0-golden",
+  "licence": "Apache-2.0",
+  "trustMode": "declined",
+  "vintages": [
+    {
+      "contentId": "federal-2026@d547e4b85b265820ce0253afcf87f5f58d7afd28c2d058ceb25f3aaf489d1281",
+      "name": "federal-2026",
+      "verified": false
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+/*
+ * Table patterns. Target size (WCAG 2.2 SC 2.5.8): in-cell controls meet it by
+ * MINIMUM SIZE, 24 by 24 CSS pixels or more, not by the spacing exception; where
+ * several sit in one cell, their list keeps a gap between them.
+ */
+
+/*
+ * A wide table scrolls inside its own region - focusable, so the keyboard can
+ * scroll it - and the page itself never scrolls sideways (WCAG 1.4.10).
+ */
+.scrollRegion {
+  max-inline-size: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--pfp-border);
+  border-radius: var(--pfp-radius);
+  background-color: var(--pfp-surface);
+}
+
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.table caption {
+  padding: var(--pfp-space-2) var(--pfp-space-3);
+  font-weight: 650;
+  text-align: start;
+}
+
+.table th,
+.table td {
+  padding: var(--pfp-space-2) var(--pfp-space-3);
+  border-top: 1px solid var(--pfp-border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table thead th {
+  border-bottom: 2px solid var(--pfp-ink);
+  white-space: nowrap;
+}
+
+.table tbody th {
+  font-weight: 600;
+}
+
+/* Money: right-aligned, tabular figures, never broken across lines. */
+.amount,
+.amountHead {
+  font-family: var(--pfp-font-numeric);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  white-space: nowrap;
+}
+
+.table td.amount,
+.table th.amountHead {
+  text-align: end;
+}
+
+/* The result row says "Result" in words; the rule above it is decoration. */
+.resultRow th,
+.resultRow td {
+  border-top: 3px double var(--pfp-ink);
+}
+
+.resultMark {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.cellList,
+.paramList {
+  display: grid;
+  gap: var(--pfp-space-1);
+  list-style: none;
+}
+
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
+  min-inline-size: 1.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--pfp-ink);
+  font-weight: 650;
+  text-decoration: underline;
+}
+
+.paramRef,
+.rowLink {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 1.5rem;
+  min-inline-size: 1.5rem;
+  overflow-wrap: anywhere;
+}
+
+.paramText {
+  overflow-wrap: anywhere;
+}
+
+@media print {
+  .scrollRegion {
+    overflow: visible;
+    border: 0;
+  }
+
+  .table th,
+  .table td {
+    border: 1px solid #000000;
+  }
+
+  .table thead {
+    display: table-header-group;
+  }
+
+  .table tr {
+    break-inside: avoid;
+  }
+}

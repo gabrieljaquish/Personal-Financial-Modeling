@@ -1,0 +1,29 @@
+.notice {
+  display: grid;
+  gap: var(--pfp-space-3);
+  justify-items: start;
+  padding: var(--pfp-space-3);
+  border: 3px double var(--pfp-attention-ink);
+  border-radius: var(--pfp-radius);
+  background-color: var(--pfp-surface);
+}
+
+.heading {
+  font-size: 1.375rem;
+  font-weight: 650;
+}
+
+.text {
+  max-width: var(--pfp-measure);
+}
+
+.action {
+  font-weight: 600;
+}
+
+/* A notice that offers an action is screen furniture; its button cannot work on paper. */
+@media print {
+  .action {
+    display: none;
+  }
+}

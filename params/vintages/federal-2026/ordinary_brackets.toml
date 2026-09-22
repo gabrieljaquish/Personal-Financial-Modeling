@@ -1,0 +1,275 @@
+# The ordinary income-tax rate schedule, tax years 2025 and 2026.
+#
+# One rate schedule is one object: the six indexed dollar EDGES per filing
+# status (`values`, `projection`) and the seven RATES that apply between them
+# (`[rates]`). The two are kept in one table because the edges are the only
+# part that is projected, so the table has exactly one projection rule and one
+# rounding rule — the ones that govern the edges. A separate never-indexed
+# rates table would have to carry a `RoundingRule` it does not have: no
+# statutory rule rounds a tax rate. See deviation 5 in `VINTAGE.md`.
+#
+# The cumulative-tax column the Rev. Procs. print beside each row ("$2,480 plus
+# 12% of the excess over $24,800") is deliberately NOT transcribed: ADR-007
+# makes the rate-schedule formula the canonical computation, so storing the
+# cumulative figures would create a second source of truth for the same number.
+# It is used in the log as a transcription check and nowhere else.
+#
+# STATUS: PENDING HAND VERIFICATION. Not locked. See `VINTAGE.md`.
+
+id           = "irs.ordinary_brackets"
+unit         = "USD"                 # integer dollars as published; governs
+                                     # `values` and `projection.base_values`.
+                                     # `[rates]` declares its own unit, because
+                                     # a rate is not a dollar amount and
+                                     # `DOMAIN-MODEL.md` §15's `unit` is a
+                                     # scalar per table (deviation 5).
+period       = "year"
+breakdown    = ["filingStatus"]      # wire forms of `FilingStatus`
+                                     # (`DOMAIN-MODEL.md` §4, §15):
+                                     # single | mfj | mfs | hoh | qss
+as_of        = "2025-10-09"          # law as in effect on this date: Rev. Proc.
+                                     # 2025-32 §1. The 2025 row comes from Rev.
+                                     # Proc. 2024-40, whose own as-of is
+                                     # 2024-10-22 (§1) — see the note below.
+verification = "pending-hand-verification"
+
+# Ordered low to high. Each id names the dollar amount at which that bracket
+# ENDS, which is equivalently the amount at which the next bracket BEGINS. The
+# 37% bracket does not end, so there are six edges for seven rates.
+edges = ["top_of_10", "top_of_12", "top_of_22", "top_of_24", "top_of_32", "top_of_35"]
+
+# ---------------------------------------------------------------------------
+# Published values
+# ---------------------------------------------------------------------------
+# 2025: Rev. Proc. 2024-40 §2.01, printed pages 5-7. NOT superseded by the
+#       OBBBA: PL 119-21 §70101(c) applies the §1 amendments only to taxable
+#       years beginning after 2025-12-31, and Rev. Proc. 2025-32 §3 removes
+#       only §2.15(1) and §2.25 of Rev. Proc. 2024-40, not §2.01.
+# 2026: Rev. Proc. 2025-32 §4.01, printed pages 10-12.
+#
+# `qss` has no table of its own in either document or in the statute:
+# §1(j)(2)(A) is headed "Married individuals filing joint returns and surviving
+# spouses". The `mfj` column is therefore duplicated into `qss` explicitly — an
+# absent key would price a surviving spouse at zero (`DOMAIN-MODEL.md` §15).
+
+[values.mfj]                         # Rev. Proc. TABLE 1, §1(j)(2)(A)
+2025 = [23850, 96950, 206700, 394600, 501050, 751600]
+2026 = [24800, 100800, 211400, 403550, 512450, 768700]
+
+[values.qss]                         # same TABLE 1; see the note above
+2025 = [23850, 96950, 206700, 394600, 501050, 751600]
+2026 = [24800, 100800, 211400, 403550, 512450, 768700]
+
+[values.hoh]                         # Rev. Proc. TABLE 2, §1(j)(2)(B)
+2025 = [17000, 64850, 103350, 197300, 250500, 626350]
+2026 = [17700, 67450, 105700, 201750, 256200, 640600]
+
+[values.single]                      # Rev. Proc. TABLE 3, §1(j)(2)(C)
+2025 = [11925, 48475, 103350, 197300, 250525, 626350]
+2026 = [12400, 50400, 105700, 201775, 256225, 640600]
+
+[values.mfs]                         # Rev. Proc. TABLE 4, §1(j)(2)(D)
+2025 = [11925, 48475, 103350, 197300, 250525, 375800]
+2026 = [12400, 50400, 105700, 201775, 256225, 384350]
+
+# ---------------------------------------------------------------------------
+# The rate ladder
+# ---------------------------------------------------------------------------
+# Seven rates, one more than there are edges: rate[i] applies up to edges[i],
+# and rate[6] applies above edges[5]. Identical in 2025 and 2026 and across
+# every `FilingStatus` — only the edges differ, which is why this is not
+# broken down by filing status.
+#
+# NEVER INDEXED, and explicitly so (`ENGINE-SPEC.md` §1.3). 26 USC 1(f)(2)(A)
+# adjusts "the minimum and maximum dollar amounts for each bracket for which a
+# tax is imposed under such table", not the rate imposed within it, and 26 USC
+# 1(j)(2)(A)-(D) fix the rates in the statutory tables. Rev. Proc. 2025-32
+# §2.01 (printed page 5) states it in prose: "The existing seven tax rates of
+# 10%, 12%, 22%, 24%, 32%, 35%, and 37% remain in effect for individual
+# taxpayers."
+#
+# DECIMAL STRINGS, not TOML floats. A bare `0.12` in TOML is IEEE-754
+# binary64, which ADR-007 and `ARCHITECTURE.md` §4.3 D3 forbid in a money
+# path; ADR-007 says `Ratio` is "parsed from decimal strings or fractions", so
+# the string is the faithful carrier. "0.10" is the exact rational 1/10.
+[rates]
+unit = "ratio"
+rule = "flat"                        # never indexed; see above
+2025 = ["0.10", "0.12", "0.22", "0.24", "0.32", "0.35", "0.37"]
+2026 = ["0.10", "0.12", "0.22", "0.24", "0.32", "0.35", "0.37"]
+
+# No `rounding` block on `[rates]`: no statutory rule rounds a tax rate, and a
+# `RoundingRule` invented to satisfy a shape would be a fiction in the one file
+# a reader consults to find out what the law says.
+
+# ---------------------------------------------------------------------------
+# Projection (of the EDGES; the rates above are flat)
+# ---------------------------------------------------------------------------
+
+[projection]
+rule         = "index"
+index        = "cpi.chained"                # C-CPI-U, named by 26 USC 1(f)(6)(A)
+index_series = "cpi.chained.aug12m"         # the 12-month mean ending August 31,
+                                            # 26 USC 1(f)(6)(B). Resolves against
+                                            # the `index_series` name an archived
+                                            # series table declares; today that is
+                                            # `bls.cpi.chained.suur0000sa0`
+                                            # (`params/index-series/`)
+lag_years    = 1                            # SHAPE EXTENSION (deviation 7). The
+                                            # adjustment for tax year Y reads the
+                                            # index for calendar year Y - 1:
+                                            # 26 USC 1(f)(3)(A)(i), verbatim, "the
+                                            # C-CPI-U for the preceding calendar
+                                            # year". On the §5.2 list below.
+
+# `base_year` IS DELIBERATELY ABSENT AS A SCALAR — see `base_year_by_edge`
+# below and deviation 2 in `vintages/federal-2026/VINTAGE.md`. A scalar written here would be
+# false for at least one edge in at least one of the two years this vintage
+# ships, and a false scalar is worse than a missing one.
+
+# Statutory base-year amounts, 26 USC 1(j)(2)(A)-(D), archived
+# `params/provenance/usc/usc26-s1.txt`. Each subparagraph is introduced by "The
+# following table shall be applied in lieu of the table contained in subsection
+# (a)" (resp. (b), (c), (d)). Ordered exactly as `edges`.
+#
+# These amounts are the table for taxable year 2018: §1(j)(3)(A) says "The
+# tables contained in paragraph (2) shall apply without adjustment for taxable
+# years beginning after December 31, 2017, and before January 1, 2019." They
+# are NOT themselves dated to the index base year; the index base year is the
+# year named by the substitution in §1(j)(3)(B)(i) or §1(f)(3)(A)(ii), which is
+# what `base_year_by_edge` records.
+[projection.base_values]
+mfj    = [19050, 77400, 165000, 315000, 400000, 600000]
+qss    = [19050, 77400, 165000, 315000, 400000, 600000]
+hoh    = [13600, 51800,  82500, 157500, 200000, 500000]
+single = [ 9525, 38700,  82500, 157500, 200000, 500000]
+mfs    = [ 9525, 38700,  82500, 157500, 200000, 300000]
+
+# Base year per edge, per tax year. SHAPE EXTENSION (deviation 2).
+#
+# 26 USC 1(j)(3)(B), archived `usc26-s1.txt`, verbatim:
+#
+#   "For taxable years beginning after December 31, 2018, the Secretary shall
+#    prescribe tables which shall apply in lieu of the tables contained in
+#    paragraph (2) in the same manner as under paragraphs (1) and (2) of
+#    subsection (f) (applied without regard to clauses (i) and (ii) of
+#    subsection (f)(2)(A)), except that in prescribing such tables-
+#    (i) solely for purposes of determining the dollar amounts at which any
+#    rate bracket higher than 12 percent ends and at which any rate bracket
+#    higher than 22 percent begins, subsection (f)(3) shall be applied by
+#    substituting 'calendar year 2017' for 'calendar year 2016' in subparagraph
+#    (A)(ii) thereof, ..."
+#
+# The words "solely for purposes of determining the dollar amounts at which any
+# rate bracket higher than 12 percent ends and at which any rate bracket higher
+# than 22 percent begins," were INSERTED into clause (i) by PL 119-21
+# §70101(b), and §70101(c) applies that amendment to taxable years beginning
+# after 2025-12-31. An insertion means the clause applied unrestricted before:
+# for tax year 2025 the 2017 substitution reaches every edge.
+#
+# On the 10/12/22/24/32/35/37 ladder §1(j)(2) fixes, the two descriptions in
+# clause (i) pick out the same four amounts — the tops of the 22%, 24%, 32% and
+# 35% brackets — and the tops of the 10% and 12% brackets are described by
+# neither, so they fall back to the "calendar year 2016" of §1(f)(3)(A)(ii).
+#
+# READING, NOT QUOTATION, and on the §5.2 hand-verification list: the statute
+# states the base years and the rule; mapping the two descriptions onto named
+# edges of the seven-rate ladder is a reading of those words.
+[projection.base_year_by_edge.2025]
+top_of_10 = 2017
+top_of_12 = 2017
+top_of_22 = 2017
+top_of_24 = 2017
+top_of_32 = 2017
+top_of_35 = 2017
+
+[projection.base_year_by_edge.2026]
+top_of_10 = 2016                     # outside clause (i) from tax year 2026
+top_of_12 = 2016                     # outside clause (i) from tax year 2026
+top_of_22 = 2017
+top_of_24 = 2017
+top_of_32 = 2017
+top_of_35 = 2017
+
+[projection.rounding]
+direction = "down"                   # "rounded to the next lowest multiple",
+                                     # 26 USC 1(f)(7)(A)
+basis     = "IncreaseOverBase"        # the *increase* is rounded, not the total:
+                                     # "If any increase determined under
+                                     # paragraph (2)(A) ... is not a multiple of
+                                     # $50, such increase shall be rounded ..."
+                                     # 26 USC 1(f)(7)(A)
+
+# `increment` IS DELIBERATELY ABSENT AS A SCALAR. SHAPE EXTENSION
+# (deviation 1): the increment is per filing status.
+#   $25 for `mfs`    — 26 USC 1(f)(7)(B), "In the case of a married individual
+#                      filing a separate return, subparagraph (A) (other than
+#                      with respect to sections 63(c)(4) and 151(d)(4)(A))
+#                      shall be applied by substituting '$25' for '$50' each
+#                      place it appears."
+#   $25 for `single` — 26 USC 1(j)(3)(B)(ii), "subsection (f)(7)(B) shall apply
+#                      to any unmarried individual other than a surviving
+#                      spouse or head of household".
+#   $50 otherwise    — 26 USC 1(f)(7)(A).
+[projection.rounding.increment_by_key]
+mfj    = 50
+qss    = 50
+hoh    = 50
+single = 25
+mfs    = 25
+
+# ---------------------------------------------------------------------------
+# Open hand-verification items for THIS table (`TESTING.md` §5.2)
+# ---------------------------------------------------------------------------
+[hand_verification]
+open = [
+  "base_year_by_edge: the mapping of 1(j)(3)(B)(i)'s two descriptions onto the four named edges, and the 2016 fallback for the tops of the 10% and 12% brackets, is a reading of the statutory words rather than a quotation.",
+  "index_series: 26 USC 1(f)(6)(A) names the index by title only. No statutory text maps 'Chained Consumer Price Index for All Urban Consumers' to a BLS series id; the mapping to SUUR0000SA0 rests on BLS's own catalogue (see params/index-series/cpi-chained-suur0000sa0.toml).",
+  "lag_years: that 'the C-CPI-U for the preceding calendar year' (26 USC 1(f)(3)(A)(i)) means calendar year Y - 1 for the tables prescribed for taxable years beginning in calendar year Y (1(f)(1), 1(f)(2)(A)) is to be read back against the statute; it was a constant in code until it was moved here.",
+  "26 USC 1(f)(3)(C) substitution mechanics: after a provision substitutes a later year for '2016' in (A)(ii), the phrase (C) directs replacing is no longer present. The denominator is taken to be the C-CPI-U for the substituted base year. This table stores base years and base amounts only and encodes no denominator, but the projection that reads it depends on that reading.",
+  "26 USC 1(f)(6)(A) fixes WHICH published values of a revisable series count: those latest as of the publication of the initial August C-CPI-U for the preceding calendar year. The archived series is a 2026-09-18 snapshot and may differ from the values the IRS read.",
+]
+
+# ---------------------------------------------------------------------------
+# Provenance
+# ---------------------------------------------------------------------------
+# `sha256` is of the archived AUTHORITY (the publisher's own PDF or HTML), not
+# of the `.txt` extraction beside it. The extractions are derived artefacts and
+# the two USC extractions additionally embed a render-date banner that changes
+# daily, so their digests are not stable.
+
+[[source]]
+title     = "Rev. Proc. 2024-40 §2.01, printed pages 5-7 (2025 rate tables)"
+publisher = "Internal Revenue Service"
+url       = "https://www.irs.gov/pub/irs-drop/rp-24-40.pdf"
+retrieved = "2026-09-18"
+archive   = "params/provenance/irs/rp-24-40.pdf"
+sha256    = "4de9db6b6662b5c305a59100a027051628823b42fd5817ea4e383ad4c302af1f"
+as_of     = "2024-10-22"
+
+[[source]]
+title     = "Rev. Proc. 2025-32 §4.01, printed pages 10-12 (2026 rate tables)"
+publisher = "Internal Revenue Service"
+url       = "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf"
+retrieved = "2026-09-18"
+archive   = "params/provenance/irs/rp-25-32.pdf"
+sha256    = "e9ada115fb43a4af5ea326ca91edd40ab0bf29b9be01d2c13d7b8fa96214635b"
+as_of     = "2025-10-09"
+
+[[source]]
+title     = "26 U.S.C. §1(f), §1(j) (base amounts, base years, rounding)"
+publisher = "Office of the Law Revision Counsel, U.S. House of Representatives"
+url       = "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title26-section1&num=0&edition=prelim"
+retrieved = "2026-09-18"
+archive   = "params/provenance/usc/usc26-s1.html"
+sha256    = "9a23b4e2577dbab0b19b5498407338e0a0dc0f1f78b3d2f7e4b877f180686313"
+locator   = "release point 20260911_119-108 (post-OBBBA); §1(j)(2)(A)-(D), §1(j)(3), §1(f)(3)-(f)(7)"
+
+[[source]]
+title     = "Public Law 119-21 §70101 (amends 26 USC 1(j)), 139 Stat. 158"
+publisher = "U.S. Government Publishing Office"
+url       = "https://www.govinfo.gov/content/pkg/PLAW-119publ21/pdf/PLAW-119publ21.pdf"
+retrieved = "2026-09-18"
+archive   = "params/provenance/congress/PLAW-119publ21.pdf"
+sha256    = "42f86c3d408bccb1a663c11a51a90d207b3dbc25e689240da51726154be51c8b"
+locator   = "PDF page 88 = 139 Stat. 158"

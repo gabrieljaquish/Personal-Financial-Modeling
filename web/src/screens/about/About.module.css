@@ -1,0 +1,58 @@
+/*
+ * The About page. The headline is a status marker: its meaning is in its words,
+ * its border style is the non-colour cue, and it is never hidden in print.
+ */
+
+.headline {
+  max-width: var(--pfp-measure);
+  padding: var(--pfp-space-2) var(--pfp-space-3);
+  border-width: 2px;
+  border-style: dashed;
+  border-color: var(--pfp-attention-ink);
+  border-radius: var(--pfp-radius);
+  background-color: var(--pfp-attention-surface);
+  color: var(--pfp-ink);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.subheading {
+  margin-top: var(--pfp-space-2);
+  font-size: 1.125rem;
+  font-weight: 650;
+}
+
+.entries {
+  display: grid;
+  gap: var(--pfp-space-1);
+  max-width: var(--pfp-measure);
+}
+
+.entries dt {
+  color: var(--pfp-ink-muted);
+  font-size: 0.875rem;
+}
+
+.entries dd {
+  overflow-wrap: anywhere;
+}
+
+/* Content ids and paths are long runs without a break opportunity (WCAG 1.4.10). */
+.code {
+  overflow-wrap: anywhere;
+}
+
+.outOfScope {
+  display: grid;
+  gap: var(--pfp-space-2);
+  max-width: var(--pfp-measure);
+}
+
+.outOfScope dt {
+  font-weight: 650;
+}
+
+.outOfScope dd {
+  padding-left: var(--pfp-space-2);
+  border-left: 2px solid var(--pfp-border);
+}

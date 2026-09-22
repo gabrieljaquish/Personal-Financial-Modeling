@@ -15,6 +15,14 @@
 //! 4. A locked vintage is immutable: every file named in `params/VINTAGES.lock`
 //!    still hashes to its recorded SHA-256, and no file has been added to a
 //!    locked vintage directory. Corrections ship as a new vintage.
+//! 8. `TESTING.md` §11.2 gate 9, driven through the typed loader rather than
+//!    restated here: every `.toml` under `params/index-series/` parses as an
+//!    archived index series; every `.toml` under `params/vintages/<name>/`
+//!    parses as a parameter table (projection rule; `basis = IncreaseOverBase`
+//!    with its base year, base values and index series; breakdown keys that are
+//!    `FilingStatus` wire forms; provenance); and each vintage assembles, which
+//!    requires every `index_series` it names to resolve to an archived series
+//!    table (archived, never fetched). This covers tables no crate embeds.
 //!
 //! It also carries the text-shaped rows of the user-data pattern check
 //! (`SECURITY.md` §13.4), which apply to *every* committable file, not only to
@@ -27,16 +35,20 @@
 //! 7. No JSON document carrying an `"asOf"` stamp (the shape of a fact file)
 //!    outside `fixtures/`.
 //!
+//! 9. The passphrase-flag / `env::var` row of §13.4 and the `std::fs` / `std::net`
+//!    capability bans of §11: both are [`crate::lint_server`], run from here so
+//!    that every gate that runs `data-hygiene` (CI, the pre-commit hook) runs them.
+//!
 //! The remaining §13.4 rows live elsewhere or are not built yet: the container
 //! magic is `check-magic`; the unlabelled-fixture row is rule 2 above; the
-//! real-looking-address row arrives with `fixtures/`, and the passphrase-flag
-//! lint with the `pfp-app` command line (`docs/contributing.md` §8).
+//! real-looking-address row arrives with `fixtures/` (`docs/contributing.md` §8).
 //!
-//! These are presence checks on text. The typed loader in `pfp-params` is what
-//! validates a table's shape; this gate stops a stray data file, an unlabelled
-//! fixture or a silently edited vintage from landing at all.
+//! Rules 1–7 are presence checks on text: they stop a stray data file, an
+//! unlabelled fixture or a silently edited vintage from landing at all. Rule 8 is
+//! the shape check, and it is whatever `pfp-params` accepts, so the gate and the
+//! engine cannot disagree about what a valid table is.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use crate::repo;
@@ -56,6 +68,8 @@ const CONFIG_JSON_BASENAMES: [&str; 6] = [
 const CONFIG_DIRS: [&str; 3] = [".github/", ".claude/", ".vscode/"];
 
 pub(crate) const LOCK_PATH: &str = "params/VINTAGES.lock";
+const VINTAGES_DIR: &str = "params/vintages/";
+const INDEX_SERIES_DIR: &str = "params/index-series/";
 
 /// The documented fixture allowlist for SSN-shaped strings (`SECURITY.md` §13.4).
 /// Exact repository-relative paths under `fixtures/` only; each entry needs a
@@ -67,6 +81,7 @@ pub(crate) fn run() -> Result<bool, String> {
     let files = repo::files(&root)?;
     let mut violations = Vec::new();
     let mut rels = Vec::new();
+    let mut documents = Vec::new();
     for path in &files {
         let rel = repo::relative(&root, path);
         if rel == LOCK_PATH {
@@ -79,17 +94,27 @@ pub(crate) fn run() -> Result<bool, String> {
         for msg in check_patterns(&rel, &bytes) {
             violations.push(format!("{rel}: {msg}"));
         }
+        if is_loader_document(&rel) {
+            documents.push((rel.clone(), String::from_utf8_lossy(&bytes).into_owned()));
+        }
         rels.push(rel);
     }
+    let (loader_violations, vintage_ids) = check_vintages(&documents);
+    violations.extend(loader_violations);
     let lock_file = root.join(LOCK_PATH);
     if lock_file.is_file() {
         let lock = String::from_utf8_lossy(&repo::read(&lock_file)?).into_owned();
         violations.extend(check_lock(&root, &lock, &rels)?);
     }
+    violations.extend(crate::lint_server::violations(&root)?);
     for v in &violations {
         eprintln!("data-hygiene: {v}");
     }
     if violations.is_empty() {
+        for id in &vintage_ids {
+            // What a lock would record; printing it claims nothing about the vintage.
+            eprintln!("data-hygiene: vintage content id {id}");
+        }
         eprintln!("data-hygiene: clean");
         Ok(true)
     } else {
@@ -240,6 +265,75 @@ fn params_rules(rel: &str, text: &str) -> Vec<String> {
     }
 }
 
+/// A TOML document rule 8 hands to the typed loader.
+fn is_loader_document(rel: &str) -> bool {
+    extension(rel) == "toml" && (rel.starts_with(VINTAGES_DIR) || rel.starts_with(INDEX_SERIES_DIR))
+}
+
+/// Rule 8 over `(repository-relative path, text)` pairs. Returns the violations
+/// and, for each vintage that assembles, its `<name>@<sha256>` content id.
+pub(crate) fn check_vintages(documents: &[(String, String)]) -> (Vec<String>, Vec<String>) {
+    let (violations, vintages) = parse_vintages(documents);
+    let ids = vintages
+        .values()
+        .map(|v| v.content_id().to_string())
+        .collect();
+    (violations, ids)
+}
+
+/// Whether `rel` is a document [`parse_vintages`] reads: a `.toml` under
+/// `params/vintages/` or `params/index-series/`.
+pub(crate) fn is_vintage_document(rel: &str) -> bool {
+    is_loader_document(rel)
+}
+
+/// Rule 8's parse, shared with the validation report and the assumption
+/// catalogue so that every reader of `params/` goes through the one loader.
+/// Returns the violations and every vintage that assembles, by name.
+pub(crate) fn parse_vintages(
+    documents: &[(String, String)],
+) -> (Vec<String>, BTreeMap<String, pfp_params::Vintage>) {
+    let mut violations = Vec::new();
+    let mut series = Vec::new();
+    let mut vintages: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    for (rel, text) in documents {
+        if rel.starts_with(INDEX_SERIES_DIR) {
+            match pfp_params::IndexSeries::parse(text) {
+                Ok(_) => series.push(text.as_str()),
+                Err(e) => violations.push(format!(
+                    "{rel}: not a valid archived index series: {e} (rule 8)"
+                )),
+            }
+        } else if let Some((name, _)) = rel
+            .strip_prefix(VINTAGES_DIR)
+            .and_then(|rest| rest.split_once('/'))
+        {
+            match pfp_params::ParamTable::parse(text) {
+                Ok(_) => vintages.entry(name).or_default().push(text),
+                Err(e) => {
+                    violations.push(format!("{rel}: not a valid parameter table: {e} (rule 8)"));
+                }
+            }
+        } else {
+            violations.push(format!(
+                "{rel}: a parameter table belongs in a vintage directory, {VINTAGES_DIR}<name>/ (rule 8)"
+            ));
+        }
+    }
+    let mut parsed = BTreeMap::new();
+    for (name, tables) in &vintages {
+        match pfp_params::Vintage::parse(name, tables, &series) {
+            Ok(v) => {
+                parsed.insert((*name).to_owned(), v);
+            }
+            Err(e) => violations.push(format!(
+                "{VINTAGES_DIR}{name}/: the vintage does not assemble: {e} (rule 8)"
+            )),
+        }
+    }
+    (violations, parsed)
+}
+
 /// Rules 5–7 for one file of any type. Reports never echo the matched text.
 pub(crate) fn check_patterns(rel: &str, bytes: &[u8]) -> Vec<String> {
     let mut out = Vec::new();
@@ -330,34 +424,90 @@ pub(crate) fn locked_vintage_dirs(entries: &[(String, String)]) -> BTreeSet<Stri
         .collect()
 }
 
-/// Rule 4 over the whole tree: `tracked` is every repository-relative path.
-fn check_lock(root: &Path, lock: &str, tracked: &[String]) -> Result<Vec<String>, String> {
-    let entries = parse_lock(lock)?;
+/// One way rule 4 can fail for one file.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum LockProblem {
+    /// Named in the lock; no such file.
+    Missing,
+    /// The file no longer hashes to its recorded SHA-256.
+    Modified { actual: String, recorded: String },
+    /// Under a locked vintage directory with no lock entry.
+    Unlisted,
+}
+
+/// A file that fails rule 4, and how.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct LockFinding {
+    /// Repository-relative path.
+    pub(crate) rel: String,
+    pub(crate) problem: LockProblem,
+}
+
+/// Rule 4 over the whole tree, as findings: every entry's file is hashed and
+/// compared, and every file under a vintage directory the lock names must be
+/// listed. `tracked` is every repository-relative path. This is the one
+/// implementation; the data-hygiene gate formats it and the validation report
+/// counts it, so the two cannot disagree about whether a vintage is locked.
+pub(crate) fn lock_findings(
+    root: &Path,
+    entries: &[(String, String)],
+    tracked: &[String],
+) -> Result<Vec<LockFinding>, String> {
     let mut out = Vec::new();
     let mut listed = BTreeSet::new();
-    for (hash, rel) in &entries {
+    for (hash, rel) in entries {
         listed.insert(rel.clone());
         let path = root.join(rel);
         if !path.is_file() {
-            out.push(format!(
-                "{rel}: named in {LOCK_PATH} but missing (locked vintages are immutable, rule 4)"
-            ));
+            out.push(LockFinding {
+                rel: rel.clone(),
+                problem: LockProblem::Missing,
+            });
             continue;
         }
         let actual = repo::sha256_hex(&repo::read(&path)?);
         if &actual != hash {
-            out.push(format!("{rel}: locked vintage modified (sha256 {actual} != {hash}); corrections ship as a new vintage (rule 4)"));
+            out.push(LockFinding {
+                rel: rel.clone(),
+                problem: LockProblem::Modified {
+                    actual,
+                    recorded: hash.clone(),
+                },
+            });
         }
     }
-    let dirs = locked_vintage_dirs(&entries);
+    let dirs = locked_vintage_dirs(entries);
     for rel in tracked {
         if dirs.iter().any(|d| rel.starts_with(d)) && !listed.contains(rel) {
-            out.push(format!(
-                "{rel}: added to a locked vintage directory without a {LOCK_PATH} entry (rule 4)"
-            ));
+            out.push(LockFinding {
+                rel: rel.clone(),
+                problem: LockProblem::Unlisted,
+            });
         }
     }
     Ok(out)
+}
+
+/// Rule 4 over the whole tree: `tracked` is every repository-relative path.
+fn check_lock(root: &Path, lock: &str, tracked: &[String]) -> Result<Vec<String>, String> {
+    let entries = parse_lock(lock)?;
+    Ok(lock_findings(root, &entries, tracked)?
+        .into_iter()
+        .map(|finding| {
+            let rel = finding.rel;
+            match finding.problem {
+                LockProblem::Missing => format!(
+                    "{rel}: named in {LOCK_PATH} but missing (locked vintages are immutable, rule 4)"
+                ),
+                LockProblem::Modified { actual, recorded } => format!(
+                    "{rel}: locked vintage modified (sha256 {actual} != {recorded}); corrections ship as a new vintage (rule 4)"
+                ),
+                LockProblem::Unlisted => format!(
+                    "{rel}: added to a locked vintage directory without a {LOCK_PATH} entry (rule 4)"
+                ),
+            }
+        })
+        .collect())
 }
 
 #[cfg(test)]
@@ -433,6 +583,118 @@ mod tests {
             check_file("params/vintages/federal-2026/series.csv", b"1,2").len(),
             1
         );
+    }
+
+    /// SYNTHETIC: describes no law and no publication.
+    const SYNTHETIC_TABLE: &str = r#"
+id = "test.amount"
+unit = "USD"
+breakdown = ["filingStatus"]
+as_of = "2001-01-01"
+[values.single]
+2001 = 1000
+[values.mfj]
+2001 = 2000
+[values.mfs]
+2001 = 1000
+[values.hoh]
+2001 = 1500
+[values.qss]
+2001 = 2000
+[projection]
+rule = "index"
+index = "test.index"
+index_series = "test.series"
+lag_years = 1
+base_year = 2000
+[projection.base_values]
+single = 1000
+mfj = 2000
+mfs = 1000
+hoh = 1500
+qss = 2000
+[projection.rounding]
+increment = 50
+direction = "down"
+basis = "IncreaseOverBase"
+[[source]]
+title = "Synthetic source"
+url = "https://example.invalid/doc.pdf"
+retrieved = "2001-02-03"
+sha256 = "0000000000000000000000000000000000000000000000000000000000000000"
+"#;
+
+    /// SYNTHETIC.
+    const SYNTHETIC_SERIES: &str = r#"
+id = "test.series.table"
+kind = "index-series"
+index_series = "test.series"
+as_of = "2001-01-01"
+[window]
+kind = "trailing-12-month-mean"
+ends_month = 12
+months = 1
+[observations.2000]
+"2000-M12" = "100.0"
+[[source]]
+title = "Synthetic series"
+url = "https://example.invalid/series"
+retrieved = "2001-02-03"
+sha256 = "0000000000000000000000000000000000000000000000000000000000000000"
+"#;
+
+    fn docs(items: &[(&str, &str)]) -> Vec<(String, String)> {
+        items
+            .iter()
+            .map(|(rel, text)| ((*rel).to_string(), (*text).to_string()))
+            .collect()
+    }
+
+    #[test]
+    fn the_loader_checks_every_vintage_table_whether_or_not_a_crate_embeds_it() {
+        let table = "params/vintages/synthetic-2001/amount.toml";
+        let series = "params/index-series/test.toml";
+        let (v, ids) = check_vintages(&docs(&[
+            (table, SYNTHETIC_TABLE),
+            (series, SYNTHETIC_SERIES),
+        ]));
+        assert!(v.is_empty(), "{v:?}");
+        assert_eq!(ids.len(), 1);
+        assert!(ids[0].starts_with("synthetic-2001@"), "{}", ids[0]);
+
+        // A named index series that is not archived is a gate-9 error.
+        let (v, ids) = check_vintages(&docs(&[(table, SYNTHETIC_TABLE)]));
+        assert!(ids.is_empty());
+        assert_eq!(v.len(), 1);
+        assert!(v[0].contains("resolves to no archived series"), "{}", v[0]);
+
+        // Each gate-9 field, removed in turn, fails the table that lost it.
+        for (from, to) in [
+            ("base_year = 2000\n", ""),
+            ("index_series = \"test.series\"\n", ""),
+            ("lag_years = 1\n", ""),
+            ("rule = \"index\"\n", ""),
+            ("[projection.rounding]\nincrement = 50\ndirection = \"down\"\nbasis = \"IncreaseOverBase\"\n", ""),
+            ("[values.hoh]", "[values.head]"),
+            ("hoh = 1500\n", ""),
+            ("2001 = 1500", "2001 = 1500.0"),
+        ] {
+            assert!(SYNTHETIC_TABLE.contains(from), "{from}");
+            let mutated = SYNTHETIC_TABLE.replacen(from, to, 1);
+            let (v, _) = check_vintages(&docs(&[(table, &mutated), (series, SYNTHETIC_SERIES)]));
+            assert_eq!(v.len(), 1, "{from:?}: {v:?}");
+            assert!(v[0].starts_with(table), "{}", v[0]);
+        }
+
+        // A malformed series fails on its own line, and the vintage reading it
+        // then fails to resolve.
+        let broken = SYNTHETIC_SERIES.replacen("kind = \"index-series\"", "kind = \"x\"", 1);
+        let (v, _) = check_vintages(&docs(&[(table, SYNTHETIC_TABLE), (series, &broken)]));
+        assert_eq!(v.len(), 2, "{v:?}");
+
+        // A table dropped straight into params/vintages/ belongs to no vintage.
+        let (v, _) = check_vintages(&docs(&[("params/vintages/loose.toml", SYNTHETIC_TABLE)]));
+        assert_eq!(v.len(), 1);
     }
 
     #[test]

@@ -1,0 +1,172 @@
+# Archived primary documents (params/provenance/)
+#
+# This is the catalogue of the primary text that parameter tables under
+# `params/` cite (`DOMAIN-MODEL.md` §15, `TESTING.md` §12 step 1,
+# `docs/contributing.md` §1.1). Every file here is the publisher's own bytes,
+# unmodified; where the published original is a PDF, a `pdftotext -layout`
+# extraction is archived beside it so the values are greppable, and the
+# extraction carries its own checksum. Extractions are derived artefacts: the
+# PDF or the official HTML is the authority, never the `.txt`.
+#
+# STATUS: PENDING HUMAN VERIFICATION. Nothing here has been read back against
+# the publisher's copy by a human. No vintage may lock on these documents and
+# no entry may be added to `params/VINTAGES.lock` until that has happened
+# (`TESTING.md` §5.2, §12 step 11; `docs/contributing.md` §3.2, ADR-022).
+#
+# Layout: one directory per publisher (`irs/`, `usc/`, `congress/`, and `bls/`
+# for the price-index series, archived by a separate task). `TESTING.md` §12
+# step 1 says `params/provenance/<year>/`; the executable precedent in
+# `xtask/src/hygiene.rs` is publisher-keyed and a "current text" statute
+# archive has no single year, so publisher-keyed is what is used here. The
+# mismatch with `TESTING.md` §12 step 1 is a design erratum for a human to
+# settle; it is listed in `docs/verification/m0-hand-verification.md` §0.
+#
+# Entries are `[[document]]` so that separately-archived sets append to this
+# same list rather than replacing the file. The BLS price-index series under
+# `bls/` are archived and catalogued by a separate task in
+# `params/provenance/bls/MANIFEST.md`; they are NOT listed here. The two
+# catalogues should be merged, or one made normative, before a vintage locks.
+
+schema         = 1
+retrieved_all  = "2026-09-18"
+verification   = "pending-human-verification"
+
+# Every document below is a work of the United States Government and is not
+# subject to copyright protection in the United States (17 USC 105). No
+# licence is asserted over the bytes; the archive records them verbatim.
+licence_basis  = "US Government work, 17 USC 105 — not subject to US copyright"
+
+# ---------------------------------------------------------------------------
+# IRS — annual inflation-adjustment revenue procedures
+# ---------------------------------------------------------------------------
+
+[[document]]
+key        = "RP24-40"
+title      = "Rev. Proc. 2024-40 (inflation-adjusted items for tax year 2025)"
+publisher  = "Internal Revenue Service, U.S. Department of the Treasury"
+cite       = "Rev. Proc. 2024-40, 2024-45 I.R.B. 1100"
+url        = "https://www.irs.gov/pub/irs-drop/rp-24-40.pdf"
+retrieved  = "2026-09-18"
+path       = "params/provenance/irs/rp-24-40.pdf"
+sha256     = "4de9db6b6662b5c305a59100a027051628823b42fd5817ea4e383ad4c302af1f"
+bytes      = 249076
+pages      = 27
+media_type = "application/pdf"
+text_path  = "params/provenance/irs/rp-24-40.txt"
+text_sha256 = "7520978136b2105fe174efb571e59e32d91f854238549872a5a9ada3d01fe2d9"
+text_tool  = "pdftotext -layout -enc UTF-8 (poppler)"
+carries    = [
+  "2025 ordinary rate tables, all filing statuses (§2.01, printed pages 5-7)",
+  "2025 standard deduction (§2.15(1), printed page 12) — SUPERSEDED, see note",
+]
+note = """
+Issued 2024-10, BEFORE Public Law 119-21 (2025-07-04). Its §2.15(1) standard
+deduction table for 2025 ($30,000 / $22,500 / $15,000 / $15,000) was REMOVED by
+Rev. Proc. 2025-32 §3.01 and MUST NOT be used for 2025. Its §2.01 rate tables
+for 2025 are not superseded: PL 119-21 §70101(c) applies the §1 amendments only
+to taxable years beginning after 2025-12-31.
+"""
+
+[[document]]
+key        = "RP25-32"
+title      = "Rev. Proc. 2025-32 (inflation-adjusted items for tax year 2026; 2025 items as modified by OBBBA)"
+publisher  = "Internal Revenue Service, U.S. Department of the Treasury"
+cite       = "Rev. Proc. 2025-32"
+url        = "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf"
+retrieved  = "2026-09-18"
+path       = "params/provenance/irs/rp-25-32.pdf"
+sha256     = "e9ada115fb43a4af5ea326ca91edd40ab0bf29b9be01d2c13d7b8fa96214635b"
+bytes      = 260406
+pages      = 36
+media_type = "application/pdf"
+text_path  = "params/provenance/irs/rp-25-32.txt"
+text_sha256 = "2ffb0af82cbb647d6b2f7da5e5a2750cf86b1a3879e3662ff85bcc4718ffead7"
+text_tool  = "pdftotext -layout -enc UTF-8 (poppler)"
+carries    = [
+  "2025 standard deduction as amended by OBBBA (§3.01, printed page 9)",
+  "2026 ordinary rate tables, all filing statuses (§4.01, printed pages 10-12)",
+  "2026 standard deduction (§4.14(1), printed page 18)",
+]
+note = """
+States the adjustments "for various Code provisions as in effect on
+October 9, 2025" (§1). This is the document that governs the 2025 standard
+deduction, not Rev. Proc. 2024-40.
+"""
+
+# ---------------------------------------------------------------------------
+# US Code — current text (Office of the Law Revision Counsel, prelim edition)
+# ---------------------------------------------------------------------------
+
+[[document]]
+key           = "USC1"
+title         = "26 U.S.C. §1 — Tax imposed (current text)"
+publisher     = "Office of the Law Revision Counsel, U.S. House of Representatives"
+url           = "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title26-section1&num=0&edition=prelim"
+retrieved     = "2026-09-18"
+path          = "params/provenance/usc/usc26-s1.html"
+sha256        = "9a23b4e2577dbab0b19b5498407338e0a0dc0f1f78b3d2f7e4b877f180686313"
+bytes         = 671785
+media_type    = "text/html"
+edition       = "prelim"
+release_point = "20260911_119-108"   # "currentthrough" marker inside the archived HTML
+text_path     = "params/provenance/usc/usc26-s1.txt"
+text_sha256   = "56df2e0750e01fceab32d01942112d7da9851084a4fb058958538cb867a6751a"
+text_tool     = "python3: script/style/comment strip, tag strip, HTML-entity unescape"
+carries       = [
+  "1(f) cost-of-living adjustment: (f)(3) formula, (f)(4)-(f)(6) index definitions, (f)(7) rounding",
+  "1(i) rate reductions after 2000 (superseded for years after 2017 by 1(j)(1)(A))",
+  "1(j) post-2017 rate tables: (j)(2)(A)-(E) statutory base amounts, (j)(3) adjustment and base years",
+  "2025 amendment notes for PL 119-21 §70101(a),(b) and the §70101(c) effective date",
+]
+
+[[document]]
+key           = "USC63"
+title         = "26 U.S.C. §63 — Taxable income defined (current text)"
+publisher     = "Office of the Law Revision Counsel, U.S. House of Representatives"
+url           = "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title26-section63&num=0&edition=prelim"
+retrieved     = "2026-09-18"
+path          = "params/provenance/usc/usc26-s63.html"
+sha256        = "83efb2d828ddd0d80a1eb28caa7c863581f95b18da501aef09119922f88e0d57"
+bytes         = 215020
+media_type    = "text/html"
+edition       = "prelim"
+release_point = "20260911_119-108"
+text_path     = "params/provenance/usc/usc26-s63.txt"
+text_sha256   = "4eab4dee070f8ea75453c76d9dc68e8beb49cb418f971d87abfaade2d23b9ac3"
+text_tool     = "python3: script/style/comment strip, tag strip, HTML-entity unescape"
+carries       = [
+  "63(c)(2) basic standard deduction, pre-2018 base amounts",
+  "63(c)(4) adjustment for inflation and its base years",
+  "63(c)(7) post-2017 amounts as amended by OBBBA, base year 2024, and its own rounding sentence",
+  "2025 amendment notes for PL 119-21 §70102 and the §70102(c) effective date",
+]
+
+# ---------------------------------------------------------------------------
+# Congress — enrolled public law
+# ---------------------------------------------------------------------------
+
+[[document]]
+key        = "PL119-21"
+title      = "Public Law 119-21 (enrolled; \"One Big Beautiful Bill Act\")"
+publisher  = "U.S. Government Publishing Office / Office of the Federal Register"
+cite       = "Pub. L. 119-21, 139 Stat. 72 (July 4, 2025)"
+url        = "https://www.govinfo.gov/content/pkg/PLAW-119publ21/pdf/PLAW-119publ21.pdf"
+retrieved  = "2026-09-18"
+path       = "params/provenance/congress/PLAW-119publ21.pdf"
+sha256     = "42f86c3d408bccb1a663c11a51a90d207b3dbc25e689240da51726154be51c8b"
+bytes      = 968588
+pages      = 331
+media_type = "application/pdf"
+text_path  = "params/provenance/congress/PLAW-119publ21.txt"
+text_sha256 = "12905a39411cf5d5a7a4e17bf332ec33359f0c350a857f149e2a95cb58d29dd8"
+text_tool  = "pdftotext -layout -enc UTF-8 (poppler)"
+# The full law is archived once. The sections this milestone reads are:
+relevant_pages = [
+  "§70101 (amends 26 USC 1): PDF page 88 = 139 Stat. 158",
+  "§70102 (amends 26 USC 63(c)): PDF pages 88-89 = 139 Stat. 158-159",
+]
+note = """
+The identical bytes are served by congress.gov at
+https://www.congress.gov/119/plaws/publ21/PLAW-119publ21.pdf (same
+content-length; govinfo is the URL that served the archived copy).
+"""

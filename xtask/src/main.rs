@@ -2,9 +2,10 @@
 //!
 //! The real subcommands are the repository-hygiene gates that `SECURITY.md` §13
 //! and `TESTING.md` §11 require from M0: `check-magic`, `lint-dollars`,
-//! `data-hygiene` and `protected-paths`. The build helpers (`build-web`, `dist`,
-//! `validation-report`, `schema`, `openapi`) are declared here so the command
-//! surface is stable, and each states the M0 step that implements it.
+//! `data-hygiene` (which includes `lint-server`) and `protected-paths`; plus the
+//! build helpers `build-web`, `validation-report` and `assumption-catalogue`. The
+//! other build helpers (`dist`, `schema`, `openapi`) are declared here so the
+//! command surface is stable, and each states the M0 step that implements it.
 //!
 //! Exit codes: 0 clean, 1 violations found, 2 usage error or not implemented.
 
@@ -16,12 +17,16 @@
     clippy::disallowed_macros
 )]
 
+mod build_web;
+mod catalogue;
 mod dollars;
 mod engine;
 mod hygiene;
+mod lint_server;
 mod magic;
 mod protected;
 mod repo;
+mod report;
 
 use std::process::ExitCode;
 
@@ -38,9 +43,18 @@ hygiene gates (real; each exits 1 on a violation):
   lint-dollars             fail on dollar literals in engine crates outside tests (ADR-022)
   data-hygiene             data files only under fixtures/ or params/, fixtures carry the
                            synthetic marker or a citation, params carry provenance, locked
-                           vintages are unchanged (SECURITY.md §13.3); no SSN-shaped
+                           vintages are unchanged (SECURITY.md §13.3), and every table
+                           under params/vintages/ and params/index-series/ passes the
+                           pfp-params loader with its index_series resolved to an
+                           archived series (TESTING.md §11.2 gate 9); no SSN-shaped
                            string, plan-shaped JSON outside fixtures/plans/ or asOf-stamped
-                           JSON outside fixtures/ in any file (§13.4)
+                           JSON outside fixtures/ in any file (§13.4); and everything
+                           lint-server checks
+  lint-server              std::fs only in pfp-vault/pfp-app, std::net only in pfp-server,
+                           across the shipped source of every workspace crate (SECURITY.md
+                           §11); no credential-shaped CLI flag, no environment read outside
+                           a named allowlist and no credential-shaped environment write
+                           anywhere in pfp-app, tests included (§3.7, §7.1, §13.4)
   protected-paths [--lock FILE] [PATH ...]
                            fail if any given path (or stdin, one per line) touches
                            fixtures/tier1/ or a locked params/ vintage (ADR-022). --lock
@@ -48,8 +62,26 @@ hygiene gates (real; each exits 1 on a violation):
                            of params/VINTAGES.lock
   engine-crates            print the engine crates present in the workspace, one per line
 
+build helpers:
+  build-web [--skip-install]
+                           npm ci --ignore-scripts (unless --skip-install), npm run build,
+                           check that web/dist is index.html + content-hashed assets, list
+                           them sorted with their SHA-256 and record the front-end input
+                           hash that a release build of pfp-server verifies
+
+  validation-report [--check] [--generated-on YYYY-MM-DD]
+                           the validation report from whatever corpora exist (TESTING.md
+                           §13; PLAN.md §4.13 item 8): build/validation-report.json, which
+                           pfp-server embeds at build time, and docs/validation-report.md.
+                           A pure function of the repository; a date appears only when
+                           given. --check fails if the committed Markdown (or an existing
+                           generated JSON) differs from a fresh build
+  assumption-catalogue [--check]
+                           docs/assumption-catalogue.md from params/ through the pfp-params
+                           loader (authoritative for parameter ids). --check fails on drift
+
 build helpers (declared; not implemented at this step of M0):
-  build-web | dist | validation-report | schema | openapi
+  dist | schema | openapi
 ";
 
 fn main() -> ExitCode {
@@ -63,6 +95,7 @@ fn main() -> ExitCode {
         "check-magic" => magic::run(rest),
         "lint-dollars" => dollars::run(),
         "data-hygiene" => hygiene::run(),
+        "lint-server" => lint_server::run(),
         "protected-paths" => protected::run(rest),
         "engine-crates" => {
             for name in engine::existing_engine_crates(&repo::root()) {
@@ -70,9 +103,10 @@ fn main() -> ExitCode {
             }
             Ok(true)
         }
-        "build-web" => not_implemented(cmd, "M0 step 4 (embedded web build: npm ci --ignore-scripts + vite build, sorted and hashed)"),
+        "build-web" => build_web::run(rest),
         "dist" => not_implemented(cmd, "M0 step 5 (release pipeline: universal build, signing, DMG and tarball channels)"),
-        "validation-report" => not_implemented(cmd, "M0 step 4 (validation report from whatever corpora exist, embedded in the About page)"),
+        "validation-report" => report::run(rest),
+        "assumption-catalogue" => catalogue::run(rest),
         "schema" => not_implemented(cmd, "M0 step 4 (JSON-Schema export via schemars; the plan schema itself freezes at M2, seam S5)"),
         "openapi" => not_implemented(cmd, "M0 step 4 (OpenAPI export from the Rust DTOs via utoipa, snapshot-tested)"),
         "-h" | "--help" | "help" => {

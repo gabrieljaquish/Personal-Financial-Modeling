@@ -87,26 +87,34 @@ unused-allowed-license = "allow"
 # `license = "Apache-2.0"`, so they are checked like any other crate.
 private = { ignore = false }
 
-# [[licenses.clarify]] — deliberately empty at this milestone.
+# [[licenses.clarify]] — empty, and as of 2026-09-19 nothing in the graph needs one.
 #
-# SECURITY.md §11 asks for the `ring` clarification to be pre-declared at M0 so
-# the gate is green on the day `rustls` lands (ADR-006). It is NOT written here,
-# for two reasons that belong on the record rather than in a guess:
+# SECURITY.md §11 asked for a `ring` clarification to be pre-declared at M0, on
+# the expectation that an honest one would have to record an OpenSSL licence
+# term, which is not one of the eight allowed licences. That expectation
+# described older `ring` releases. The observed facts, recorded 2026-09-19 in
+# the pull request that added `rustls` (ADR-006):
 #
-#   1. `ring` is not in the dependency graph yet (this PR is the scaffold; the
-#      TLS server is a later PR), so a clarification would be inert, and the
-#      `license-files` entry it needs carries a checksum of a licence text that
-#      cannot be verified against a crate that is not vendored.
-#   2. An honest clarification for `ring` records `MIT AND ISC AND OpenSSL`, and
-#      `OpenSSL` is not one of the eight allowed licences — which the same
-#      section says may only be extended by ADR, while forbidding a
-#      clarification that records what the project wishes a licence were. The
-#      contradiction is a real one and wants an ADR, not a config line.
+#   * Cargo.lock pins `ring` 0.17.14.
+#   * Its manifest declares `license = "Apache-2.0 AND ISC"`. Both are on the
+#     allowlist above, so cargo-deny reads the licence from the manifest and
+#     passes it with no clarification and no exception.
+#   * It ships LICENSE, LICENSE-BoringSSL and LICENSE-other-bits; none of them
+#     carries the OpenSSL licence text.
+#   * `cargo deny --locked check` is green on advisories, bans, licenses and
+#     sources with this section empty.
 #
-# It lands with the crate, in the PR that adds `rustls` — and it cannot land
-# until the contradiction is decided. That open decision is recorded, as a
-# blocker for the `rustls` PR, in `docs/contributing.md` §8 item 1; it is closed
-# by an ADR in `docs/DECISIONS.md`, not by a line in this file.
+# So no clarification is written, no exception is granted, and the allowlist is
+# unchanged. Re-verify all four points whenever `ring` is bumped (a clarification
+# pins a licence-file checksum, so it would have to be re-verified then anyway).
+# This note supersedes the "blocks the `rustls` pull request" item in
+# `docs/contributing.md` §8 item 1, which predates the crate being in the graph.
+#
+# The mechanism stays: `[[licenses.clarify]]` remains the right instrument for a
+# crate whose manifest declares no licence at all (a NOASSERTION) although its
+# licence files are clear. Such an entry records what the files say, names them
+# with their checksums, and is reported for human review in the pull request
+# that adds it. It never records what the project wishes a licence were.
 
 # ---------------------------------------------------------------------------
 # bans — the architectural constraints, enforced mechanically

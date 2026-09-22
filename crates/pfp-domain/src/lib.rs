@@ -2,9 +2,11 @@
 //!
 //! `FilingStatus`, `Owner`, `PersonId`, `AssetClass`, `TaxType`, `Year` and `Seed`
 //! live here and are re-exported by every crate that needs them, never redefined
-//! or converted at a boundary (`ARCHITECTURE.md` §2 constraints table, §3). The
-//! first of them, `FilingStatus`, arrives with the rate-schedule function in the
-//! next M0 change; this crate carries no dependency beyond `serde` once it does.
+//! or converted at a boundary (`ARCHITECTURE.md` §2 constraints table, §3). M0
+//! needs two of them, [`FilingStatus`] and [`Year`], because
+//! `schedule_tax(year, status, taxable_income)` and the parameter tables'
+//! `filingStatus` breakdown both read them; the rest arrive with the milestone
+//! that first uses them. The crate carries no dependency beyond `serde`.
 //!
 //! # Purity and determinism contract (engine crate)
 //!
@@ -21,3 +23,9 @@
 //! (ADR-022, `cargo xtask lint-dollars`): statutory constants come from `params/`.
 
 #![forbid(unsafe_code)]
+
+mod filing_status;
+mod year;
+
+pub use filing_status::{FilingStatus, UnknownFilingStatus};
+pub use year::{year_in_domain, Year, YEAR_MAX, YEAR_MIN};

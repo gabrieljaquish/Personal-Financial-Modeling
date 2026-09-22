@@ -1,0 +1,1100 @@
+{
+  "id": "pending/uprating/2026-brackets",
+  "promotesTo": "t1/uprating/2026-brackets",
+  "tier": "pending",
+  "targetTier": 1,
+  "module": "pfp-params",
+  "milestone": "M0",
+  "lawYear": 2026,
+  "paramVintage": null,
+  "source": {
+    "publisher": "Office of the Law Revision Counsel, U.S. House of Representatives",
+    "title": "26 U.S.C. 1 - Tax imposed (current text, release point 20260911_119-108)",
+    "url": "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title26-section1&num=0&edition=prelim",
+    "locator": "1(j)(2)(A)-(D) base amounts; 1(j)(3)(B) base years; 1(f)(3),(6),(7)",
+    "retrieved": "2026-09-18",
+    "archive": "params/provenance/usc/usc26-s1.html",
+    "sha256": "9a23b4e2577dbab0b19b5498407338e0a0dc0f1f78b3d2f7e4b877f180686313"
+  },
+  "tolerance": {
+    "kind": "exact"
+  },
+  "verification": "pending-hand-verification",
+  "verificationNote": "PENDING HUMAN VERIFICATION. Authored by an AI-assisted session from the archived primary documents BEFORE any implementation existed (docs/contributing.md section 3, ADR-022). A human must read every expected value back against the cited document before this file is promoted to fixtures/tier1/. Not in a locked vintage; params/VINTAGES.lock carries no entry for any of this.",
+  "synthetic": false,
+  "additionalSources": [
+    {
+      "publisher": "Bureau of Labor Statistics, U.S. Department of Labor",
+      "title": "C-CPI-U all-items series SUUR0000SA0 (BLS flat-file time-series database)",
+      "url": "https://download.bls.gov/pub/time.series/su/su.data.1.AllItems",
+      "locator": "series SUUR0000SA0, monthly observations 2015-M09 .. 2025-M08",
+      "retrieved": "2026-09-18",
+      "archive": "params/provenance/bls/time-series/su.data.1.AllItems",
+      "sha256": "c40304234a1e838cffe4ba88567a997b91595c223613f2584aa0cab3191f3f75"
+    },
+    {
+      "publisher": "U.S. Government Publishing Office",
+      "title": "Public Law 119-21 (enrolled)",
+      "url": "https://www.govinfo.gov/content/pkg/PLAW-119publ21/pdf/PLAW-119publ21.pdf",
+      "locator": "section 70101(b),(c) and section 70102, PDF pages 88-89 = 139 Stat. 158-159",
+      "retrieved": "2026-09-18",
+      "archive": "params/provenance/congress/PLAW-119publ21.pdf",
+      "sha256": "42f86c3d408bccb1a663c11a51a90d207b3dbc25e689240da51726154be51c8b"
+    },
+    {
+      "publisher": "Internal Revenue Service, U.S. Department of the Treasury",
+      "title": "Rev. Proc. 2025-32 (inflation-adjusted items for tax year 2026)",
+      "url": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf",
+      "locator": "section 4.01, Tables 1-4, printed pages 10-12",
+      "retrieved": "2026-09-18",
+      "archive": "params/provenance/irs/rp-25-32.pdf",
+      "sha256": "e9ada115fb43a4af5ea326ca91edd40ab0bf29b9be01d2c13d7b8fa96214635b"
+    }
+  ],
+  "inputs": {
+    "pipeline": "uprated = base_value + floor_to_increment(base_value * (C-CPI-U(Y-1)/C-CPI-U(base_year) - 1))",
+    "roundingBasis": "IncreaseOverBase",
+    "roundingDirection": "down",
+    "numeratorCalendarYear": 2025,
+    "indexSeries": "SUUR0000SA0",
+    "indexWindows": [
+      {
+        "calendarYear": 2016,
+        "statutoryWindow": "Sep(Y-1)..Aug(Y), 26 USC 1(f)(6)(B)",
+        "monthly": [
+          {
+            "month": "2015-09",
+            "value": "135837/1000"
+          },
+          {
+            "month": "2015-10",
+            "value": "27147/200"
+          },
+          {
+            "month": "2015-11",
+            "value": "135393/1000"
+          },
+          {
+            "month": "2015-12",
+            "value": "33697/250"
+          },
+          {
+            "month": "2016-01",
+            "value": "67483/500"
+          },
+          {
+            "month": "2016-02",
+            "value": "134953/1000"
+          },
+          {
+            "month": "2016-03",
+            "value": "27131/200"
+          },
+          {
+            "month": "2016-04",
+            "value": "34083/250"
+          },
+          {
+            "month": "2016-05",
+            "value": "27379/200"
+          },
+          {
+            "month": "2016-06",
+            "value": "137329/1000"
+          },
+          {
+            "month": "2016-07",
+            "value": "137007/1000"
+          },
+          {
+            "month": "2016-08",
+            "value": "68513/500"
+          }
+        ],
+        "sumOfTwelve": "407979/250",
+        "meanExact": {
+          "num": 135993,
+          "den": 1000
+        }
+      },
+      {
+        "calendarYear": 2017,
+        "statutoryWindow": "Sep(Y-1)..Aug(Y), 26 USC 1(f)(6)(B)",
+        "monthly": [
+          {
+            "month": "2016-09",
+            "value": "17166/125"
+          },
+          {
+            "month": "2016-10",
+            "value": "17192/125"
+          },
+          {
+            "month": "2016-11",
+            "value": "137253/1000"
+          },
+          {
+            "month": "2016-12",
+            "value": "137221/1000"
+          },
+          {
+            "month": "2017-01",
+            "value": "27607/200"
+          },
+          {
+            "month": "2017-02",
+            "value": "138403/1000"
+          },
+          {
+            "month": "2017-03",
+            "value": "138461/1000"
+          },
+          {
+            "month": "2017-04",
+            "value": "13881/100"
+          },
+          {
+            "month": "2017-05",
+            "value": "69461/500"
+          },
+          {
+            "month": "2017-06",
+            "value": "138989/1000"
+          },
+          {
+            "month": "2017-07",
+            "value": "27751/200"
+          },
+          {
+            "month": "2017-08",
+            "value": "17391/125"
+          }
+        ],
+        "sumOfTwelve": "1658841/1000",
+        "meanExact": {
+          "num": 552947,
+          "den": 4000
+        }
+      },
+      {
+        "calendarYear": 2025,
+        "statutoryWindow": "Sep(Y-1)..Aug(Y), 26 USC 1(f)(6)(B)",
+        "monthly": [
+          {
+            "month": "2024-09",
+            "value": "175099/1000"
+          },
+          {
+            "month": "2024-10",
+            "value": "87673/500"
+          },
+          {
+            "month": "2024-11",
+            "value": "8759/50"
+          },
+          {
+            "month": "2024-12",
+            "value": "175219/1000"
+          },
+          {
+            "month": "2025-01",
+            "value": "88181/500"
+          },
+          {
+            "month": "2025-02",
+            "value": "88567/500"
+          },
+          {
+            "month": "2025-03",
+            "value": "4438/25"
+          },
+          {
+            "month": "2025-04",
+            "value": "178081/1000"
+          },
+          {
+            "month": "2025-05",
+            "value": "178427/1000"
+          },
+          {
+            "month": "2025-06",
+            "value": "178991/1000"
+          },
+          {
+            "month": "2025-07",
+            "value": "22409/125"
+          },
+          {
+            "month": "2025-08",
+            "value": "179839/1000"
+          }
+        ],
+        "sumOfTwelve": "212647/100",
+        "meanExact": {
+          "num": 212647,
+          "den": 1200
+        }
+      }
+    ],
+    "baseValuesDollars": {
+      "mfj": {
+        "top10": 19050,
+        "top12": 77400,
+        "top22": 165000,
+        "top24": 315000,
+        "top32": 400000,
+        "top35": 600000
+      },
+      "qss": {
+        "top10": 19050,
+        "top12": 77400,
+        "top22": 165000,
+        "top24": 315000,
+        "top32": 400000,
+        "top35": 600000
+      },
+      "hoh": {
+        "top10": 13600,
+        "top12": 51800,
+        "top22": 82500,
+        "top24": 157500,
+        "top32": 200000,
+        "top35": 500000
+      },
+      "single": {
+        "top10": 9525,
+        "top12": 38700,
+        "top22": 82500,
+        "top24": 157500,
+        "top32": 200000,
+        "top35": 500000
+      },
+      "mfs": {
+        "top10": 9525,
+        "top12": 38700,
+        "top22": 82500,
+        "top24": 157500,
+        "top32": 200000,
+        "top35": 300000
+      }
+    },
+    "roundingIncrementDollars": {
+      "mfj": 50,
+      "qss": 50,
+      "hoh": 50,
+      "single": 25,
+      "mfs": 25
+    }
+  },
+  "expect": {
+    "rows": [
+      {
+        "filingStatus": "mfj",
+        "edge": "top10",
+        "baseValueDollars": 19050,
+        "baseYear": 2016,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 247277,
+          "den": 815958
+        },
+        "rawIncreaseExact": {
+          "num": 785104475,
+          "den": 135993
+        },
+        "rawIncreaseApprox": "5773.124168",
+        "flooredIncreaseDollars": 5750,
+        "computedDollars": 24800,
+        "publishedDollars": 24800,
+        "residualDollars": 0,
+        "reproducesPublished": true
+      },
+      {
+        "filingStatus": "mfj",
+        "edge": "top12",
+        "baseValueDollars": 77400,
+        "baseYear": 2016,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 247277,
+          "den": 815958
+        },
+        "rawIncreaseExact": {
+          "num": 1063291100,
+          "den": 45331
+        },
+        "rawIncreaseApprox": "23456.158038",
+        "flooredIncreaseDollars": 23450,
+        "computedDollars": 100850,
+        "publishedDollars": 100800,
+        "residualDollars": 50,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "mfj",
+        "edge": "top22",
+        "baseValueDollars": 165000,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 25719595000,
+          "den": 552947
+        },
+        "rawIncreaseApprox": "46513.671292",
+        "flooredIncreaseDollars": 46500,
+        "computedDollars": 211500,
+        "publishedDollars": 211400,
+        "residualDollars": 100,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "mfj",
+        "edge": "top24",
+        "baseValueDollars": 315000,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 49101045000,
+          "den": 552947
+        },
+        "rawIncreaseApprox": "88798.827012",
+        "flooredIncreaseDollars": 88750,
+        "computedDollars": 403750,
+        "publishedDollars": 403550,
+        "residualDollars": 200,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "mfj",
+        "edge": "top32",
+        "baseValueDollars": 400000,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 187051600000,
+          "den": 1658841
+        },
+        "rawIncreaseApprox": "112760.415254",
+        "flooredIncreaseDollars": 112750,
+        "computedDollars": 512750,
+        "publishedDollars": 512450,
+        "residualDollars": 300,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "mfj",
+        "edge": "top35",
+        "baseValueDollars": 600000,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 93525800000,
+          "den": 552947
+        },
+        "rawIncreaseApprox": "169140.622881",
+        "flooredIncreaseDollars": 169100,
+        "computedDollars": 769100,
+        "publishedDollars": 768700,
+        "residualDollars": 400,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top10",
+        "baseValueDollars": 19050,
+        "baseYear": 2016,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 247277,
+          "den": 815958
+        },
+        "rawIncreaseExact": {
+          "num": 785104475,
+          "den": 135993
+        },
+        "rawIncreaseApprox": "5773.124168",
+        "flooredIncreaseDollars": 5750,
+        "computedDollars": 24800,
+        "publishedDollars": 24800,
+        "residualDollars": 0,
+        "reproducesPublished": true
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top12",
+        "baseValueDollars": 77400,
+        "baseYear": 2016,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 247277,
+          "den": 815958
+        },
+        "rawIncreaseExact": {
+          "num": 1063291100,
+          "den": 45331
+        },
+        "rawIncreaseApprox": "23456.158038",
+        "flooredIncreaseDollars": 23450,
+        "computedDollars": 100850,
+        "publishedDollars": 100800,
+        "residualDollars": 50,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top22",
+        "baseValueDollars": 165000,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 25719595000,
+          "den": 552947
+        },
+        "rawIncreaseApprox": "46513.671292",
+        "flooredIncreaseDollars": 46500,
+        "computedDollars": 211500,
+        "publishedDollars": 211400,
+        "residualDollars": 100,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top24",
+        "baseValueDollars": 315000,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 49101045000,
+          "den": 552947
+        },
+        "rawIncreaseApprox": "88798.827012",
+        "flooredIncreaseDollars": 88750,
+        "computedDollars": 403750,
+        "publishedDollars": 403550,
+        "residualDollars": 200,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top32",
+        "baseValueDollars": 400000,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 187051600000,
+          "den": 1658841
+        },
+        "rawIncreaseApprox": "112760.415254",
+        "flooredIncreaseDollars": 112750,
+        "computedDollars": 512750,
+        "publishedDollars": 512450,
+        "residualDollars": 300,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top35",
+        "baseValueDollars": 600000,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 93525800000,
+          "den": 552947
+        },
+        "rawIncreaseApprox": "169140.622881",
+        "flooredIncreaseDollars": 169100,
+        "computedDollars": 769100,
+        "publishedDollars": 768700,
+        "residualDollars": 400,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "hoh",
+        "edge": "top10",
+        "baseValueDollars": 13600,
+        "baseYear": 2016,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 247277,
+          "den": 815958
+        },
+        "rawIncreaseExact": {
+          "num": 1681483600,
+          "den": 407979
+        },
+        "rawIncreaseApprox": "4121.495469",
+        "flooredIncreaseDollars": 4100,
+        "computedDollars": 17700,
+        "publishedDollars": 17700,
+        "residualDollars": 0,
+        "reproducesPublished": true
+      },
+      {
+        "filingStatus": "hoh",
+        "edge": "top12",
+        "baseValueDollars": 51800,
+        "baseYear": 2016,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 247277,
+          "den": 815958
+        },
+        "rawIncreaseExact": {
+          "num": 6404474300,
+          "den": 407979
+        },
+        "rawIncreaseApprox": "15698.048919",
+        "flooredIncreaseDollars": 15650,
+        "computedDollars": 67450,
+        "publishedDollars": 67450,
+        "residualDollars": 0,
+        "reproducesPublished": true
+      },
+      {
+        "filingStatus": "hoh",
+        "edge": "top22",
+        "baseValueDollars": 82500,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 12859797500,
+          "den": 552947
+        },
+        "rawIncreaseApprox": "23256.835646",
+        "flooredIncreaseDollars": 23250,
+        "computedDollars": 105750,
+        "publishedDollars": 105700,
+        "residualDollars": 50,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "hoh",
+        "edge": "top24",
+        "baseValueDollars": 157500,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 24550522500,
+          "den": 552947
+        },
+        "rawIncreaseApprox": "44399.413506",
+        "flooredIncreaseDollars": 44350,
+        "computedDollars": 201850,
+        "publishedDollars": 201750,
+        "residualDollars": 100,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "hoh",
+        "edge": "top32",
+        "baseValueDollars": 200000,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 93525800000,
+          "den": 1658841
+        },
+        "rawIncreaseApprox": "56380.207627",
+        "flooredIncreaseDollars": 56350,
+        "computedDollars": 256350,
+        "publishedDollars": 256200,
+        "residualDollars": 150,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "hoh",
+        "edge": "top35",
+        "baseValueDollars": 500000,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 50,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 233814500000,
+          "den": 1658841
+        },
+        "rawIncreaseApprox": "140950.519067",
+        "flooredIncreaseDollars": 140950,
+        "computedDollars": 640950,
+        "publishedDollars": 640600,
+        "residualDollars": 350,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top10",
+        "baseValueDollars": 9525,
+        "baseYear": 2016,
+        "roundingIncrementDollars": 25,
+        "colaExact": {
+          "num": 247277,
+          "den": 815958
+        },
+        "rawIncreaseExact": {
+          "num": 785104475,
+          "den": 271986
+        },
+        "rawIncreaseApprox": "2886.562084",
+        "flooredIncreaseDollars": 2875,
+        "computedDollars": 12400,
+        "publishedDollars": 12400,
+        "residualDollars": 0,
+        "reproducesPublished": true
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top12",
+        "baseValueDollars": 38700,
+        "baseYear": 2016,
+        "roundingIncrementDollars": 25,
+        "colaExact": {
+          "num": 247277,
+          "den": 815958
+        },
+        "rawIncreaseExact": {
+          "num": 531645550,
+          "den": 45331
+        },
+        "rawIncreaseApprox": "11728.079019",
+        "flooredIncreaseDollars": 11725,
+        "computedDollars": 50425,
+        "publishedDollars": 50400,
+        "residualDollars": 25,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top22",
+        "baseValueDollars": 82500,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 25,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 12859797500,
+          "den": 552947
+        },
+        "rawIncreaseApprox": "23256.835646",
+        "flooredIncreaseDollars": 23250,
+        "computedDollars": 105750,
+        "publishedDollars": 105700,
+        "residualDollars": 50,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top24",
+        "baseValueDollars": 157500,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 25,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 24550522500,
+          "den": 552947
+        },
+        "rawIncreaseApprox": "44399.413506",
+        "flooredIncreaseDollars": 44375,
+        "computedDollars": 201875,
+        "publishedDollars": 201775,
+        "residualDollars": 100,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top32",
+        "baseValueDollars": 200000,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 25,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 93525800000,
+          "den": 1658841
+        },
+        "rawIncreaseApprox": "56380.207627",
+        "flooredIncreaseDollars": 56375,
+        "computedDollars": 256375,
+        "publishedDollars": 256225,
+        "residualDollars": 150,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top35",
+        "baseValueDollars": 500000,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 25,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 233814500000,
+          "den": 1658841
+        },
+        "rawIncreaseApprox": "140950.519067",
+        "flooredIncreaseDollars": 140950,
+        "computedDollars": 640950,
+        "publishedDollars": 640600,
+        "residualDollars": 350,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top10",
+        "baseValueDollars": 9525,
+        "baseYear": 2016,
+        "roundingIncrementDollars": 25,
+        "colaExact": {
+          "num": 247277,
+          "den": 815958
+        },
+        "rawIncreaseExact": {
+          "num": 785104475,
+          "den": 271986
+        },
+        "rawIncreaseApprox": "2886.562084",
+        "flooredIncreaseDollars": 2875,
+        "computedDollars": 12400,
+        "publishedDollars": 12400,
+        "residualDollars": 0,
+        "reproducesPublished": true
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top12",
+        "baseValueDollars": 38700,
+        "baseYear": 2016,
+        "roundingIncrementDollars": 25,
+        "colaExact": {
+          "num": 247277,
+          "den": 815958
+        },
+        "rawIncreaseExact": {
+          "num": 531645550,
+          "den": 45331
+        },
+        "rawIncreaseApprox": "11728.079019",
+        "flooredIncreaseDollars": 11725,
+        "computedDollars": 50425,
+        "publishedDollars": 50400,
+        "residualDollars": 25,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top22",
+        "baseValueDollars": 82500,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 25,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 12859797500,
+          "den": 552947
+        },
+        "rawIncreaseApprox": "23256.835646",
+        "flooredIncreaseDollars": 23250,
+        "computedDollars": 105750,
+        "publishedDollars": 105700,
+        "residualDollars": 50,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top24",
+        "baseValueDollars": 157500,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 25,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 24550522500,
+          "den": 552947
+        },
+        "rawIncreaseApprox": "44399.413506",
+        "flooredIncreaseDollars": 44375,
+        "computedDollars": 201875,
+        "publishedDollars": 201775,
+        "residualDollars": 100,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top32",
+        "baseValueDollars": 200000,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 25,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 93525800000,
+          "den": 1658841
+        },
+        "rawIncreaseApprox": "56380.207627",
+        "flooredIncreaseDollars": 56375,
+        "computedDollars": 256375,
+        "publishedDollars": 256225,
+        "residualDollars": 150,
+        "reproducesPublished": false
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top35",
+        "baseValueDollars": 300000,
+        "baseYear": 2017,
+        "roundingIncrementDollars": 25,
+        "colaExact": {
+          "num": 467629,
+          "den": 1658841
+        },
+        "rawIncreaseExact": {
+          "num": 46762900000,
+          "den": 552947
+        },
+        "rawIncreaseApprox": "84570.311440",
+        "flooredIncreaseDollars": 84550,
+        "computedDollars": 384550,
+        "publishedDollars": 384350,
+        "residualDollars": 200,
+        "reproducesPublished": false
+      }
+    ],
+    "reproducedCount": 6,
+    "rowCount": 30,
+    "residualCount": 24
+  },
+  "residuals": {
+    "count": 24,
+    "rows": [
+      {
+        "filingStatus": "mfj",
+        "edge": "top12",
+        "computedDollars": 100850,
+        "publishedDollars": 100800,
+        "residualDollars": 50
+      },
+      {
+        "filingStatus": "mfj",
+        "edge": "top22",
+        "computedDollars": 211500,
+        "publishedDollars": 211400,
+        "residualDollars": 100
+      },
+      {
+        "filingStatus": "mfj",
+        "edge": "top24",
+        "computedDollars": 403750,
+        "publishedDollars": 403550,
+        "residualDollars": 200
+      },
+      {
+        "filingStatus": "mfj",
+        "edge": "top32",
+        "computedDollars": 512750,
+        "publishedDollars": 512450,
+        "residualDollars": 300
+      },
+      {
+        "filingStatus": "mfj",
+        "edge": "top35",
+        "computedDollars": 769100,
+        "publishedDollars": 768700,
+        "residualDollars": 400
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top12",
+        "computedDollars": 100850,
+        "publishedDollars": 100800,
+        "residualDollars": 50
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top22",
+        "computedDollars": 211500,
+        "publishedDollars": 211400,
+        "residualDollars": 100
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top24",
+        "computedDollars": 403750,
+        "publishedDollars": 403550,
+        "residualDollars": 200
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top32",
+        "computedDollars": 512750,
+        "publishedDollars": 512450,
+        "residualDollars": 300
+      },
+      {
+        "filingStatus": "qss",
+        "edge": "top35",
+        "computedDollars": 769100,
+        "publishedDollars": 768700,
+        "residualDollars": 400
+      },
+      {
+        "filingStatus": "hoh",
+        "edge": "top22",
+        "computedDollars": 105750,
+        "publishedDollars": 105700,
+        "residualDollars": 50
+      },
+      {
+        "filingStatus": "hoh",
+        "edge": "top24",
+        "computedDollars": 201850,
+        "publishedDollars": 201750,
+        "residualDollars": 100
+      },
+      {
+        "filingStatus": "hoh",
+        "edge": "top32",
+        "computedDollars": 256350,
+        "publishedDollars": 256200,
+        "residualDollars": 150
+      },
+      {
+        "filingStatus": "hoh",
+        "edge": "top35",
+        "computedDollars": 640950,
+        "publishedDollars": 640600,
+        "residualDollars": 350
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top12",
+        "computedDollars": 50425,
+        "publishedDollars": 50400,
+        "residualDollars": 25
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top22",
+        "computedDollars": 105750,
+        "publishedDollars": 105700,
+        "residualDollars": 50
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top24",
+        "computedDollars": 201875,
+        "publishedDollars": 201775,
+        "residualDollars": 100
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top32",
+        "computedDollars": 256375,
+        "publishedDollars": 256225,
+        "residualDollars": 150
+      },
+      {
+        "filingStatus": "single",
+        "edge": "top35",
+        "computedDollars": 640950,
+        "publishedDollars": 640600,
+        "residualDollars": 350
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top12",
+        "computedDollars": 50425,
+        "publishedDollars": 50400,
+        "residualDollars": 25
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top22",
+        "computedDollars": 105750,
+        "publishedDollars": 105700,
+        "residualDollars": 50
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top24",
+        "computedDollars": 201875,
+        "publishedDollars": 201775,
+        "residualDollars": 100
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top32",
+        "computedDollars": 256375,
+        "publishedDollars": 256225,
+        "residualDollars": 150
+      },
+      {
+        "filingStatus": "mfs",
+        "edge": "top35",
+        "computedDollars": 384550,
+        "publishedDollars": 384350,
+        "residualDollars": 200
+      }
+    ]
+  },
+  "notes": "PLAN.md section 4.1 acceptance requires this pipeline to reproduce EVERY published 2026 bracket threshold from the statutory base-year amounts and the archived index series. Computed exactly, it reproduces 6 of 30. The 24 residuals are recorded above and were NOT tuned away: no index value, base amount or rounding rule was adjusted. Diagnosis (summarised as decision B1 in docs/verification/m0-hand-verification.md): the pipeline SHAPE is corroborated - a single adjustment factor per base-year group satisfies every published threshold - and the 2016/2017 base-year split is independently corroborated against two index windows final since 2018. The residuals are attributable to the index VINTAGE: 26 USC 1(f)(6)(A) freezes the C-CPI-U values at those published on 2025-09-11 (the initial August 2025 release), BLS does not republish superseded vintages, and the archived release USDL-25-1356 carries the C-CPI-U in Table 5 as PERCENT CHANGES only, with no index levels. The frozen vintage is therefore not recoverable from the archive. This fixture cannot be promoted to tier 1 until a human decides how PLAN.md section 4.1's acceptance criterion is to be met."
+}

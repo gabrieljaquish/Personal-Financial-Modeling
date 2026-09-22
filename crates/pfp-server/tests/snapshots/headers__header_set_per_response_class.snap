@@ -1,0 +1,267 @@
+---
+source: crates/pfp-server/tests/headers.rs
+expression: snapshot
+---
+## document 200
+status: 200
+content-type: text/html; charset=utf-8
+content-length: <length>
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## document HEAD 200
+status: 200
+content-type: text/html; charset=utf-8
+content-length: <length>
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## asset 200
+status: 200
+etag: "<sha256>"
+content-type: text/javascript; charset=utf-8
+content-length: <length>
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: public, max-age=31536000, immutable
+connection: close
+date: <date>
+
+## asset 304
+status: 304
+etag: "<sha256>"
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: public, max-age=31536000, immutable
+connection: close
+date: <date>
+
+## static 404
+status: 404
+content-type: application/json
+content-length: 66
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## bootstrap 200
+status: 200
+content-type: application/json
+set-cookie: __Host-pfp=<64 chars>; Secure; HttpOnly; SameSite=Strict; Path=/
+content-length: <length>
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## api 200
+status: 200
+content-type: application/json
+content-length: <length>
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## api export 200
+status: 200
+content-type: text/csv; charset=utf-8
+content-disposition: attachment; filename="rate-schedule.csv"
+content-length: <length>
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## api 401
+status: 401
+content-type: application/json
+content-length: 108
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## api 409
+status: 409
+content-type: application/json
+content-length: 114
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## api 400
+status: 400
+content-type: application/json
+content-length: 71
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## api 422
+status: 422
+content-type: application/json
+content-length: 90
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## api 404
+status: 404
+content-type: application/json
+content-length: 66
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## api 405
+status: 405
+content-type: application/json
+content-length: 74
+allow: POST
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## api 503
+status: 503
+content-type: application/json
+content-length: 116
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## host 421
+status: 421
+content-type: application/json
+content-length: 93
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## origin 403
+status: 403
+content-type: application/json
+content-length: 81
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## static 405
+status: 405
+content-type: application/json
+content-length: 74
+allow: GET, HEAD
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## body 413
+status: 413
+content-type: application/json
+content-length: 71
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>
+
+## body 415
+status: 415
+content-type: application/json
+content-length: 86
+content-security-policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+x-content-type-options: nosniff
+referrer-policy: no-referrer
+cache-control: no-store
+connection: close
+date: <date>

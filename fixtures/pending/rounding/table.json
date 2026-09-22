@@ -1,0 +1,720 @@
+{
+  "id": "pending/rounding/table",
+  "promotesTo": "t1/rounding/table",
+  "tier": "pending",
+  "targetTier": 1,
+  "module": "pfp-money",
+  "milestone": "M0",
+  "lawYear": 2026,
+  "paramVintage": null,
+  "source": {
+    "publisher": "Office of the Law Revision Counsel, U.S. House of Representatives",
+    "title": "26 U.S.C. 1 - Tax imposed (current text, release point 20260911_119-108)",
+    "url": "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title26-section1&num=0&edition=prelim",
+    "locator": "1(j)(2)(A)-(D) base amounts; 1(j)(3)(B) base years; 1(f)(3),(6),(7)",
+    "retrieved": "2026-09-18",
+    "archive": "params/provenance/usc/usc26-s1.html",
+    "sha256": "9a23b4e2577dbab0b19b5498407338e0a0dc0f1f78b3d2f7e4b877f180686313"
+  },
+  "tolerance": {
+    "kind": "exact"
+  },
+  "verification": "pending-hand-verification",
+  "verificationNote": "PENDING HUMAN VERIFICATION. Authored by an AI-assisted session from the archived primary documents BEFORE any implementation existed (docs/contributing.md section 3, ADR-022). A human must read every expected value back against the cited document before this file is promoted to fixtures/tier1/. Not in a locked vintage; params/VINTAGES.lock carries no entry for any of this.",
+  "synthetic": true,
+  "additionalSources": [
+    {
+      "publisher": "Office of the Law Revision Counsel, U.S. House of Representatives",
+      "title": "26 U.S.C. 63 - Taxable income defined (current text, release point 20260911_119-108)",
+      "url": "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title26-section63&num=0&edition=prelim",
+      "locator": "63(c)(2), 63(c)(7)(A) base amounts, 63(c)(7)(B)(ii) base year and rounding",
+      "retrieved": "2026-09-18",
+      "archive": "params/provenance/usc/usc26-s63.html",
+      "sha256": "83efb2d828ddd0d80a1eb28caa7c863581f95b18da501aef09119922f88e0d57"
+    },
+    {
+      "publisher": "Bureau of Labor Statistics, U.S. Department of Labor",
+      "title": "C-CPI-U all-items series SUUR0000SA0 (BLS flat-file time-series database)",
+      "url": "https://download.bls.gov/pub/time.series/su/su.data.1.AllItems",
+      "locator": "series SUUR0000SA0, monthly observations 2015-M09 .. 2025-M08",
+      "retrieved": "2026-09-18",
+      "archive": "params/provenance/bls/time-series/su.data.1.AllItems",
+      "sha256": "c40304234a1e838cffe4ba88567a997b91595c223613f2584aa0cab3191f3f75"
+    }
+  ],
+  "inputs": {
+    "ruleTable": [
+      {
+        "ruleId": "usc26.1f7A.brackets",
+        "incrementCents": 5000,
+        "direction": "down",
+        "basis": "IncreaseOverBase",
+        "authority": "26 USC 1(f)(7)(A)",
+        "appliesTo": "mfj, qss, hoh bracket thresholds"
+      },
+      {
+        "ruleId": "usc26.1f7B.mfs_and_single",
+        "incrementCents": 2500,
+        "direction": "down",
+        "basis": "IncreaseOverBase",
+        "authority": "26 USC 1(f)(7)(B), reaching single via 1(j)(3)(B)(ii)",
+        "appliesTo": "single and mfs bracket thresholds"
+      },
+      {
+        "ruleId": "usc26.63c7Bii.stdded",
+        "incrementCents": 5000,
+        "direction": "down",
+        "basis": "IncreaseOverBase",
+        "authority": "26 USC 63(c)(7)(B)(ii) flush text - NOT 1(f)(7)(A) and NOT 63(c)(4), which 63(c)(7)(B)(i) switches off",
+        "appliesTo": "the basic standard deduction, all filing statuses"
+      },
+      {
+        "ruleId": "usc26.415c.dc_limit",
+        "incrementCents": 100000,
+        "direction": "down",
+        "basis": "Amount",
+        "authority": "TESTING.md section 3.1 rounding table",
+        "unverified": true
+      },
+      {
+        "ruleId": "usc26.415b.db_limit",
+        "incrementCents": 500000,
+        "direction": "down",
+        "basis": "Amount",
+        "authority": "TESTING.md section 3.1 rounding table",
+        "unverified": true
+      },
+      {
+        "ruleId": "usc42.1395r_i.irmaa",
+        "incrementCents": 100000,
+        "direction": "nearest",
+        "basis": "Amount",
+        "authority": "42 USC 1395r(i)",
+        "unverified": true
+      },
+      {
+        "ruleId": "ssa.pia",
+        "incrementCents": 10,
+        "direction": "down",
+        "basis": "Amount",
+        "authority": "TESTING.md section 3.1 rounding table ('down (truncate)')",
+        "unverified": true
+      },
+      {
+        "ruleId": "ssa.payable_benefit",
+        "incrementCents": 100,
+        "direction": "down",
+        "basis": "Amount",
+        "authority": "TESTING.md section 3.1 rounding table ('down (truncate)')",
+        "unverified": true
+      }
+    ]
+  },
+  "expect": {
+    "cases": [
+      {
+        "id": "brackets-50-statutory",
+        "ruleId": "usc26.1f7A.brackets",
+        "rule": {
+          "incrementCents": 5000,
+          "direction": "down",
+          "basis": "IncreaseOverBase"
+        },
+        "inputs": {
+          "baseCents": 16500000,
+          "factor": {
+            "num": 2126470,
+            "den": 1658841
+          },
+          "rawIncreaseCents": {
+            "num": 2571959500000,
+            "den": 552947
+          },
+          "roundedIncreaseCents": 4650000
+        },
+        "expectCents": 21150000,
+        "derivation": "mfj/qss/hoh top-of-22% base $165,000. increase = 165000 x (2126470/1658841 - 1) = $46,513.6713...; floor to $50 -> $46,500; total $211,500."
+      },
+      {
+        "id": "brackets-50-exact-multiple",
+        "ruleId": "usc26.1f7A.brackets",
+        "rule": {
+          "incrementCents": 5000,
+          "direction": "down",
+          "basis": "IncreaseOverBase"
+        },
+        "inputs": {
+          "baseCents": 16500000,
+          "factor": {
+            "num": 141,
+            "den": 110
+          },
+          "rawIncreaseCents": {
+            "num": 4650000,
+            "den": 1
+          },
+          "roundedIncreaseCents": 4650000
+        },
+        "expectCents": 21150000,
+        "derivation": "factor 141/110 makes the increase exactly $46,500.00, an exact multiple of $50: rounding is a no-op and the total is $211,500."
+      },
+      {
+        "id": "brackets-50-zero-adjustment",
+        "ruleId": "usc26.1f7A.brackets",
+        "rule": {
+          "incrementCents": 5000,
+          "direction": "down",
+          "basis": "IncreaseOverBase"
+        },
+        "inputs": {
+          "baseCents": 16500000,
+          "factor": {
+            "num": 1,
+            "den": 1
+          },
+          "rawIncreaseCents": {
+            "num": 0,
+            "den": 1
+          },
+          "roundedIncreaseCents": 0
+        },
+        "expectCents": 16500000,
+        "derivation": "factor 1 gives a zero increase; floor(0) = 0; the total is the base, $165,000. Guards an implementation that adds an increment when the increase is zero."
+      },
+      {
+        "id": "brackets-50-negative-increase",
+        "ruleId": "usc26.1f7A.brackets",
+        "rule": {
+          "incrementCents": 5000,
+          "direction": "down",
+          "basis": "IncreaseOverBase"
+        },
+        "inputs": {
+          "baseCents": 16500000,
+          "factor": {
+            "num": 989,
+            "den": 1000
+          },
+          "rawIncreaseCents": {
+            "num": -181500,
+            "den": 1
+          },
+          "roundedIncreaseCents": -185000
+        },
+        "expectCents": 16315000,
+        "derivation": "SYNTHETIC deflation case (no archived year has one). increase = 165000 x (-11/1000) = -$1,815.00 = -181,500 cents. 'down' = next LOWEST multiple, toward -infinity: -181500/5000 = -36.3, floor -37, so -185,000 cents = -$1,850; total $163,150. Truncation toward zero would give -$1,800 and a total of $163,200: this case separates them.",
+        "note": "synthetic input; the statute's words are 'next lowest multiple', which is floor toward -infinity, not truncation"
+      },
+      {
+        "id": "mfs-25-statutory",
+        "ruleId": "usc26.1f7B.mfs_and_single",
+        "rule": {
+          "incrementCents": 2500,
+          "direction": "down",
+          "basis": "IncreaseOverBase"
+        },
+        "inputs": {
+          "baseCents": 30000000,
+          "factor": {
+            "num": 2126470,
+            "den": 1658841
+          },
+          "rawIncreaseCents": {
+            "num": 4676290000000,
+            "den": 552947
+          },
+          "roundedIncreaseCents": 8455000
+        },
+        "expectCents": 38455000,
+        "derivation": "mfs top-of-35% base $300,000. increase = $84,570.3114...; floor to $25 -> $84,550; total $384,550."
+      },
+      {
+        "id": "single-25-vs-50-discriminator",
+        "ruleId": "usc26.1f7B.mfs_and_single",
+        "rule": {
+          "incrementCents": 2500,
+          "direction": "down",
+          "basis": "IncreaseOverBase"
+        },
+        "inputs": {
+          "baseCents": 3870000,
+          "factor": {
+            "num": 1063235,
+            "den": 815958
+          },
+          "rawIncreaseCents": {
+            "num": 53164555000,
+            "den": 45331
+          },
+          "roundedIncreaseCents": 1172500
+        },
+        "expectCents": 5042500,
+        "derivation": "single top-of-12% base $38,700, base year 2016 (2026 rule). increase = $11,728.0790...; floor to $25 -> $11,725; total $50,425. Flooring the same increase to $50 would give $11,700 and a total of $50,400 - a $25 difference. This is the case that proves the per-filing-status increment is load-bearing and that a single scalar increment on a bracket table is wrong.",
+        "note": "the $50 alternative happens to coincide with the published 2026 single figure; that coincidence is NOT evidence for the $50 reading and nothing here was chosen to produce it - see decision B1 in docs/verification/m0-hand-verification.md for why the statutory path carries a residual against the publication"
+      },
+      {
+        "id": "stdded-50-single",
+        "ruleId": "usc26.63c7Bii.stdded",
+        "rule": {
+          "incrementCents": 5000,
+          "direction": "down",
+          "basis": "IncreaseOverBase"
+        },
+        "inputs": {
+          "baseCents": 1575000,
+          "factor": {
+            "num": 212647,
+            "den": 207619
+          },
+          "rawIncreaseCents": {
+            "num": 7919100000,
+            "den": 207619
+          },
+          "roundedIncreaseCents": 35000
+        },
+        "expectCents": 1610000,
+        "derivation": "single/mfs base $15,750, base year 2024. increase = 15750 x 5028/207619 = $381.4246...; floor to $50 -> $350; total $16,100."
+      },
+      {
+        "id": "stdded-50-hoh-basis-discriminator",
+        "ruleId": "usc26.63c7Bii.stdded",
+        "rule": {
+          "incrementCents": 5000,
+          "direction": "down",
+          "basis": "IncreaseOverBase"
+        },
+        "inputs": {
+          "baseCents": 2362500,
+          "factor": {
+            "num": 212647,
+            "den": 207619
+          },
+          "rawIncreaseCents": {
+            "num": 11878650000,
+            "den": 207619
+          },
+          "roundedIncreaseCents": 55000
+        },
+        "expectCents": 2417500,
+        "derivation": "hoh base $23,625. increase = $572.1369...; floor to $50 -> $550; total $24,175. Rev. Proc. 2025-32 section 4.14(1) publishes $24,150. Residual +$25, recorded not fixed.",
+        "note": "THE ONLY case in the M0 parameter set where IncreaseOverBase and flooring the final amount differ, because 23,625 is a multiple of $25 but not of $50. Flooring the final amount gives $24,150, the published figure. If RoundingRule.basis gains a FinalAmount value this is the only fixture that exercises it."
+      },
+      {
+        "id": "stdded-50-hoh-floor-the-total",
+        "ruleId": "usc26.63c7Bii.stdded",
+        "rule": {
+          "incrementCents": 5000,
+          "direction": "down",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 502378537500,
+            "den": 207619
+          }
+        },
+        "expectCents": 2415000,
+        "derivation": "the SAME input under basis Amount (floor the total): floor_50(23625 x (1 + 5028/207619)) = floor_50($24,197.1369) = $24,150. Paired with the row above so the basis field is actually under test; neither reading is adopted here.",
+        "note": "this case uses basis 'Amount' to express 'floor the final amount'. If a FinalAmount basis is added the two spellings must be reconciled."
+      },
+      {
+        "id": "dc-limit-1000-down",
+        "ruleId": "usc26.415c.dc_limit",
+        "rule": {
+          "incrementCents": 100000,
+          "direction": "down",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 7148300,
+            "den": 1
+          }
+        },
+        "expectCents": 7100000,
+        "derivation": "SYNTHETIC $71,483.00; floor to $1,000 -> $71,000."
+      },
+      {
+        "id": "dc-limit-1000-exact-multiple",
+        "ruleId": "usc26.415c.dc_limit",
+        "rule": {
+          "incrementCents": 100000,
+          "direction": "down",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 7000000,
+            "den": 1
+          }
+        },
+        "expectCents": 7000000,
+        "derivation": "$70,000.00 is an exact multiple of $1,000: no change."
+      },
+      {
+        "id": "dc-limit-1000-negative",
+        "ruleId": "usc26.415c.dc_limit",
+        "rule": {
+          "incrementCents": 100000,
+          "direction": "down",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": -150000,
+            "den": 1
+          }
+        },
+        "expectCents": -200000,
+        "derivation": "SYNTHETIC -$1,500.00. 'down' toward -infinity: -150000/100000 = -1.5, floor -2 -> -$2,000. Truncation would give -$1,000.",
+        "note": "synthetic; a 415(c) limit is never negative. Included only to pin the direction semantics."
+      },
+      {
+        "id": "db-limit-5000-down",
+        "ruleId": "usc26.415b.db_limit",
+        "rule": {
+          "incrementCents": 500000,
+          "direction": "down",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 28374200,
+            "den": 1
+          }
+        },
+        "expectCents": 28000000,
+        "derivation": "SYNTHETIC $283,742.00; floor to $5,000 -> $280,000."
+      },
+      {
+        "id": "db-limit-5000-exact-multiple",
+        "ruleId": "usc26.415b.db_limit",
+        "rule": {
+          "incrementCents": 500000,
+          "direction": "down",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 28500000,
+            "den": 1
+          }
+        },
+        "expectCents": 28500000,
+        "derivation": "$285,000.00 is an exact multiple of $5,000: no change."
+      },
+      {
+        "id": "irmaa-nearest-down",
+        "ruleId": "usc42.1395r_i.irmaa",
+        "rule": {
+          "incrementCents": 100000,
+          "direction": "nearest",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 10940000,
+            "den": 1
+          }
+        },
+        "expectCents": 10900000,
+        "derivation": "SYNTHETIC $109,400.00; nearest $1,000 -> $109,000 (400 below the midpoint)."
+      },
+      {
+        "id": "irmaa-nearest-up",
+        "ruleId": "usc42.1395r_i.irmaa",
+        "rule": {
+          "incrementCents": 100000,
+          "direction": "nearest",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 10960000,
+            "den": 1
+          }
+        },
+        "expectCents": 11000000,
+        "derivation": "SYNTHETIC $109,600.00; nearest $1,000 -> $110,000 (400 above the midpoint)."
+      },
+      {
+        "id": "irmaa-nearest-exact-multiple",
+        "ruleId": "usc42.1395r_i.irmaa",
+        "rule": {
+          "incrementCents": 100000,
+          "direction": "nearest",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 10900000,
+            "den": 1
+          }
+        },
+        "expectCents": 10900000,
+        "derivation": "$109,000.00 is an exact multiple of $1,000: no change."
+      },
+      {
+        "id": "ssa-pia-dime-down",
+        "ruleId": "ssa.pia",
+        "rule": {
+          "incrementCents": 10,
+          "direction": "down",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 123456,
+            "den": 1
+          }
+        },
+        "expectCents": 123450,
+        "derivation": "SYNTHETIC $1,234.56; floor to $0.10 -> $1,234.50 (123,450 cents)."
+      },
+      {
+        "id": "ssa-pia-dime-exact-multiple",
+        "ruleId": "ssa.pia",
+        "rule": {
+          "incrementCents": 10,
+          "direction": "down",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 123450,
+            "den": 1
+          }
+        },
+        "expectCents": 123450,
+        "derivation": "123,450 cents is an exact multiple of 10 cents: no change."
+      },
+      {
+        "id": "ssa-benefit-dollar-down",
+        "ruleId": "ssa.payable_benefit",
+        "rule": {
+          "incrementCents": 100,
+          "direction": "down",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 123456,
+            "den": 1
+          }
+        },
+        "expectCents": 123400,
+        "derivation": "SYNTHETIC $1,234.56; floor to $1 -> $1,234.00."
+      },
+      {
+        "id": "ssa-benefit-dollar-exact-multiple",
+        "ruleId": "ssa.payable_benefit",
+        "rule": {
+          "incrementCents": 100,
+          "direction": "down",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 123400,
+            "den": 1
+          }
+        },
+        "expectCents": 123400,
+        "derivation": "$1,234.00 is an exact multiple of $1: no change."
+      },
+      {
+        "id": "direction-up-positive",
+        "ruleId": "synthetic.direction",
+        "rule": {
+          "incrementCents": 100,
+          "direction": "up",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 123456,
+            "den": 1
+          }
+        },
+        "expectCents": 123500,
+        "derivation": "SYNTHETIC 123,456 cents, increment 100, 'up' toward +infinity -> 123,500."
+      },
+      {
+        "id": "direction-up-negative",
+        "ruleId": "synthetic.direction",
+        "rule": {
+          "incrementCents": 100,
+          "direction": "up",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": -123456,
+            "den": 1
+          }
+        },
+        "expectCents": -123400,
+        "derivation": "SYNTHETIC -123,456 cents, 'up' toward +infinity: -1234.56 -> ceil -1234 -> -123,400."
+      },
+      {
+        "id": "direction-down-negative-non-multiple",
+        "ruleId": "synthetic.direction",
+        "rule": {
+          "incrementCents": 5000,
+          "direction": "down",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": -127500,
+            "den": 1
+          }
+        },
+        "expectCents": -130000,
+        "derivation": "SYNTHETIC -$1,275.00 at increment $50. -127500/5000 = -25.5, floor -26 -> -$1,300.00. Truncation toward zero would give -$1,250.00. This is the case an implementer using i64 division gets wrong by default."
+      },
+      {
+        "id": "direction-halfup-tie",
+        "ruleId": "synthetic.direction",
+        "rule": {
+          "incrementCents": 100,
+          "direction": "halfUp",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 12350,
+            "den": 1
+          }
+        },
+        "expectCents": 12400,
+        "derivation": "SYNTHETIC 12,350 cents at increment 100: exactly a tie (123.5). halfUp -> 12,400."
+      },
+      {
+        "id": "direction-halfup-below",
+        "ruleId": "synthetic.direction",
+        "rule": {
+          "incrementCents": 100,
+          "direction": "halfUp",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 12349,
+            "den": 1
+          }
+        },
+        "expectCents": 12300,
+        "derivation": "12,349 -> 123.49 -> 12,300."
+      },
+      {
+        "id": "direction-halfeven-tie-to-even",
+        "ruleId": "synthetic.direction",
+        "rule": {
+          "incrementCents": 100,
+          "direction": "halfEven",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 12350,
+            "den": 1
+          }
+        },
+        "expectCents": 12400,
+        "derivation": "SYNTHETIC 12,350 cents: tie at 123.5; halfEven goes to the EVEN multiple, 124 -> 12,400. Same answer as halfUp here."
+      },
+      {
+        "id": "direction-halfeven-tie-to-even-down",
+        "ruleId": "synthetic.direction",
+        "rule": {
+          "incrementCents": 100,
+          "direction": "halfEven",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 12450,
+            "den": 1
+          }
+        },
+        "expectCents": 12400,
+        "derivation": "SYNTHETIC 12,450 cents: tie at 124.5; halfEven goes to the EVEN multiple, 124 -> 12,400. halfUp would give 12,500. This pair is what separates the two modes.",
+        "note": "paired with direction-halfup-tie and direction-halfeven-tie-to-even; an implementation that maps halfEven onto halfUp passes the other two and fails this one"
+      },
+      {
+        "id": "basis-pair-synthetic-increase",
+        "ruleId": "synthetic.basis",
+        "rule": {
+          "incrementCents": 5000,
+          "direction": "down",
+          "basis": "IncreaseOverBase"
+        },
+        "inputs": {
+          "baseCents": 102500,
+          "factor": {
+            "num": 11,
+            "den": 10
+          },
+          "rawIncreaseCents": {
+            "num": 10250,
+            "den": 1
+          },
+          "roundedIncreaseCents": 10000
+        },
+        "expectCents": 112500,
+        "derivation": "SYNTHETIC base $1,025.00, factor 1.10. increase = $102.50; floor to $50 -> $100.00; total $1,125.00."
+      },
+      {
+        "id": "basis-pair-synthetic-total",
+        "ruleId": "synthetic.basis",
+        "rule": {
+          "incrementCents": 5000,
+          "direction": "down",
+          "basis": "Amount"
+        },
+        "inputs": {
+          "amountCents": {
+            "num": 112750,
+            "den": 1
+          }
+        },
+        "expectCents": 110000,
+        "derivation": "the SAME input under basis Amount: floor_50($1,127.50) = $1,100.00. Different from the row above by $25, because $1,025 is not a multiple of $50.",
+        "note": "a synthetic pair, so the basis field is under test even if the hoh standard-deduction question is resolved by removing that case"
+      }
+    ],
+    "caseCount": 30
+  },
+  "openQuestions": [
+    {
+      "id": "nearest-exact-tie",
+      "question": "What does direction 'nearest' do at an exact tie?",
+      "example": "SYNTHETIC $109,500.00 at increment $1,000 (42 USC 1395r(i), IRMAA). The amount is exactly $500 above a multiple.",
+      "why": "TESTING.md section 3.1 names the IRMAA rule 'nearest $1,000' and DOMAIN-MODEL.md section 2.1 names the direction 'Nearest'. Neither states a tie rule, and the enum carries HalfUp and HalfEven as separate members, so 'Nearest' is not a synonym for either. No expected value is asserted here: this task will not invent one.",
+      "needs": "a human decision, recorded in DECISIONS.md or in the RoundingRule documentation"
+    },
+    {
+      "id": "down-versus-truncate",
+      "question": "Is 'down' floor-toward-minus-infinity or truncation toward zero for a negative amount?",
+      "example": "-$1,275.00 at increment $50: floor gives -$1,300.00, truncation gives -$1,250.00. Case 'direction-down-negative-non-multiple' asserts the FLOOR reading, because 26 USC 1(f)(7)(A) says 'next lowest multiple'.",
+      "why": "TESTING.md section 3.1's rounding table describes the two SSA rules as 'down (truncate)', but RoundingRule.direction (DOMAIN-MODEL.md section 2.1) has no Truncate member. The two coincide for non-negative amounts, which is every real SSA input, so the label is harmless there - but an implementer reaching for i64 division gets truncation by default, and the tax rules need floor.",
+      "needs": "a human decision: either RoundingRule.direction gains a Truncate member, or 'down' is normative everywhere and TESTING.md section 3.1's parenthetical is corrected"
+    },
+    {
+      "id": "halfup-negative-tie",
+      "question": "Does halfUp at a negative tie go toward +infinity or away from zero?",
+      "example": "-12,350 cents at increment 100: toward +infinity gives -12,300; away from zero gives -12,400.",
+      "why": "ENGINE-SPEC.md section 3.2 rounds the rate-schedule sum 'to the whole dollar under the irs.whole_dollar rule (half-up)' without saying which. Tax is non-negative so it never bites at M0; it will when marginal() differences arrive at M1. Every halfUp case asserted above is non-negative.",
+      "needs": "a decision before M1"
+    },
+    {
+      "id": "increment-unit",
+      "question": "Is RoundingRule.increment in CENTS or in the table's own unit?",
+      "example": "DOMAIN-MODEL.md section 15's worked TOML writes 'increment = 50' inside a table whose values are 'integer dollars as published', while section 2.1 types the field 'increment: Cents'. Read as cents that is 50 cents; read as the table's unit it is $50. The two differ by 100x.",
+      "why": "Every fixture in this file spells the field 'incrementCents' to avoid inheriting the ambiguity. A parameter table cannot.",
+      "needs": "a design correction before seam S1 freezes at M0"
+    }
+  ],
+  "notes": "The eight rules of TESTING.md section 3.1 with boundary amounts, plus negative amounts, exact-multiple inputs and IncreaseOverBase/Amount pairs. Only the first three rules' increments and directions were read from an archived primary document by this task (26 USC 1(f)(7) and 63(c)(7)(B)(ii), archived under params/provenance/usc/); the 415(c), 415(b), IRMAA, PIA and payable-benefit rows are taken from TESTING.md section 3.1 itself and are marked unverified - no archived primary document in this repository states them, and ENGINE-SPEC.md section 3.7 already flags IRS projection rounding conventions as unverified. Four questions the design does not settle are in openQuestions with NO expected value, rather than being answered by this task."
+}
