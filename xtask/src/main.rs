@@ -2,10 +2,13 @@
 //!
 //! The real subcommands are the repository-hygiene gates that `SECURITY.md` §13
 //! and `TESTING.md` §11 require from M0: `check-magic`, `lint-dollars`,
-//! `data-hygiene` (which includes `lint-server`) and `protected-paths`; plus the
-//! build helpers `build-web`, `validation-report` and `assumption-catalogue`. The
-//! other build helpers (`dist`, `schema`, `openapi`) are declared here so the
-//! command surface is stable, and each states the M0 step that implements it.
+//! `data-hygiene` (which includes `lint-server`) and `protected-paths`; the
+//! build helpers `build-web`, `validation-report` and `assumption-catalogue`; and
+//! the unsigned half of the release pipeline: `dist` (with its reproducibility
+//! report, `dist --compare`), `sbom`, `checksums` and the fail-closed
+//! `sign-checksums`. The remaining build helpers (`schema`, `openapi`) are
+//! declared here so the command surface is stable, and each states the M0 step
+//! that implements it.
 //!
 //! Exit codes: 0 clean, 1 violations found, 2 usage error or not implemented.
 
@@ -17,16 +20,22 @@
     clippy::disallowed_macros
 )]
 
+mod archive;
 mod build_web;
 mod catalogue;
+mod checksums;
+mod compare;
+mod dist;
 mod dollars;
 mod engine;
 mod hygiene;
 mod lint_server;
+mod macho;
 mod magic;
 mod protected;
 mod repo;
 mod report;
+mod sbom;
 
 use std::process::ExitCode;
 
@@ -80,8 +89,35 @@ build helpers:
                            docs/assumption-catalogue.md from params/ through the pfp-params
                            loader (authoritative for parameter ids). --check fails on drift
 
+release pipeline, unsigned half (ad-hoc signing only; no key of any kind):
+  dist [--universal | --target TRIPLE ...] [--source-date-epoch N] [--source-commit SHA]
+       [--out DIR] [--skip-prepare] [--skip-install]
+                           validation report and front end, then cargo build --release
+                           --locked with no rustc wrapper (so no cargo-auditable: its
+                           install path would change the bytes), remapped paths, SOURCE_DATE_EPOCH (the
+                           argument, else the last commit time; never the clock) and
+                           MACOSX_DEPLOYMENT_TARGET=12.0; lipo for --universal, otherwise a
+                           build LABELLED single-arch; record the pre-codesign SHA-256; sign
+                           ONCE ad hoc (codesign -s -, hardened runtime, no entitlements);
+                           package the .app wrapper and the bare-executable tarball from that
+                           one file; check-magic; dist-manifest.json; SHA256SUMS. Output:
+                           <target dir>/dist/<label>/ unless --out. No DMG: that is CI-only
+  dist --compare <dirA> <dirB> [--report FILE] [--strict]
+                           where two dist outputs differ: per file, per Mach-O section and
+                           __LINKEDIT blob, per tar member, per manifest line (web/dist per
+                           file). Reported, not gating (PLAN.md R21) unless --strict
+  sbom [--out DIR] [--target TRIPLE ...] [--source-date-epoch N]
+                           CycloneDX JSON: cargo-cyclonedx (pinned) per macOS target, and the
+                           npm packages transcribed from web/package-lock.json; then the
+                           no-copyleft assertion
+  sbom --check FILE...     the assertion alone: no GPL/AGPL/LGPL/PolyForm/Parity/unknown
+                           component; no MPL-family or non-allowlisted licence that ships
+  checksums DIR            DIR/SHA256SUMS over every file under DIR (unsigned)
+  sign-checksums           the Ed25519 signature over SHA256SUMS: NOT implemented; always
+                           fails (exit 2) so that nothing ships it unsigned by mistake
+
 build helpers (declared; not implemented at this step of M0):
-  dist | schema | openapi
+  schema | openapi
 ";
 
 fn main() -> ExitCode {
@@ -104,7 +140,10 @@ fn main() -> ExitCode {
             Ok(true)
         }
         "build-web" => build_web::run(rest),
-        "dist" => not_implemented(cmd, "M0 step 5 (release pipeline: universal build, signing, DMG and tarball channels)"),
+        "dist" => dist::run(rest),
+        "sbom" => sbom::run(rest),
+        "checksums" => checksums::run(rest),
+        "sign-checksums" => checksums::sign(rest),
         "validation-report" => report::run(rest),
         "assumption-catalogue" => catalogue::run(rest),
         "schema" => not_implemented(cmd, "M0 step 4 (JSON-Schema export via schemars; the plan schema itself freezes at M2, seam S5)"),
