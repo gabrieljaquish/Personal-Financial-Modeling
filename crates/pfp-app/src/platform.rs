@@ -2,13 +2,14 @@
 //! beyond files and sockets — trust settings, a native alert, opening a browser.
 //!
 //! This library contains **traits, the do-nothing [`UnsupportedPlatform`] and
-//! (under `cfg(test)`) in-memory fakes. It contains no real implementation**, and
-//! at M0 neither does the binary: every `pfp` this repository can build runs with
-//! [`Platform::unsupported`], so it never reads or changes a trust setting, never
-//! shows an alert and never opens a browser. The macOS implementation
-//! (`SecTrustSettings*` in the user domain for the SSL policy, an in-process
-//! alert, `LSOpenCFURLRef` from inside the process — `SECURITY.md` §6.2, §7.1)
-//! lands with the M0 trust spike, reviewed and first run by a person.
+//! (under `cfg(test)`) in-memory fakes. It contains no real implementation.** The
+//! only real one is in the `pfp` binary on macOS: the browser opener
+//! (`LSOpenCFURLRef` from inside the process, `SECURITY.md` §7.1), in
+//! `src/macos_opener.rs`. Trust settings and native alerts are still
+//! [`UnsupportedPlatform`] in every build, so no build reads or changes a trust
+//! setting or shows an alert; that part (`SecTrustSettings*` in the user domain
+//! for the SSL policy, an in-process alert, `SECURITY.md` §6.2) lands with the
+//! M0 trust spike, reviewed and first run by a person.
 //!
 //! Rules an implementation must keep:
 //! * the launch URL reaches the browser through an in-process API — never argv,

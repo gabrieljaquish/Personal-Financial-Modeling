@@ -218,7 +218,7 @@ Test attributes and `test(` declarations counted in the source tree: what is dec
 
 | Crate | Test attributes |
 |---|---|
-| pfp-app | 48 |
+| pfp-app | 49 |
 | pfp-domain | 7 |
 | pfp-explain | 18 |
 | pfp-money | 43 |

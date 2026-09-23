@@ -166,8 +166,17 @@ recomputes the input hash in Rust: it fails if the recorded one differs. `pfp-se
 
 ### Run it
 
+To use the application, build the front end once and start it; it opens in your default
+browser:
+
 ```sh
 cargo xtask build-web --skip-install
+cargo run -p pfp-app -- serve
+```
+
+For scripts and tests, which must never open a browser or use the default state directory:
+
+```sh
 cargo run -p pfp-app -- serve --port 0 --no-open --no-trust --state-dir "$(mktemp -d)"
 ```
 
@@ -262,10 +271,13 @@ unproven, and waits for the Playwright and axe step:
 What to expect from the launcher at this step of M0:
 
 - The listener is `127.0.0.1` only and TLS only; there is no plaintext mode in any profile.
-- **No build in this repository opens a browser, shows an alert or touches a trust setting yet.**
-  The platform seam exists as traits; the macOS implementation arrives with the M0 trust spike.
-  Every run therefore behaves as `--no-open --no-trust`, the browser shows a certificate warning
-  for the local certificate, and the fingerprint on the `PFP-READY` line is what to compare.
+- **On macOS, `pfp serve` opens the application in your default browser** through Launch
+  Services, from inside the process (`crates/pfp-app/src/macos_opener.rs`), unless `--no-open` is
+  given. That opened tab is the only way in: see the next point.
+- **No build shows an alert or touches a trust setting yet** (the rest of the M0 trust spike).
+  Every run therefore behaves as `--no-trust`: the browser shows a certificate warning for the
+  local certificate the first time, and the fingerprint on the `PFP-READY` line is what to compare
+  before you accept it.
 - The session is established from a launch token that the launcher hands to the browser inside
   the URL fragment, in-process. The token is never printed and cannot be passed by flag,
   environment variable or file, so a page opened by typing the address shows "Not connected".
