@@ -429,6 +429,11 @@ async fn refusals_are_logged_by_code_and_template_only() {
         .iter()
         .map(ToString::to_string)
         .collect();
-    assert_eq!(rendered, ["#1 request_refused POST /api/** 421"]);
+    // The refusal's stable code is named; the path as sent ("a-secret-name") never is.
+    assert_eq!(
+        rendered,
+        ["#1 request_refused POST /api/** 421 misdirected_host"]
+    );
+    assert!(!rendered[0].contains("secret"));
     server.stop().await;
 }

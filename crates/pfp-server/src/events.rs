@@ -134,6 +134,9 @@ pub struct Event {
     pub route: Option<&'static str>,
     /// The response status, for request events.
     pub status: Option<u16>,
+    /// For a refused request, the stable error code of the refusal (a
+    /// compile-time string such as `fetch_site_forbidden`), never request data.
+    pub reason: Option<&'static str>,
 }
 
 impl fmt::Display for Event {
@@ -147,6 +150,9 @@ impl fmt::Display for Event {
         }
         if let Some(status) = self.status {
             write!(f, " {status}")?;
+        }
+        if let Some(reason) = self.reason {
+            write!(f, " {reason}")?;
         }
         Ok(())
     }
@@ -205,7 +211,7 @@ impl EventLog {
 
     /// Records an event that is not about a request.
     pub fn record(&self, code: EventCode) {
-        self.push(code, None, None, None);
+        self.push(code, None, None, None, None);
     }
 
     /// Records a request event: method name, route template and status only.
@@ -216,7 +222,25 @@ impl EventLog {
         route: &'static str,
         status: u16,
     ) {
-        self.push(code, Some(method), Some(route), Some(status));
+        self.push(code, Some(method), Some(route), Some(status), None);
+    }
+
+    /// Records a refused request: method name, route template, status and the
+    /// refusal's stable error code.
+    pub fn record_refusal(
+        &self,
+        method: &'static str,
+        route: &'static str,
+        status: u16,
+        reason: &'static str,
+    ) {
+        self.push(
+            EventCode::RequestRefused,
+            Some(method),
+            Some(route),
+            Some(status),
+            Some(reason),
+        );
     }
 
     fn push(
@@ -225,6 +249,7 @@ impl EventLog {
         method: Option<&'static str>,
         route: Option<&'static str>,
         status: Option<u16>,
+        reason: Option<&'static str>,
     ) {
         let event = {
             let mut ring = self.ring.lock().unwrap_or_else(PoisonError::into_inner);
@@ -234,6 +259,7 @@ impl EventLog {
                 method,
                 route,
                 status,
+                reason,
             };
             ring.next_seq += 1;
             if ring.events.len() == self.capacity {
@@ -310,6 +336,23 @@ mod tests {
         assert_eq!(
             log.snapshot()[0].to_string(),
             "#1 request_served POST /api/v1/session/status 200"
+        );
+    }
+
+    #[test]
+    fn a_refusal_names_its_error_code_and_nothing_else() {
+        let log = EventLog::with_capacity(4, false);
+        log.record_refusal(
+            "POST",
+            "/api/v1/session/bootstrap",
+            403,
+            "fetch_site_forbidden",
+        );
+        let event = log.snapshot()[0];
+        assert_eq!(event.code, EventCode::RequestRefused);
+        assert_eq!(
+            event.to_string(),
+            "#1 request_refused POST /api/v1/session/bootstrap 403 fetch_site_forbidden"
         );
     }
 

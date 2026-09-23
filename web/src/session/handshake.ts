@@ -21,8 +21,13 @@ export type SessionState =
   | { kind: 'connected' }
   /** Opened without a launch token (typed address, bookmark, restored tab). */
   | { kind: 'no-token' }
-  /** The launch token was refused: wrong, expired or already used. */
-  | { kind: 'rejected' }
+  /**
+   * The server refused to start a session. `code` is its stable error code when
+   * it sent one (`launch_token_invalid`: wrong, expired or already used; an
+   * admission code such as `fetch_site_forbidden`: the request itself was refused
+   * and the launch token was never checked).
+   */
+  | { kind: 'rejected'; code?: string }
   /** This tab had a session and the server no longer honours it (401 mid-use). */
   | { kind: 'session-ended' }
   /** Another local site displaced this browser's session cookie (409). */
@@ -73,7 +78,11 @@ export async function bootstrapSession(env: HandshakeEnv): Promise<SessionState>
       env.sessionStorage.setItem(PROOF_KEY, proof);
       return { kind: 'connected' };
     }
-    return result.kind === 'unreachable' ? { kind: 'unreachable' } : { kind: 'rejected' };
+    if (result.kind === 'unreachable') {
+      return { kind: 'unreachable' };
+    }
+    const code = 'code' in result ? result.code : undefined;
+    return code === undefined ? { kind: 'rejected' } : { kind: 'rejected', code };
   }
 
   // A reload of a tab that already holds a proof: ask whether the session lives.
@@ -103,7 +112,7 @@ export function describeSession(state: SessionState): string {
     case 'no-token':
       return 'Not connected. Open this page from the application, not from a typed address or a bookmark.';
     case 'rejected':
-      return 'Not connected. The launch link was already used or has expired; open the page again from the application.';
+      return describeRejection(state.code);
     case 'session-ended':
       return 'Not connected. This tab’s session has ended; open the page again from the application.';
     case 'displaced':
@@ -111,4 +120,17 @@ export function describeSession(state: SessionState): string {
     case 'unreachable':
       return 'Not connected. The application on this computer is not answering.';
   }
+}
+
+/** Admission refusals: the request was turned away before the launch token was read. */
+const ADMISSION_CODES = new Set(['origin_forbidden', 'fetch_site_forbidden', 'misdirected_host']);
+
+function describeRejection(code: string | undefined): string {
+  if (code === undefined || code === 'launch_token_invalid') {
+    return 'Not connected. The launch link was already used or has expired; open the page again from the application.';
+  }
+  if (ADMISSION_CODES.has(code)) {
+    return `Not connected. This browser's request to start a session was refused by the application's cross-site protection (code ${code}); the launch link was not used. Open the page again from the application.`;
+  }
+  return `Not connected. The application refused to start a session (code ${code}); open the page again from the application.`;
 }
