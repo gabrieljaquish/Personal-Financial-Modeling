@@ -3,6 +3,8 @@
 //! file store, the platform seam and the launch sequence. The server itself is
 //! `pfp-server`; this crate owns the process around it.
 //!
+//! * [`identity`] — the application identifier (a placeholder until the first
+//!   signed release) and the names derived from it;
 //! * [`cli`] — the hand-rolled argument parser. No flag can carry a token;
 //! * [`harden`] — `RLIMIT_CORE = 0` and the silent panic hook;
 //! * [`state`] and [`lock`] — the `0700` state directory and the advisory lock;
@@ -22,6 +24,7 @@
 
 pub mod cli;
 pub mod harden;
+pub mod identity;
 pub mod launch;
 pub mod leaf_store;
 pub mod lock;

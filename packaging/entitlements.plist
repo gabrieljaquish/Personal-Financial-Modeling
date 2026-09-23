@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  The entitlements set of the pfp executable: EMPTY, by design (SECURITY.md §12,
+  ADR-003). No JIT, no unsigned executable memory, no library-validation bypass,
+  no debugging entitlement, no sandbox exception, nothing.
+
+  This file exists so that the empty set is written down and tested: `cargo
+  xtask` fails its tests if a key ever appears in the dictionary below. The
+  release pipeline does NOT pass it to codesign (no entitlements option on the
+  codesign command line and this empty dictionary mean the same thing); if the keychain spike of
+  PLAN.md §4.1 ever finds an entitlement to be necessary, that is an ADR first
+  and an edit here second.
+-->
+<plist version="1.0">
+<dict/>
+</plist>

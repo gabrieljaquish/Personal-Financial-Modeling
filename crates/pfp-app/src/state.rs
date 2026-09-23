@@ -1,6 +1,7 @@
 //! The state directory: the lock file and the local certificate. Never a plan.
 //!
-//! Default `$HOME/Library/Application Support/pfp`; every test and scripted run
+//! Default `$HOME/Library/Application Support/<APP_IDENTIFIER>` (the identifier
+//! of [`crate::identity`], still a placeholder); every test and scripted run
 //! passes `--state-dir`. Created `0700` and refused if someone else owns it or if
 //! group/other can reach into it.
 
@@ -31,10 +32,13 @@ impl std::fmt::Display for StateError {
 
 impl std::error::Error for StateError {}
 
-/// The default location under a home directory.
+/// The default location under a home directory: the macOS convention of a
+/// directory named after the application identifier under `Application Support`.
 #[must_use]
 pub fn default_under(home: &Path) -> PathBuf {
-    home.join("Library").join("Application Support").join("pfp")
+    home.join("Library")
+        .join("Application Support")
+        .join(crate::identity::APP_IDENTIFIER)
 }
 
 /// Resolves (explicit, else the default under `home`) and prepares the directory:
@@ -94,6 +98,22 @@ mod tests {
     #[test]
     fn default_and_missing_home() {
         assert_eq!(prepare(None, None), Err(StateError::NoHome));
-        assert!(default_under(Path::new("/h")).ends_with("Library/Application Support/pfp"));
+        assert_eq!(
+            default_under(Path::new("/h")),
+            Path::new("/h/Library/Application Support").join(crate::identity::APP_IDENTIFIER)
+        );
+    }
+
+    #[test]
+    fn default_is_named_after_the_identifier_and_nothing_else() {
+        // One path component, exactly the identifier: no second spelling of it.
+        let dir = default_under(Path::new("/h"));
+        assert_eq!(
+            dir.file_name().and_then(|n| n.to_str()),
+            Some(crate::identity::APP_IDENTIFIER)
+        );
+        assert!(crate::identity::is_reverse_dns(
+            crate::identity::APP_IDENTIFIER
+        ));
     }
 }

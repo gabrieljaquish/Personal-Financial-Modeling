@@ -1,0 +1,329 @@
+#
+# Release pipeline — the UNSIGNED half (PLAN.md §4.1 "Release pipeline";
+# ARCHITECTURE.md §9 items 3, 4, 5, 7 and 8; SECURITY.md §11 and §12).
+#
+# What this workflow is:
+#   * a MANUAL run (workflow_dispatch only: no tag, no push, no pull-request
+#     trigger) that builds the universal executable, signs it ONCE, AD HOC
+#     (`codesign --sign -`: no identity, no keychain, no entitlements), packages
+#     both channels from that one signed file, builds the DMG, writes the
+#     CycloneDX SBOM with the no-copyleft assertion and an UNSIGNED SHA256SUMS;
+#   * a second job that rebuilds on another runner, in another directory, with
+#     another CARGO_HOME, and publishes WHERE the two builds differ (`cargo
+#     xtask dist --compare`). Reported, not gating, at M0-M1 (PLAN.md R21); it
+#     gates from M2.
+#
+# Two output directories, kept apart on purpose:
+#   * `$DIST_DIR` is exactly what `cargo xtask dist` wrote. Nothing after that
+#     step writes into it; it is uploaded as `dist-<label>` and is what the
+#     rebuild is compared against, so a perfect rebuild reports byte-identical;
+#   * `$RELEASE_DIR` is the release set: dist's two tarballs and manifest, the
+#     DMG, the SBOMs, and the SHA256SUMS over all of them. Uploaded as
+#     `release-<label>`. The DMG is not reproducible (see its step).
+#
+# What this workflow is NOT, and must not become without the signing block
+# (PLAN.md §4.1 "Signing block"; SECURITY.md §12):
+#   * no Developer ID signature, no notarization, no stapling, no spctl;
+#   * no Ed25519 signature over SHA256SUMS: `cargo xtask sign-checksums` fails
+#     closed, and a step below asserts that it still does;
+#   * no secret, no environment, no key of any kind — nothing here can sign
+#     anything with an identity, because nothing here holds one;
+#   * no GitHub Release, no tag, no upload anywhere but this run's own
+#     workflow artifacts. The outputs are ad-hoc signed test builds: Gatekeeper
+#     blocks them on another machine, as it should.
+#
+# Conventions (as in ci.yml): read-only token; every action pinned to a full
+# commit SHA with its tag in a comment; a named runner image, never -latest;
+# tools from the pinned toolchain or `cargo install --locked --version`, never
+# from marketplace actions; `npm ci --ignore-scripts` only (inside `cargo xtask
+# build-web`); event values reach scripts through `env:`, never interpolated
+# into them; checkouts do not persist credentials. No dependency cache is
+# restored on this path: a cache written by another workflow run is an input
+# to the release that no lockfile pins.
+#
+name: Release (unsigned)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-unsigned-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  HOMEBREW_NO_AUTO_UPDATE: "1"
+  HOMEBREW_NO_INSTALL_CLEANUP: "1"
+  HOMEBREW_NO_ANALYTICS: "1"
+  CARGO_TERM_COLOR: always
+  # The pinned SBOM tool. `cargo xtask sbom` refuses any other version, so this
+  # line and the constant in xtask/src/sbom.rs move together. cargo-auditable
+  # is deliberately NOT used: as a rustc wrapper its install path would be part
+  # of the executable's bytes (see xtask/src/dist.rs, "No rustc wrapper").
+  CARGO_CYCLONEDX_VERSION: "0.5.9"
+
+jobs:
+  # -------------------------------------------------------------------------
+  # build — universal executable, ad-hoc signed once, both channels, DMG,
+  #         SBOM + assertion, SHA256SUMS
+  # -------------------------------------------------------------------------
+  build:
+    name: build (universal, ad hoc, DMG, SBOM, SHA256SUMS)
+    runs-on: macos-15
+    timeout-minutes: 60
+    outputs:
+      label: ${{ steps.dist.outputs.label }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # rust-toolchain.toml pins the channel; the two macOS targets are added
+      # here rather than in that file so that every other job keeps its lean
+      # toolchain. A Homebrew Rust cannot do this, which is why the universal
+      # build is CI-only.
+      - name: Install the pinned toolchain and both macOS targets
+        run: |
+          set -euo pipefail
+          rustup show
+          rustup target add aarch64-apple-darwin x86_64-apple-darwin
+          rustc -vV
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: web/.nvmrc
+
+      - name: Install the pinned SBOM tool
+        run: cargo install --locked --version "$CARGO_CYCLONEDX_VERSION" cargo-cyclonedx
+
+      # validation report -> npm ci --ignore-scripts + vite build -> cargo
+      # build --release --locked for both targets (no rustc wrapper; remapped paths,
+      # SOURCE_DATE_EPOCH = the commit time, MACOSX_DEPLOYMENT_TARGET=12.0) ->
+      # lipo -> record the pre-codesign SHA-256 -> codesign --sign - ONCE ->
+      # the .app wrapper and the bare tarball from that one file -> check-magic
+      # over every input and archive -> dist-manifest.json -> SHA256SUMS.
+      - name: Build, sign once ad hoc, package (cargo xtask dist --universal)
+        id: dist
+        run: |
+          set -euo pipefail
+          cargo xtask dist --universal --out "$RUNNER_TEMP/dist" | tee "$RUNNER_TEMP/dist.log"
+          line=$(grep '^DIST ' "$RUNNER_TEMP/dist.log")
+          label=$(printf '%s\n' "$line" | sed -n 's/^DIST label=\([^ ]*\) .*/\1/p')
+          name=$(printf '%s\n' "$line" | sed -n 's/^DIST .* name=\([^ ]*\) .*/\1/p')
+          dir=$(printf '%s\n' "$line" | sed -n 's/^DIST .* dir=//p')
+          test -n "$label" && test -n "$name" && test -d "$dir"
+          release="$RUNNER_TEMP/release"
+          rm -rf "$release"
+          mkdir -p "$release"
+          {
+            echo "label=$label"
+            echo "name=$name"
+            echo "dir=$dir"
+            echo "release=$release"
+          } >> "$GITHUB_OUTPUT"
+
+      # Two builds of this workflow are only comparable if both were built
+      # from the same tree: the build regenerates docs/validation-report.md,
+      # and a difference there means the commit was not current.
+      - name: The build left the tracked tree unchanged
+        run: git diff --exit-code
+
+      - name: The executable is universal (never a single-arch build called universal)
+        env:
+          LABEL: ${{ steps.dist.outputs.label }}
+          DIST_DIR: ${{ steps.dist.outputs.dir }}
+        run: |
+          set -euo pipefail
+          test "$LABEL" = "macos-universal-adhoc"
+          lipo -info "$DIST_DIR/work/pfp"
+          lipo "$DIST_DIR/work/pfp" -verify_arch arm64 x86_64
+          codesign --verify --strict "$DIST_DIR/work/pfp"
+          codesign --display --verbose=2 "$DIST_DIR/work/pfp"
+
+      # The release set starts as a copy of dist's archives and manifest; dist's
+      # own SHA256SUMS stays with dist's output (the release set gets its own).
+      - name: Start the release set (a copy; the dist output is not written to)
+        env:
+          DIST_DIR: ${{ steps.dist.outputs.dir }}
+          RELEASE_DIR: ${{ steps.dist.outputs.release }}
+        run: |
+          set -euo pipefail
+          cp "$DIST_DIR/artifacts/"*.tar.gz "$DIST_DIR/artifacts/dist-manifest.json" "$RELEASE_DIR/"
+
+      # The DMG exists ONLY here, never on a developer machine, and is written
+      # to the release set. Its input is the app/ directory that `dist` already
+      # checked, plus a link to
+      # /Applications. check-magic runs over that input because it cannot read
+      # a DMG; repo::walk does not follow the link. A DMG is not reproducible
+      # (hdiutil writes identifiers and times into it): the reproducibility
+      # claim is the executable's digest, not the image's.
+      - name: DMG (CI only)
+        env:
+          DIST_DIR: ${{ steps.dist.outputs.dir }}
+          RELEASE_DIR: ${{ steps.dist.outputs.release }}
+          NAME: ${{ steps.dist.outputs.name }}
+        run: |
+          set -euo pipefail
+          stage="$RUNNER_TEMP/dmg-root"
+          rm -rf "$stage"
+          ditto "$DIST_DIR/app" "$stage"
+          ln -s /Applications "$stage/Applications"
+          cargo xtask check-magic "$stage"
+          hdiutil create -volname "$NAME" -srcfolder "$stage" -fs HFS+ \
+            -format UDZO -imagekey zlib-level=9 -ov "$RELEASE_DIR/$NAME.dmg"
+          hdiutil verify "$RELEASE_DIR/$NAME.dmg"
+
+      - name: SBOM (CycloneDX) and the no-copyleft assertion
+        env:
+          RELEASE_DIR: ${{ steps.dist.outputs.release }}
+        run: cargo xtask sbom --out "$RELEASE_DIR"
+
+      - name: SHA256SUMS over every release artifact (unsigned)
+        env:
+          RELEASE_DIR: ${{ steps.dist.outputs.release }}
+        run: |
+          set -euo pipefail
+          cargo xtask checksums "$RELEASE_DIR"
+          (cd "$RELEASE_DIR" && shasum -a 256 -c SHA256SUMS)
+
+      # What the rebuild is compared against must be exactly what dist wrote:
+      # its SHA256SUMS still verifies and lists every other file in artifacts/.
+      - name: The dist output is untouched
+        env:
+          DIST_DIR: ${{ steps.dist.outputs.dir }}
+        run: |
+          set -euo pipefail
+          cd "$DIST_DIR/artifacts"
+          shasum -a 256 -c SHA256SUMS
+          listed=$(sed 's/^[0-9a-f]*  //' SHA256SUMS | LC_ALL=C sort)
+          present=$(find . -type f ! -name SHA256SUMS | sed 's|^\./||' | LC_ALL=C sort)
+          test "$listed" = "$present"
+
+      - name: The Ed25519 signing step still fails closed
+        run: |
+          if cargo xtask sign-checksums; then
+            echo "sign-checksums succeeded; until the signing block it must fail closed" >&2
+            exit 1
+          fi
+
+      - name: Summary
+        env:
+          RELEASE_DIR: ${{ steps.dist.outputs.release }}
+        run: |
+          set -euo pipefail
+          {
+            echo "## Unsigned release candidate (ad hoc; not for distribution)"
+            echo
+            echo '```'
+            grep -E '^(DIST|pre-codesign|signed|\.app)' "$RUNNER_TEMP/dist.log"
+            echo
+            cat "$RELEASE_DIR/SHA256SUMS"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # dist's output, untouched: what the rebuild job compares against.
+      - name: Upload the dist output (workflow artifact only)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dist-${{ steps.dist.outputs.label }}
+          path: ${{ steps.dist.outputs.dir }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload the release set (workflow artifact only)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-${{ steps.dist.outputs.label }}
+          path: ${{ steps.dist.outputs.release }}
+          if-no-files-found: error
+          retention-days: 30
+
+  # -------------------------------------------------------------------------
+  # rebuild — another runner, another directory, then WHERE they differ
+  # -------------------------------------------------------------------------
+  #
+  # ARCHITECTURE.md §9 item 4 and PLAN.md §4.1: two independent CI builds are
+  # compared and the difference report is published. The checkout path, the
+  # target directory and CARGO_HOME all differ from the first job's, so a path
+  # that escaped --remap-path-prefix shows up here. Reported, not gating (R21):
+  # the compare step exits 0 whatever it finds; `--strict` is how it will gate
+  # from M2. Both jobs run on the same runner image and user, so this cannot see
+  # a difference that only another account, SDK, Xcode or gzip would cause.
+  rebuild:
+    name: rebuild elsewhere and compare (reported, not gating)
+    needs: build
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - name: Check out (a different directory)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          path: elsewhere/second-build
+
+      - name: Install the pinned toolchain and both macOS targets
+        working-directory: elsewhere/second-build
+        run: |
+          set -euo pipefail
+          rustup show
+          rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: elsewhere/second-build/web/.nvmrc
+
+      - name: Rebuild (cargo xtask dist --universal)
+        id: dist
+        working-directory: elsewhere/second-build
+        run: |
+          set -euo pipefail
+          # A target directory outside the checkout, and another CARGO_HOME
+          # (a fresh registry), unlike the first job's.
+          export CARGO_TARGET_DIR="$RUNNER_TEMP/rebuild-target"
+          export CARGO_HOME="$RUNNER_TEMP/cargo-home-2"
+          cargo xtask dist --universal --out "$RUNNER_TEMP/rebuild" | tee "$RUNNER_TEMP/dist.log"
+          dir=$(sed -n 's/^DIST .* dir=//p' "$RUNNER_TEMP/dist.log")
+          test -d "$dir"
+          echo "dir=$dir" >> "$GITHUB_OUTPUT"
+
+      - name: Download the first build
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist-${{ needs.build.outputs.label }}
+          path: ${{ runner.temp }}/first
+
+      # Both sides are exactly what `dist` wrote (the first job keeps the DMG,
+      # the SBOMs and its release SHA256SUMS elsewhere), so a perfect rebuild
+      # reports byte-identical. Every file is compared, the executables
+      # section by section.
+      - name: Where the two builds differ
+        working-directory: elsewhere/second-build
+        env:
+          REBUILD_DIR: ${{ steps.dist.outputs.dir }}
+        run: |
+          set -euo pipefail
+          export CARGO_TARGET_DIR="$RUNNER_TEMP/rebuild-target"
+          export CARGO_HOME="$RUNNER_TEMP/cargo-home-2"
+          mkdir -p "$RUNNER_TEMP/report"
+          cargo xtask dist --compare "$RUNNER_TEMP/first" "$REBUILD_DIR" \
+            --report "$RUNNER_TEMP/report/reproducibility-report.md" > /dev/null
+          cp "$REBUILD_DIR/artifacts/dist-manifest.json" "$RUNNER_TEMP/report/rebuild-dist-manifest.json"
+          cp "$REBUILD_DIR/artifacts/SHA256SUMS" "$RUNNER_TEMP/report/rebuild-SHA256SUMS"
+          head -c 900000 "$RUNNER_TEMP/report/reproducibility-report.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the report (workflow artifact only)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: reproducibility-report
+          path: ${{ runner.temp }}/report
+          if-no-files-found: error
+          retention-days: 30

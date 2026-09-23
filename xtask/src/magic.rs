@@ -67,7 +67,7 @@ pub(crate) fn run(args: &[String]) -> Result<bool, String> {
 
 /// Scans a file, a directory tree, or an archive (unpacked into a temporary
 /// directory first, because a compressed archive hides the bytes it contains).
-fn scan_target(target: &Path, hits: &mut Vec<String>) -> Result<(), String> {
+pub(crate) fn scan_target(target: &Path, hits: &mut Vec<String>) -> Result<(), String> {
     if target.is_dir() {
         return scan_files(target, &repo::walk(target)?, hits);
     }

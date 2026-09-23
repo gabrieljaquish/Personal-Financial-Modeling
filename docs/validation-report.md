@@ -218,14 +218,14 @@ Test attributes and `test(` declarations counted in the source tree: what is dec
 
 | Crate | Test attributes |
 |---|---|
-| pfp-app | 47 |
+| pfp-app | 48 |
 | pfp-domain | 7 |
 | pfp-explain | 18 |
 | pfp-money | 43 |
 | pfp-params | 32 |
 | pfp-server | 211 |
 | pfp-tax | 18 |
-| xtask | 67 |
+| xtask | 103 |
 | web (node:test) | 195 |
 
 ## Unverified

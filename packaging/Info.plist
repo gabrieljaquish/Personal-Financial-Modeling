@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Template of the .app wrapper's Contents/Info.plist (ARCHITECTURE.md §9 item 5,
+  ADR-003). `cargo xtask dist` substitutes every @NAME@ placeholder and refuses
+  to package if one is left over; this file is never copied verbatim.
+
+  @IDENTIFIER@   crates/pfp-app/src/identity.rs APP_IDENTIFIER (a placeholder
+                 identifier until the first signed release)
+  @EXECUTABLE@   identity.rs EXECUTABLE_NAME
+  @NAME@         identity.rs BUNDLE_NAME
+  @VERSION@      the workspace version (Cargo.toml)
+  @MIN_OS@       the deployment target the executable is built for
+
+  LSUIElement: an agent process with no Dock icon and no menu bar; the user
+  interface is the default browser (ADR-003 guard clause: no native window).
+  No CFBundleIconFile: the icon is optional and none exists yet (packaging/README.md).
+-->
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleExecutable</key>
+	<string>@EXECUTABLE@</string>
+	<key>CFBundleIdentifier</key>
+	<string>@IDENTIFIER@</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>@NAME@</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>@VERSION@</string>
+	<key>CFBundleVersion</key>
+	<string>@VERSION@</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>@MIN_OS@</string>
+	<key>LSUIElement</key>
+	<true/>
+</dict>
+</plist>

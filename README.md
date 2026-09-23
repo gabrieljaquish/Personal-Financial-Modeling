@@ -55,6 +55,7 @@ container-magic rule, the AI-assistance protocol and the licence boundary.
 | [lefthook](https://github.com/evilmartians/lefthook) | — | Runs the pre-commit gates |
 | [gitleaks](https://github.com/gitleaks/gitleaks) | — | Secret scanning, pre-commit and in CI |
 | `cargo-deny`, `cargo-audit` | — | `cargo install cargo-deny cargo-audit`; they land in `~/.cargo/bin`, which must be on `PATH` |
+| `cargo-cyclonedx` | exactly 0.5.9 | SBOM only: `cargo install --locked --version 0.5.9 cargo-cyclonedx`. `cargo xtask sbom` refuses any other version. `cargo-auditable` is deliberately **not** used: see [`packaging/README.md`](packaging/README.md) |
 
 ### Build and test
 
@@ -95,8 +96,8 @@ cargo xtask assumption-catalogue --check
 ```
 
 `cargo xtask` with no arguments prints the full command list, including the build helpers
-(`build-web`, `validation-report` and `assumption-catalogue` are implemented; the others
-arrive with later steps of M0).
+(`build-web`, `validation-report`, `assumption-catalogue` and the unsigned release commands
+below are implemented; `schema` and `openapi` arrive with later steps of M0).
 
 ### Validation report and assumption catalogue
 
@@ -182,7 +183,7 @@ PFP-READY origin=https://127.0.0.1:<port> fingerprint=SHA256:<AA:BB:…> trust=d
 | `--no-open` | Do not open a browser |
 | `--no-trust` | Do not read or change any trust setting; the certificate fingerprint is printed for manual comparison. Wins over `--install-trust` |
 | `--install-trust` | The explicit opt-in without which nothing is ever installed into, or removed from, the trust settings |
-| `--state-dir DIR` | Where the single-instance lock and the local certificate live (default `~/Library/Application Support/pfp`); created `0700`, the key file `0600` |
+| `--state-dir DIR` | Where the single-instance lock and the local certificate live (default `~/Library/Application Support/<application identifier>`, the placeholder identifier in `crates/pfp-app/src/identity.rs`); created `0700`, the key file `0600` |
 
 `pfp --version`, `pfp --help` and `pfp openapi` (prints the OpenAPI document) start nothing.
 `pfp trust remove --install-trust` removes the stored certificate and its trust setting.
@@ -344,6 +345,39 @@ recorded here rather than left silent:
 |---|---|---|
 | §8: anything reaching the system log goes through `os_log` with every interpolated value `%{private}` | Not implemented. The in-memory ring buffer is the log (`crates/pfp-server/src/events.rs`); `warn` and `error` events are echoed to stderr, and the `PFP-READY` line and its prose go to stdout. What they can contain is fixed by type: event codes, route templates, status codes, the origin and the certificate fingerprint — never a token, a header value or a path as sent | `os_log` is a C interface, so it needs `unsafe` FFI or a vetted binding; `pfp-server` and `pfp-app` are both `#![forbid(unsafe_code)]`, and the place for it is the macOS platform module behind the `pfp-app` platform seam, which does not exist yet. The exposure §8 describes arises when `launchd` captures stdout and stderr in the `.app` channel, and that channel arrives with the signing block. It lands with the macOS platform module, before the first `.app` build; until then every run is from a terminal, where stderr is the terminal |
 
+### Release build (unsigned, local)
+
+The unsigned half of the release pipeline (`docs/PLAN.md` §4.1; `docs/ARCHITECTURE.md` §9;
+[`packaging/README.md`](packaging/README.md)) runs on a developer machine as a **single-arch,
+ad-hoc signed** build:
+
+```sh
+cargo xtask dist                     # validation report, npm ci --ignore-scripts + vite build,
+                                     # cargo build --release --locked (host target, no rustc wrapper),
+                                     # pre-codesign SHA-256, ONE ad-hoc signature, both channels,
+                                     # check-magic, dist-manifest.json, SHA256SUMS
+cargo xtask dist --compare <dirA> <dirB> --report report.md
+                                     # WHERE two dist outputs differ (per Mach-O section, per
+                                     # tar member, per web/dist file); reported, not gating
+cargo xtask sbom                     # CycloneDX JSON + the no-copyleft assertion
+cargo xtask sbom --check <file>…     # the assertion alone
+```
+
+The output is `target/dist/macos-<arch>-single-arch-adhoc/`: `work/` (the pre-codesign and
+signed executables), `app/` (the `.app` wrapper with `LICENSE` and `NOTICE`), `bare/`, and
+`artifacts/` (the two deterministic `.tar.gz` channels, `dist-manifest.json`, `SHA256SUMS`).
+A one-target build is labelled **single-arch** in every file name and in the manifest; only a
+`lipo` of both targets is called universal. `SOURCE_DATE_EPOCH` is the last commit time (or
+`--source-date-epoch N`), never the clock. Building twice from one commit gives a
+byte-identical executable and byte-identical tarballs **given the same** Rust toolchain, macOS
+SDK and linker (Xcode), and `gzip`: the checkout path, the target directory and `$CARGO_HOME`
+are remapped out of the binary, and no rustc wrapper runs (see
+[`packaging/README.md`](packaging/README.md), "Reproducing a build"). Signing is `codesign --sign -` only: no identity, no keychain, no entitlements. Such
+a build runs on the machine that made it; Gatekeeper blocks it anywhere else, as it should.
+
+`cargo xtask sign-checksums` (the Ed25519 signature over `SHA256SUMS`) is a stub that always
+fails. No step of this pipeline generates, reads or stores a key.
+
 ### What only CI can enforce
 
 - **The toolchain pin.** `rust-toolchain.toml` is honoured wherever `rustup` is present. A
@@ -353,6 +387,13 @@ recorded here rather than left silent:
   filesystem, network, clock, environment or entropy (determinism rule D1,
   [ARCHITECTURE.md](docs/ARCHITECTURE.md) §4.3). It needs a `rustup`-installed target, so it is
   a CI-only job.
+- **The universal build, the DMG and the double build**
+  (`.github/workflows/release.yml`, run by hand only: `workflow_dispatch`, no tag or push
+  trigger). `x86_64-apple-darwin` and therefore `lipo` need `rustup` targets that a Homebrew
+  Rust cannot add; the DMG is made with `hdiutil`, which never runs on a developer machine; and
+  the reproducibility report compares two builds on two runners in two directories. The
+  workflow uploads everything as workflow artifacts only: no GitHub Release, no tag, no
+  publishing, no Developer ID signature, no notarization.
 
 ## Design principles
 
