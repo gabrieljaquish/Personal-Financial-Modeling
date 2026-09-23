@@ -2,7 +2,7 @@
 //!
 //! ```text
 //! pfp                      = pfp serve
-//! pfp serve [--port N] [--no-open] [--no-trust] [--install-trust] [--state-dir DIR]
+//! pfp serve [--port N] [--no-open] [--no-trust] [--install-trust] [--state-dir DIR] [--verbose]
 //! pfp trust remove [--install-trust] [--state-dir DIR]
 //! pfp openapi              print the OpenAPI document and start nothing
 //! pfp --version | --help
@@ -16,7 +16,7 @@ use std::path::PathBuf;
 
 /// The text of `pfp --help`.
 pub const USAGE: &str = "\
-usage: pfp [serve] [--port N] [--no-open] [--no-trust] [--install-trust] [--state-dir DIR]
+usage: pfp [serve] [--port N] [--no-open] [--no-trust] [--install-trust] [--state-dir DIR] [--verbose]
        pfp trust remove [--install-trust] [--state-dir DIR]
        pfp openapi
        pfp --version | --help
@@ -32,6 +32,8 @@ serve (the default) starts the local application on https://127.0.0.1:<port>.
                    authority (or, with `trust remove`, to remove it). Nothing is ever
                    installed or removed without it.
   --state-dir DIR  where the lock file and the local certificate live.
+  --verbose        print every server event to stderr: event codes, request
+                   routes and statuses only - no secret and no request content.
 ";
 
 /// The application's usual port: the stable preferred port of `SECURITY.md` §6.3
@@ -71,6 +73,9 @@ impl PortChoice {
 }
 
 /// Options of `pfp serve`.
+// Each bool is one independent command-line switch; a state machine would only
+// obscure the one-to-one mapping from flag to field.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ServeArgs {
     /// `--port`.
@@ -83,6 +88,8 @@ pub struct ServeArgs {
     pub install_trust: bool,
     /// `--state-dir DIR`.
     pub state_dir: Option<PathBuf>,
+    /// `--verbose`: echo every server event (codes, routes and statuses only).
+    pub verbose: bool,
 }
 
 /// Options of `pfp trust remove`.
@@ -162,6 +169,7 @@ pub fn parse(args: &[String]) -> Result<Command, UsageError> {
             "--no-open" => out.no_open = true,
             "--no-trust" => out.no_trust = true,
             "--install-trust" => out.install_trust = true,
+            "--verbose" => out.verbose = true,
             "--port" => {
                 let port: u16 = value(&mut rest, "--port needs a number")?
                     .parse()
@@ -217,11 +225,13 @@ mod tests {
             "--install-trust",
             "--state-dir",
             "/x y",
+            "--verbose",
         ]) else {
             panic!("serve");
         };
         assert_eq!(args.port, PortChoice::Prefer(8443));
-        assert!(args.no_open && args.no_trust && args.install_trust);
+        assert!(args.no_open && args.no_trust && args.install_trust && args.verbose);
+        assert!(!ServeArgs::default().verbose, "quiet unless asked");
         assert_eq!(args.state_dir, Some(PathBuf::from("/x y")));
         // Port 0 means "no preference": OS-assigned, and no probe to fail.
         let Ok(Command::Serve(zero)) = p(&["--port", "0"]) else {

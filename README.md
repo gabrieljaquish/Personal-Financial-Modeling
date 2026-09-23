@@ -192,6 +192,7 @@ PFP-READY origin=https://127.0.0.1:<port> fingerprint=SHA256:<AA:BB:…> trust=d
 | `--no-open` | Do not open a browser |
 | `--no-trust` | Do not read or change any trust setting; the certificate fingerprint is printed for manual comparison. Wins over `--install-trust` |
 | `--install-trust` | The explicit opt-in without which nothing is ever installed into, or removed from, the trust settings |
+| `--verbose` | Print every server event to stderr, not only warnings and errors: the event code, the request method, the route template and the status. Never a token, cookie, fragment or path. Use it when a launch does not connect |
 | `--state-dir DIR` | Where the single-instance lock and the local certificate live (default `~/Library/Application Support/<application identifier>`, the placeholder identifier in `crates/pfp-app/src/identity.rs`); created `0700`, the key file `0600` |
 
 `pfp --version`, `pfp --help` and `pfp openapi` (prints the OpenAPI document) start nothing.

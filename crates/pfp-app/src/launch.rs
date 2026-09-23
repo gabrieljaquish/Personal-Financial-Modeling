@@ -146,6 +146,7 @@ fn prepare(
 
     let mut config = ServerConfig::new(material);
     config.preferred_port = args.port.preferred();
+    config.verbose_events = args.verbose;
     config.assets = AssetManifest::embedded().map_err(|e| failed(e.to_string()))?;
     config.trust_mode = trust_mode;
     config.relaunch = can_open
