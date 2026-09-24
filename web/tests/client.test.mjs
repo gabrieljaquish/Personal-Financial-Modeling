@@ -78,12 +78,36 @@ test('the request is a same-origin POST with the proof and no ambient authority 
     assert.equal(init.mode, 'same-origin');
     assert.equal(init.cache, 'no-store');
     assert.equal(init.redirect, 'error');
-    assert.equal(init.referrerPolicy, 'no-referrer');
+    assert.equal(init.referrerPolicy, 'strict-origin');
     assert.equal(init.headers[PROOF_HEADER], 'cd'.repeat(32));
   }
   assert.equal(api.calls[0].init.headers['Content-Type'], undefined);
   assert.equal(api.calls[0].init.body, undefined);
   assert.equal(api.calls[1].init.headers['Content-Type'], 'application/json');
+});
+
+// Fetch, "append a request Origin header", for a request our document makes to
+// one of its own URLs (same scheme, host and port, so neither the downgrade nor
+// the cross-origin condition of the referrer-policy switch can hold). `'null'` is
+// the literal a conforming engine puts on the wire, and Firefox is conforming.
+function serializedOriginOf(init, origin) {
+  if (init.method === 'GET' || init.method === 'HEAD') return undefined;
+  if (init.mode === 'cors') return origin;
+  return init.referrerPolicy === 'no-referrer' ? 'null' : origin;
+}
+
+test('the request options cannot make a conforming engine send `Origin: null`', async () => {
+  const ORIGIN = 'https://127.0.0.1:47443';
+  const api = fakeApiEnv(() => fakeResponse(200, '{}'));
+  await apiPost(api.env, '/api/v1/session/status');
+  const { init } = api.calls[0];
+  assert.equal(serializedOriginOf(init, ORIGIN), ORIGIN);
+  // A foreign URL must still throw in the client rather than become a CORS request.
+  assert.equal(init.mode, 'same-origin');
+  // The regression this guards: with the document's own `no-referrer` policy on
+  // the request, Firefox sent `Origin: null` and every bootstrap was refused with
+  // 403 `origin_forbidden` before the launch token was even read.
+  assert.equal(serializedOriginOf({ ...init, referrerPolicy: 'no-referrer' }, ORIGIN), 'null');
 });
 
 test('the client returns typed successes for the golden bodies', async () => {

@@ -389,6 +389,8 @@ Both factors are required on every API call: a leaked cookie alone, or a leaked 
 | Body size cap (1 MiB for actions; higher only for ciphertext upload) | everything | 413 |
 | `Access-Control-Allow-*`, `Access-Control-Allow-Private-Network` | everything | **never emitted, under any condition** |
 
+**The front end sends its API requests with `referrerPolicy: 'strict-origin'`, not the document's `no-referrer`.** Fetch's "append a request Origin header" step serialises `Origin` as `null` for a non-CORS-mode request that is not `GET`/`HEAD` under a `no-referrer` policy, and Firefox implements the step as written, so a same-origin `POST` made under the document's own policy arrives as `Origin: null` and the exact-`Origin` rule above refuses it (403, `origin_forbidden`) before the launch token is read; Chrome sends the real origin either way. Under `strict-origin` the step nulls `Origin` only on an https-to-http downgrade, impossible on one loopback origin, and the `Referer` it permits is exactly `https://127.0.0.1:<port>/` - the application's own origin. The rule itself is unchanged: `null` stays refused, because it is also what a sandboxed frame and a cross-site redirect send.
+
 `frame-ancestors 'none'` (7.3) holds on every route regardless. **`Host`, `Origin` and `Sec-Fetch-*` are browser-supplied, so this triad is a T2 control only** — a local non-browser client sets all of them freely. Against T3 the control is the session pair plus the one-session binding (7.1), never these headers.
 
 ### 7.3 Response headers (exact set)

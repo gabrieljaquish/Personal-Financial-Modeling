@@ -69,7 +69,7 @@ test('fragment token is exchanged, proof stored, fragment cleared first', async 
   assert.equal(init.credentials, 'same-origin');
   assert.equal(init.mode, 'same-origin');
   assert.equal(init.redirect, 'error');
-  assert.equal(init.referrerPolicy, 'no-referrer');
+  assert.equal(init.referrerPolicy, 'strict-origin');
 
   // The fragment was cleared before the request left, to a URL with no fragment.
   assert.deepEqual(calls.replaceState, [{ data: null, unused: '', url: '/', fetchesBefore: 0 }]);

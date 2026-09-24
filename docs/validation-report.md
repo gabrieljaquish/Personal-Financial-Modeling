@@ -226,7 +226,7 @@ Test attributes and `test(` declarations counted in the source tree: what is dec
 | pfp-server | 213 |
 | pfp-tax | 18 |
 | xtask | 103 |
-| web (node:test) | 196 |
+| web (node:test) | 197 |
 
 ## Unverified
 
