@@ -30,6 +30,7 @@ fn help_names_every_flag_and_no_way_to_obtain_a_token() {
         "--no-trust",
         "--install-trust",
         "--state-dir",
+        "--verbose",
         "trust remove",
         "openapi",
     ] {

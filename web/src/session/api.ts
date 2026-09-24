@@ -42,7 +42,7 @@ export type FetchLike = (
     mode: 'same-origin';
     cache: 'no-store';
     redirect: 'error';
-    referrerPolicy: 'no-referrer';
+    referrerPolicy: 'strict-origin';
   },
 ) => Promise<ResponseLike>;
 
@@ -144,7 +144,17 @@ export async function apiPost(
     mode: 'same-origin',
     cache: 'no-store',
     redirect: 'error',
-    referrerPolicy: 'no-referrer',
+    // Not `no-referrer`, although the document's own policy is. Fetch's "append
+    // a request Origin header" step serialises `Origin` as `null` for a
+    // non-CORS-mode request that is not GET/HEAD under `no-referrer`, and
+    // Firefox implements that step as written: the server's exact-`Origin` rule
+    // (SECURITY.md §7.2) then refuses our own POST as cross-origin. Under
+    // `strict-origin` the step nulls `Origin` only on an https-to-http downgrade,
+    // which cannot happen on one loopback origin, and the `Referer` it allows is
+    // exactly `https://127.0.0.1:<port>/` - our own origin, nothing more. The
+    // policy is set per request because the document's `no-referrer` would
+    // otherwise apply (client tests, "cannot be `null`").
+    referrerPolicy: 'strict-origin',
   };
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json';

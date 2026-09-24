@@ -1,18 +1,23 @@
 //! `pfp`: the launcher for the local web application (`ARCHITECTURE.md` §3).
 //!
 //! This file is the process boundary and nothing else; the behaviour is
-//! [`pfp_app::run`]. It is also the only place a real platform implementation
-//! could ever be constructed — and at M0 there is none: every build runs with
-//! `Platform::unsupported()`, which reads and changes no trust setting, shows no
-//! alert and opens no browser.
+//! [`pfp_app::run`]. It is also the only place a real platform implementation is
+//! constructed. On macOS that is the browser opener in `macos_opener.rs`
+//! (`LSOpenCFURLRef`, in-process); trust settings and native alerts stay
+//! unsupported, so no build reads or changes a trust setting or shows an alert.
+//! On any other system every platform service is unsupported.
 
 // Not an engine crate: the clock, the file system and process I/O are legitimate here.
-#![forbid(unsafe_code)]
+// `unsafe` is denied workspace-wide; the one module that calls C allows it locally.
+#![deny(unsafe_code)]
 #![allow(
     clippy::disallowed_types,
     clippy::disallowed_methods,
     clippy::disallowed_macros
 )]
+
+#[cfg(target_os = "macos")]
+mod macos_opener;
 
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -26,6 +31,9 @@ fn main() -> ExitCode {
     // HOME locates the default state directory; nothing secret is ever read from
     // the environment.
     let home = std::env::var_os("HOME").map(PathBuf::from);
+    #[cfg(target_os = "macos")]
+    let platform = macos_opener::platform();
+    #[cfg(not(target_os = "macos"))]
     let platform = pfp_app::platform::Platform::unsupported();
     let code = pfp_app::run(
         &args,

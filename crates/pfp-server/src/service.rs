@@ -167,18 +167,27 @@ impl App {
         let class = admission.unwrap_or_else(|_| RouteClass::of(&path));
         let template = route_template(class, &path);
 
+        // The stable error code of a refusal, recorded with the event (a
+        // compile-time string, never request data).
+        let mut refused_because: Option<&'static str> = None;
         let (mut response, code) = match admission {
             // hyper's own cap is on its read buffer and is checked between reads,
             // so a head somewhat over the cap can get through it. This check is
             // exact, and comes first: nothing about an oversized head is trusted.
-            _ if head_bytes(&request) > MAX_HEADER_BYTES => (
-                ApiError::HEADERS_TOO_LARGE.response(with_body),
-                EventCode::RequestRefused,
-            ),
-            Err(refusal) => (
-                refusal.error().response(with_body),
-                EventCode::RequestRefused,
-            ),
+            _ if head_bytes(&request) > MAX_HEADER_BYTES => {
+                refused_because = Some(ApiError::HEADERS_TOO_LARGE.code());
+                (
+                    ApiError::HEADERS_TOO_LARGE.response(with_body),
+                    EventCode::RequestRefused,
+                )
+            }
+            Err(refusal) => {
+                refused_because = Some(refusal.error().code());
+                (
+                    refusal.error().response(with_body),
+                    EventCode::RequestRefused,
+                )
+            }
             Ok(class) => {
                 let answer = tokio::time::timeout(
                     state.request_deadline,
@@ -203,9 +212,13 @@ impl App {
             },
             &state.csp,
         );
-        state
-            .events
-            .record_request(code, method, template, response.status().as_u16());
+        let status = response.status().as_u16();
+        match refused_because {
+            Some(reason) => state
+                .events
+                .record_refusal(method, template, status, reason),
+            None => state.events.record_request(code, method, template, status),
+        }
         response
     }
 

@@ -17,7 +17,7 @@ use crate::api::dto::TrustModeDto;
 use crate::assets::AssetManifest;
 use crate::bind::{bind_loopback, BindError};
 use crate::csp::{self, CspError};
-use crate::events::{EventCode, EventLog};
+use crate::events::{EventCode, EventLog, Level};
 use crate::limits::{EVENT_RING_CAPACITY, IDLE_CHECK_INTERVAL, REQUEST_DEADLINE};
 use crate::linger::{EarlyResponse, WatchedBody};
 use crate::origin::CanonicalOrigin;
@@ -103,6 +103,9 @@ pub struct ServerConfig {
     pub relaunch: Option<Arc<dyn RelaunchHook>>,
     /// What the launcher does when the session is replaced or goes idle.
     pub hooks: Arc<dyn SessionHooks>,
+    /// Echo every event to stderr, not only warnings and errors (`--verbose`).
+    /// Events carry codes, route templates and statuses only.
+    pub verbose_events: bool,
     #[doc(hidden)]
     pub test: TestKnobs,
 }
@@ -119,6 +122,7 @@ impl ServerConfig {
             trust_mode: TrustMode::Declined,
             relaunch: None,
             hooks: Arc::new(NoHooks),
+            verbose_events: false,
             test: TestKnobs::default(),
         }
     }
@@ -189,10 +193,12 @@ impl Server {
             TlsListener::new(bound, tls, config.test.accept).map_err(ServerError::Listen)?;
         let origin = CanonicalOrigin::of(listener.local_addr());
 
-        let events = Arc::new(EventLog::with_capacity(
-            EVENT_RING_CAPACITY,
-            config.test.echo_events_to_stderr,
-        ));
+        let echo_from = match (config.test.echo_events_to_stderr, config.verbose_events) {
+            (false, _) => None,
+            (true, false) => Some(Level::Warn),
+            (true, true) => Some(Level::Info),
+        };
+        let events = Arc::new(EventLog::with_echo(EVENT_RING_CAPACITY, echo_from));
         let sessions = Arc::new(SessionManager::new(
             Arc::clone(&config.test.clock),
             Arc::clone(&config.hooks),

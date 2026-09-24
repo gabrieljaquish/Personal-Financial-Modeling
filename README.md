@@ -166,8 +166,17 @@ recomputes the input hash in Rust: it fails if the recorded one differs. `pfp-se
 
 ### Run it
 
+To use the application, build the front end once and start it; it opens in your default
+browser:
+
 ```sh
 cargo xtask build-web --skip-install
+cargo run -p pfp-app -- serve
+```
+
+For scripts and tests, which must never open a browser or use the default state directory:
+
+```sh
 cargo run -p pfp-app -- serve --port 0 --no-open --no-trust --state-dir "$(mktemp -d)"
 ```
 
@@ -183,6 +192,7 @@ PFP-READY origin=https://127.0.0.1:<port> fingerprint=SHA256:<AA:BB:…> trust=d
 | `--no-open` | Do not open a browser |
 | `--no-trust` | Do not read or change any trust setting; the certificate fingerprint is printed for manual comparison. Wins over `--install-trust` |
 | `--install-trust` | The explicit opt-in without which nothing is ever installed into, or removed from, the trust settings |
+| `--verbose` | Print every server event to stderr, not only warnings and errors: the event code, the request method, the route template and the status. Never a token, cookie, fragment or path. Use it when a launch does not connect |
 | `--state-dir DIR` | Where the single-instance lock and the local certificate live (default `~/Library/Application Support/<application identifier>`, the placeholder identifier in `crates/pfp-app/src/identity.rs`); created `0700`, the key file `0600` |
 
 `pfp --version`, `pfp --help` and `pfp openapi` (prints the OpenAPI document) start nothing.
@@ -262,10 +272,13 @@ unproven, and waits for the Playwright and axe step:
 What to expect from the launcher at this step of M0:
 
 - The listener is `127.0.0.1` only and TLS only; there is no plaintext mode in any profile.
-- **No build in this repository opens a browser, shows an alert or touches a trust setting yet.**
-  The platform seam exists as traits; the macOS implementation arrives with the M0 trust spike.
-  Every run therefore behaves as `--no-open --no-trust`, the browser shows a certificate warning
-  for the local certificate, and the fingerprint on the `PFP-READY` line is what to compare.
+- **On macOS, `pfp serve` opens the application in your default browser** through Launch
+  Services, from inside the process (`crates/pfp-app/src/macos_opener.rs`), unless `--no-open` is
+  given. That opened tab is the only way in: see the next point.
+- **No build shows an alert or touches a trust setting yet** (the rest of the M0 trust spike).
+  Every run therefore behaves as `--no-trust`: the browser shows a certificate warning for the
+  local certificate the first time, and the fingerprint on the `PFP-READY` line is what to compare
+  before you accept it.
 - The session is established from a launch token that the launcher hands to the browser inside
   the URL fragment, in-process. The token is never printed and cannot be passed by flag,
   environment variable or file, so a page opened by typing the address shows "Not connected".
@@ -291,7 +304,10 @@ The seven M0 operations (`session/bootstrap`, `session/status`, `session/relaunc
 them appears in [ARCHITECTURE.md](docs/ARCHITECTURE.md) §5 under another method; each is an
 RPC-shaped operation; the one that takes financial input carries it in a body because URLs carry
 opaque ids only; and [SECURITY.md](docs/SECURITY.md) §7.2 requires an exact `Origin` on every
-`/api/**` request, which a browser sends on a `POST` and omits on a same-origin `GET`.
+`/api/**` request, which a browser sends on a `POST` and omits on a same-origin `GET`. What it
+sends on that `POST` is the real origin only under a referrer policy other than `no-referrer`
+(Fetch serialises `Origin` as `null` there, and Firefox does exactly that), which is why the front
+end pins `referrerPolicy: 'strict-origin'` on every API request (SECURITY.md §7.2).
 
 What remains is a disagreement about endpoints that do not exist yet: ARCHITECTURE.md §5 draws
 the M2 run reads as `GET`, which §7.2 as written would refuse. [PLAN.md](docs/PLAN.md) ("Reading

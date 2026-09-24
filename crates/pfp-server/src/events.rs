@@ -4,8 +4,9 @@
 //! An [`Event`] cannot carry content, by construction: its fields are an enum code,
 //! a `&'static str` method name and route **template**, and a status number. There
 //! is no field a request body, a header value, a token, a cookie, a path or an
-//! amount could be put into, so no call site can log one by mistake. Only `warn`
-//! and `error` events reach stderr, as the bare code.
+//! amount could be put into, so no call site can log one by mistake. By default
+//! only `warn` and `error` events reach stderr; `pfp serve --verbose` echoes every
+//! event, which is safe for the same reason.
 
 use std::collections::VecDeque;
 use std::fmt;
@@ -133,6 +134,9 @@ pub struct Event {
     pub route: Option<&'static str>,
     /// The response status, for request events.
     pub status: Option<u16>,
+    /// For a refused request, the stable error code of the refusal (a
+    /// compile-time string such as `fetch_site_forbidden`), never request data.
+    pub reason: Option<&'static str>,
 }
 
 impl fmt::Display for Event {
@@ -147,6 +151,9 @@ impl fmt::Display for Event {
         if let Some(status) = self.status {
             write!(f, " {status}")?;
         }
+        if let Some(reason) = self.reason {
+            write!(f, " {reason}")?;
+        }
         Ok(())
     }
 }
@@ -158,12 +165,15 @@ struct Ring {
 }
 
 /// The bounded in-memory event log. It is the real log; nothing is written to a
-/// file, and only `warn`/`error` codes are echoed to stderr.
+/// file. By default only `warn`/`error` codes are echoed to stderr; `pfp serve
+/// --verbose` echoes every code. An event holds only a code, a route template, a
+/// status and counters, so echoing all of them prints no token, cookie or path.
 #[derive(Debug)]
 pub struct EventLog {
     ring: Mutex<Ring>,
     capacity: usize,
-    echo_to_stderr: bool,
+    /// The lowest level echoed to stderr; `None` echoes nothing.
+    echo_from: Option<Level>,
 }
 
 impl Default for EventLog {
@@ -182,19 +192,26 @@ impl EventLog {
     /// A log with an explicit capacity; `echo_to_stderr` off keeps tests quiet.
     #[must_use]
     pub fn with_capacity(capacity: usize, echo_to_stderr: bool) -> Self {
+        Self::with_echo(capacity, echo_to_stderr.then_some(Level::Warn))
+    }
+
+    /// A log with an explicit capacity that echoes every event at or above
+    /// `echo_from` to stderr (`None`: echo nothing).
+    #[must_use]
+    pub fn with_echo(capacity: usize, echo_from: Option<Level>) -> Self {
         Self {
             ring: Mutex::new(Ring {
                 next_seq: 1,
                 events: VecDeque::with_capacity(capacity.min(EVENT_RING_CAPACITY)),
             }),
             capacity: capacity.max(1),
-            echo_to_stderr,
+            echo_from,
         }
     }
 
     /// Records an event that is not about a request.
     pub fn record(&self, code: EventCode) {
-        self.push(code, None, None, None);
+        self.push(code, None, None, None, None);
     }
 
     /// Records a request event: method name, route template and status only.
@@ -205,7 +222,25 @@ impl EventLog {
         route: &'static str,
         status: u16,
     ) {
-        self.push(code, Some(method), Some(route), Some(status));
+        self.push(code, Some(method), Some(route), Some(status), None);
+    }
+
+    /// Records a refused request: method name, route template, status and the
+    /// refusal's stable error code.
+    pub fn record_refusal(
+        &self,
+        method: &'static str,
+        route: &'static str,
+        status: u16,
+        reason: &'static str,
+    ) {
+        self.push(
+            EventCode::RequestRefused,
+            Some(method),
+            Some(route),
+            Some(status),
+            Some(reason),
+        );
     }
 
     fn push(
@@ -214,6 +249,7 @@ impl EventLog {
         method: Option<&'static str>,
         route: Option<&'static str>,
         status: Option<u16>,
+        reason: Option<&'static str>,
     ) {
         let event = {
             let mut ring = self.ring.lock().unwrap_or_else(PoisonError::into_inner);
@@ -223,6 +259,7 @@ impl EventLog {
                 method,
                 route,
                 status,
+                reason,
             };
             ring.next_seq += 1;
             if ring.events.len() == self.capacity {
@@ -237,7 +274,7 @@ impl EventLog {
         // the macOS platform module, before the first launchd-launched `.app`
         // build. Until then this echo is a terminal's stderr, and an `Event` can
         // only hold a code, a route template, a status and counters.
-        if self.echo_to_stderr && code.level() >= Level::Warn {
+        if self.echo_from.is_some_and(|from| code.level() >= from) {
             eprintln!("pfp: {event}");
         }
     }
@@ -262,6 +299,22 @@ mod tests {
     use super::*;
 
     #[test]
+    fn the_echo_threshold_is_warn_by_default_info_when_verbose_and_none_when_quiet() {
+        assert_eq!(EventLog::new().echo_from, Some(Level::Warn));
+        assert_eq!(
+            EventLog::with_capacity(4, true).echo_from,
+            Some(Level::Warn)
+        );
+        assert_eq!(EventLog::with_capacity(4, false).echo_from, None);
+        assert_eq!(
+            EventLog::with_echo(4, Some(Level::Info)).echo_from,
+            Some(Level::Info)
+        );
+        // Every code has a level, and Info is the lowest: verbose echoes them all.
+        assert!(Level::Info < Level::Warn && Level::Warn < Level::Error);
+    }
+
+    #[test]
     fn the_ring_is_bounded_and_keeps_the_newest() {
         let log = EventLog::with_capacity(3, false);
         for _ in 0..5 {
@@ -283,6 +336,23 @@ mod tests {
         assert_eq!(
             log.snapshot()[0].to_string(),
             "#1 request_served POST /api/v1/session/status 200"
+        );
+    }
+
+    #[test]
+    fn a_refusal_names_its_error_code_and_nothing_else() {
+        let log = EventLog::with_capacity(4, false);
+        log.record_refusal(
+            "POST",
+            "/api/v1/session/bootstrap",
+            403,
+            "fetch_site_forbidden",
+        );
+        let event = log.snapshot()[0];
+        assert_eq!(event.code, EventCode::RequestRefused);
+        assert_eq!(
+            event.to_string(),
+            "#1 request_refused POST /api/v1/session/bootstrap 403 fetch_site_forbidden"
         );
     }
 

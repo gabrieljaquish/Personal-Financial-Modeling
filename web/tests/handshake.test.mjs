@@ -69,7 +69,7 @@ test('fragment token is exchanged, proof stored, fragment cleared first', async 
   assert.equal(init.credentials, 'same-origin');
   assert.equal(init.mode, 'same-origin');
   assert.equal(init.redirect, 'error');
-  assert.equal(init.referrerPolicy, 'no-referrer');
+  assert.equal(init.referrerPolicy, 'strict-origin');
 
   // The fragment was cleared before the request left, to a URL with no fragment.
   assert.deepEqual(calls.replaceState, [{ data: null, unused: '', url: '/', fetchesBefore: 0 }]);
@@ -122,9 +122,28 @@ test('a refused token stores nothing and still clears the fragment', async () =>
     hash: `#t=${TOKEN}`,
     respond: () => ({ status: 401, body: { code: 'launch_token_invalid', message: 'x' } }),
   });
-  assert.deepEqual(await bootstrapSession(env), { kind: 'rejected' });
+  assert.deepEqual(await bootstrapSession(env), { kind: 'rejected', code: 'launch_token_invalid' });
   assert.deepEqual(calls.storage, []);
   assert.equal(calls.replaceState.length, 1);
+});
+
+test('a refusal by admission is reported with its code, never as a used launch link', async () => {
+  for (const code of ['fetch_site_forbidden', 'origin_forbidden']) {
+    const { env, calls } = fakeEnv({
+      hash: `#t=${TOKEN}`,
+      respond: () => ({ status: 403, body: { code, message: 'x' } }),
+    });
+    const state = await bootstrapSession(env);
+    assert.deepEqual(state, { kind: 'rejected', code });
+    assert.deepEqual(calls.storage, []);
+    const message = describeSession(state);
+    assert.ok(message.startsWith('Not connected'));
+    assert.ok(message.includes(code), message);
+    assert.ok(!message.includes('already used'), message);
+  }
+  // Without a code, and for the token's own refusal, the used-or-expired wording stays.
+  assert.match(describeSession({ kind: 'rejected' }), /already used or has expired/);
+  assert.match(describeSession({ kind: 'rejected', code: 'launch_token_invalid' }), /already used or has expired/);
 });
 
 test('a 200 without a well-formed proof is rejected and stores nothing', async () => {

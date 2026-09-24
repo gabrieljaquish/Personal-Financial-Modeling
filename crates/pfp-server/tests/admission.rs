@@ -120,6 +120,27 @@ async fn foreign_or_missing_origin_on_api_is_403() {
 }
 
 #[tokio::test]
+async fn the_front_ends_former_request_shape_is_403_and_its_current_one_is_admitted() {
+    // The named regression: a same-origin POST made under the document's
+    // `no-referrer` policy reaches the server as `Origin: null` from Firefox and
+    // WebKit, and `null` is refused because it is also what a sandboxed frame and
+    // a cross-site redirect send. The client pins `referrerPolicy: 'strict-origin'`
+    // for this reason (`web/src/session/api.ts`, SECURITY.md §7.2).
+    let server = HttpServer::start();
+    let former = server.send(server.api_under_no_referrer(STATUS)).await;
+    assert_eq!(
+        (former.status, former.code().as_str()),
+        (403, "origin_forbidden")
+    );
+    let current = server.send(server.api(STATUS)).await;
+    assert_eq!(
+        (current.status, current.code().as_str()),
+        (401, "session_required")
+    );
+    server.stop().await;
+}
+
+#[tokio::test]
 async fn api_fetch_site_absent_none_same_site_cross_site_is_403() {
     let server = HttpServer::start();
     for value in ["none", "same-site", "cross-site", "Same-Origin", ""] {
@@ -429,6 +450,11 @@ async fn refusals_are_logged_by_code_and_template_only() {
         .iter()
         .map(ToString::to_string)
         .collect();
-    assert_eq!(rendered, ["#1 request_refused POST /api/** 421"]);
+    // The refusal's stable code is named; the path as sent ("a-secret-name") never is.
+    assert_eq!(
+        rendered,
+        ["#1 request_refused POST /api/** 421 misdirected_host"]
+    );
+    assert!(!rendered[0].contains("secret"));
     server.stop().await;
 }
