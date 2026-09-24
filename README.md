@@ -304,7 +304,10 @@ The seven M0 operations (`session/bootstrap`, `session/status`, `session/relaunc
 them appears in [ARCHITECTURE.md](docs/ARCHITECTURE.md) §5 under another method; each is an
 RPC-shaped operation; the one that takes financial input carries it in a body because URLs carry
 opaque ids only; and [SECURITY.md](docs/SECURITY.md) §7.2 requires an exact `Origin` on every
-`/api/**` request, which a browser sends on a `POST` and omits on a same-origin `GET`.
+`/api/**` request, which a browser sends on a `POST` and omits on a same-origin `GET`. What it
+sends on that `POST` is the real origin only under a referrer policy other than `no-referrer`
+(Fetch serialises `Origin` as `null` there, and Firefox does exactly that), which is why the front
+end pins `referrerPolicy: 'strict-origin'` on every API request (SECURITY.md §7.2).
 
 What remains is a disagreement about endpoints that do not exist yet: ARCHITECTURE.md §5 draws
 the M2 run reads as `GET`, which §7.2 as written would refuse. [PLAN.md](docs/PLAN.md) ("Reading

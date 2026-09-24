@@ -223,10 +223,10 @@ Test attributes and `test(` declarations counted in the source tree: what is dec
 | pfp-explain | 18 |
 | pfp-money | 43 |
 | pfp-params | 32 |
-| pfp-server | 213 |
+| pfp-server | 214 |
 | pfp-tax | 18 |
 | xtask | 103 |
-| web (node:test) | 197 |
+| web (node:test) | 199 |
 
 ## Unverified
 

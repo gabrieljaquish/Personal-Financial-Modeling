@@ -339,13 +339,29 @@ impl HttpServer {
             .expect("tls connect")
     }
 
-    /// What a same-origin `fetch` from the front end sends.
+    /// What the front end's `fetch` sends (`web/src/session/api.ts`): `mode:
+    /// 'same-origin'` and `referrerPolicy: 'strict-origin'`, so the `Referer` is
+    /// the origin alone and the `Origin` is real. Recorded from Firefox and Chrome.
     pub(crate) fn api(&self, path: &str) -> Req {
         Req::new("POST", path)
             .header("Host", &self.host)
             .header("Origin", &self.origin)
+            .header("Referer", &format!("{}/", self.origin))
             .header("Sec-Fetch-Site", "same-origin")
-            .header("Sec-Fetch-Mode", "cors")
+            .header("Sec-Fetch-Mode", "same-origin")
+            .header("Sec-Fetch-Dest", "empty")
+    }
+
+    /// The same request as the front end sent it before `referrerPolicy:
+    /// 'strict-origin'`: a same-origin POST under the document's `no-referrer`
+    /// policy, which Fetch serialises with `Origin: null` and Firefox and Safari
+    /// send exactly so (`SECURITY.md` §7.2). Recorded from Firefox 155.
+    pub(crate) fn api_under_no_referrer(&self, path: &str) -> Req {
+        Req::new("POST", path)
+            .header("Host", &self.host)
+            .header("Origin", "null")
+            .header("Sec-Fetch-Site", "same-origin")
+            .header("Sec-Fetch-Mode", "same-origin")
             .header("Sec-Fetch-Dest", "empty")
     }
 

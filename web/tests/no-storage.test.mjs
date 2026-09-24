@@ -99,6 +99,33 @@ test('index.html has no inline script, style or event handler', () => {
   }
 });
 
+// --- Every request leaves through one `fetch` init ---------------------------------
+//
+// SECURITY.md §7.2: an API request must carry the real `Origin`, and under the
+// document's own `no-referrer` policy a conforming engine (Firefox, WebKit) sends
+// `Origin: null` on a same-origin POST. The policy that keeps it real is pinned
+// on the one init in `session/api.ts`; a second fetch site (the planned NDJSON
+// stream) must build its options here too, where this lint can see them.
+
+test('fetch is called only by the entry point and the session module', () => {
+  const callers = sources.filter(({ text }) => /\bfetch\(/.test(text)).map(({ file }) => file);
+  assert.deepEqual(callers.sort(), ['src/main.tsx', 'src/session/api.ts']);
+});
+
+test('every request option literal keeps Origin real: strict-origin and same-origin mode', () => {
+  let pinned = 0;
+  for (const { file, text } of sources) {
+    for (const [, policy] of text.matchAll(/referrerPolicy:\s*'([^']*)'/g)) {
+      pinned += 1;
+      assert.equal(policy, 'strict-origin', `${file} sets referrerPolicy ${policy}`);
+    }
+    for (const [, mode] of text.matchAll(/\bmode:\s*'([^']*)'/g)) {
+      assert.equal(mode, 'same-origin', `${file} sets mode ${mode}`);
+    }
+  }
+  assert.ok(pinned >= 1, 'the policy is set somewhere');
+});
+
 // --- The browser is reached through `AppEnv` only ---------------------------------
 
 test('window, document and object URLs are named only by the entry point', () => {
